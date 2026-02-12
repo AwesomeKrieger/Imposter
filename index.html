@@ -74,12 +74,17 @@
         const { useState, useEffect } = React;
 
         const GITHUB_TOPICS_URL = "https://raw.githubusercontent.com/AwesomeKrieger/Imposter/main/topics.json";
-        const AI_MODEL = "gemini-2.5-flash-lite"; // Füge diesen State oben bei den anderen hinzu:
-const [aiWordPool, setAiWordPool] = useState({}); // Format: { "Thema": [{word, hint}, ...] }
+        const AI_MODEL = "gemini-2.5-flash-lite"; 
 
 
         const App = () => {
             const [data, setData] = useState(null);
+    const [aiWordPool, setAiWordPool] = useState(() => {
+        const saved = localStorage.getItem('imp_word_pool_v1');
+        return saved ? JSON.parse(saved) : {};
+    });
+
+
             const [groups, setGroups] = useState([]);
             const [selectedGroup, setSelectedGroup] = useState("BELIEBT");
             const [subCats, setSubCats] = useState([]);
