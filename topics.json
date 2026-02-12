@@ -26,8 +26,8 @@
         ["Kaffee", "Tee"], ["Burger", "Pommes"], ["Zwiebel", "Knoblauch"], ["Salz", "Pfeffer"], ["Cola", "Fanta"], ["Apfel", "Birne"], ["Ketchup", "Mayo"], ["Fleisch", "Vegan"], ["Nudeln", "Reis"], ["Brot", "Brötchen"], ["Eis", "Kuchen"], ["Döner", "Falafel"], ["Currywurst", "Bratwurst"], ["Schokolade", "Gummibärchen"], ["Zitrone", "Limette"], ["Wasser", "Saft"], ["Milch", "Hafer"], ["Käse", "Wurst"], ["Honig", "Marmelade"], ["Ei", "Omelett"], ["Suppe", "Eintopf"], ["Steak", "Schnitzel"], ["Chips", "Flips"], ["Gurke", "Tomate"], ["Paprika", "Chili"], ["Wein", "Bier"], ["Zucker", "Süßstoff"], ["Mehl", "Hefe"], ["Ananas", "Toast"], ["Döner", "Lahmacun"], ["Spaghetti", "Penne"], ["Lasagne", "Auflauf"], ["Spinat", "Brokkoli"], ["Karotte", "Erbse"], ["Mais", "Bohne"], ["Kartoffel", "Reis"], ["Knödel", "Spätzle"], ["Bratkartoffeln", "Püree"], ["Müsli", "Cornflakes"], ["Joghurt", "Quark"], ["Pfannkuchen", "Waffel"], ["Honig", "Sirup"], ["Nuss", "Mandel"], ["Erdbeere", "Himbeere"], ["Banane", "Kiwi"], ["Mango", "Papaya"], ["Melone", "Wassermelone"], ["Pfirsich", "Nektarine"], ["Kirsche", "Pflaume"], ["Traube", "Rosine"], ["Essig", "Öl"], ["Senf", "Meerrettich"], ["Basilikum", "Oregano"], ["Petersilie", "Schnittlauch"], ["Rosmarin", "Thymian"], ["Zimt", "Vanille"], ["Paprikapulver", "Curry"], ["Ingwer", "Kurkuma"], ["Sojasoße", "Teriyaki"], ["Balsamico", "Dressing"], ["Parmesan", "Mozzarella"], ["Gouda", "Emmentaler"], ["Schinken", "Salami"], ["Speck", "Bacon"], ["Lachs", "Thunfisch"], ["Garnele", "Krabbe"], ["Forelle", "Zander"], ["Hähnchen", "Pute"], ["Rind", "Schwein"], ["Lamm", "Wild"], ["Leberwurst", "Mett"], ["Brezel", "Laugengebäck"], ["Croissant", "Bagel"], ["Donut", "Muffin"], ["Brownie", "Cookie"], ["Pudding", "Götterspeise"], ["Espresso", "Latte"], ["Cappuccino", "Macchiato"], ["Eistee", "Limo"], ["Energy", "Mate"], ["Sekt", "Champagner"], ["Cocktail", "Longdrink"], ["Gin", "Wodka"], ["Whisky", "Rum"], ["Tequila", "Ouzo"], ["Shot", "Glas"], ["Strohhalm", "Becher"], ["Teller", "Schüssel"], ["Messer", "Gabel"], ["Löffel", "Stäbchen"], ["Pfanne", "Topf"], ["Ofen", "Herd"]
       ]
     }
-  }
-    "Sport": {
+  },
+  "Sport": {
     "Fussball": {
       "examples": ["Rasen", "Taktik", "Kurve", "Leidenschaft"],
       "pairs": [
@@ -111,5 +111,4 @@
       ]
     }
   }
-
 }
