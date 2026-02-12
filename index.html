@@ -187,7 +187,7 @@
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black uppercase opacity-60">Verräter:</label>
                                         <select value={imposterCount} onChange={e => setImposterCount(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
-                                            {[1,2,3,4,5].filter(n => n < players.length).map(n => <option key={n} value={n}>{n} Spieler</option>)}
+                                            {[1,2,3,4,5,6,7,8,9].filter(n => n < players.length).map(n => <option key={n} value={n}>{n} Spieler</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-1">
@@ -201,7 +201,7 @@
                                 <div className="space-y-2 pt-2">
                                     <div className="flex justify-between items-center">
                                         <span className="font-black text-[10px] uppercase underline">Mitspieler & Stats:</span>
-                                        <button onClick={() => setPlayers([...players, `Spieler ${players.length+1}`])} className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black uppercase">+ Add</button>
+                                        <button onClick={() => players.length && setPlayers([...players, `Spieler ${players.length+1}`])} className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black uppercase">+ Add</button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-1 max-h-20 overflow-y-auto border border-black p-1 bg-gray-50">
                                         {players.map((p, i) => (
