@@ -124,7 +124,12 @@
                     else if (rng < 0.10) chaos = "NONE";
 
                     if (selectedGroup === "EIGENE") {
-                        const promptText = `Wort|Hinweis. EIN WORT. Thema: "${selectedSub}". Nicht: ${usedWords.slice(-5).join(",")}`;
+                        const promptText = `Du bist ein Spiel-Master. Das Thema ist "${selectedSub}". 
+Wähle ein SPEZIFISCHES Wort aus diesem Bereich (z.B. wenn Thema "Obst", wähle "Banane").
+Antworte NUR im Format: Wort|Hinweis.
+Wort und Hinweis müssen EINZELNE Wörter sein. 
+Das Wort darf NICHT "${selectedSub}" sein!`;
+
                         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
