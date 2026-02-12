@@ -3,25 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMPOSTER.AI | PRO + STATS</title>
+    <title>IMPOSTER.AI | PRO</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         html, body { 
-            background-color: #ffffff; color: #000; 
+            background-color: #ffffff; 
+            color: #000; 
             font-family: -apple-system, sans-serif; 
             margin: 0; padding: 0;
             height: 100%; width: 100%;
-            overflow: hidden; position: fixed; touch-action: none; 
+            overflow: hidden; 
+            position: fixed; 
+            touch-action: none; 
         }
         .neo-box { border: 4px solid #000; box-shadow: 6px 6px 0px 0px #000; }
         .progress-fill { height: 100%; background: #ef4444; transition: width 0.4s ease-out; width: 0%; }
         .scroll-container { 
-            flex-grow: 1; overflow-y: auto !important; 
-            -webkit-overflow-scrolling: touch; border: 3px solid black; 
-            background: #fafafa; touch-action: pan-y;
+            flex-grow: 1;
+            overflow-y: auto !important; 
+            -webkit-overflow-scrolling: touch;
+            border: 3px solid black; 
+            background: #fafafa;
+            touch-action: pan-y;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .main-container { height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 1rem; }
@@ -77,7 +83,7 @@
                     setData(json);
                     setGroups(["BELIEBT", "EIGENE", ...Object.keys(json)]);
                     updateView("BELIEBT", json, customTopics);
-                }).catch(err => console.error("Ladefehler:", err));
+                });
             }, []);
 
             const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
@@ -96,11 +102,14 @@
                 setSelectedSub(list[0]?.name || "");
             };
 
+            const addPlayer = () => players.length < 10 && setPlayers([...players, `Spieler ${players.length + 1}`]);
+            const removePlayer = (idx) => players.length > 3 && setPlayers(players.filter((_, i) => i !== idx));
+
             const startGame = async () => {
                 if(selectedGroup === "EIGENE" && !apiKey) return alert("API Key fehlt!");
-                
                 setLoading(true);
-                setVisualProgress(30);
+                setVisualProgress(50);
+                
                 let word = "", hint = "", chaos = "";
                 let indices = [];
 
@@ -110,7 +119,7 @@
                     else if (rng < 0.10) chaos = "NONE";
 
                     if (selectedGroup === "EIGENE") {
-                        const promptText = `Thema: "${selectedSub}". Antworte NUR: Wort|Hinweis. BEIDE müssen genau EIN Wort sein. Keine Sätze! Genutzt: ${usedWords.slice(-10).join(",")}`;
+                        const promptText = `Antworte NUR: Wort|Hinweis. Beides GENAU EIN WORT. Thema: "${selectedSub}". Nicht: ${usedWords.slice(-5).join(",")}`;
                         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
@@ -123,9 +132,7 @@
                     } else {
                         const target = subCats.find(c => c.name === selectedSub);
                         const catData = data[target.parent][selectedSub];
-                        let available = catData.pairs.filter(p => !usedWords.includes(p[0]) && !usedWords.includes(p[1]));
-                        if (available.length === 0) { setUsedWords([]); available = catData.pairs; }
-                        const pair = available[Math.floor(Math.random() * available.length)];
+                        const pair = catData.pairs[Math.floor(Math.random() * catData.pairs.length)];
                         const flip = Math.random() > 0.5;
                         word = flip ? pair[0] : pair[1];
                         hint = flip ? pair[1] : pair[0];
@@ -149,9 +156,9 @@
                     setUsedWords(p => [...p, word]);
                     setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos });
                     setTimeLeft(timerMinutes * 60);
-                    setGameState('reveal');
-                } catch (e) { alert("Fehler: " + e.message); }
-                setLoading(false);
+                    setVisualProgress(100);
+                    setTimeout(() => { setGameState('reveal'); setLoading(false); }, 400);
+                } catch (e) { alert("Fehler!"); setLoading(false); }
             };
 
             const formatTime = (s) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2, '0')}`;
@@ -160,74 +167,79 @@
 
             return (
                 <div className="main-container">
-                    <h1 className="text-4xl font-black italic mb-2 border-b-8 border-red-600 uppercase tracking-tighter">Imposter.ai</h1>
+                    <h1 className="text-4xl font-black italic mb-4 border-b-8 border-red-600 tracking-tighter shrink-0 uppercase">Imposter.ai</h1>
 
-                    <div className="game-card bg-white p-5 neo-box space-y-3">
+                    <div className="game-card bg-white p-5 neo-box space-y-4">
                         {loading ? (
-                            <div className="p-10 text-center space-y-4"><div className="font-black text-xl italic uppercase">Generiere...</div><div className="w-full border-4 border-black h-8"><div className="progress-fill" style={{width: '100%'}}></div></div></div>
+                             <div className="flex flex-col items-center justify-center p-10 space-y-4">
+                                <div className="font-black text-xl italic uppercase">Wähle Begriffe...</div>
+                                <div className="w-full border-4 border-black h-8 bg-white"><div className="progress-fill" style={{width: `${visualProgress}%`}}></div></div>
+                            </div>
                         ) : gameState === 'setup' ? (
                             <>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase">Verräter:</label>
-                                        <select value={imposterCount} onChange={e => setImposterCount(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold">
-                                            {[1,2,3,4,5].filter(n => n < players.length).map(n => <option key={n} value={n}>{n}</option>)}
+                                        <label className="text-[10px] font-black uppercase opacity-60">Verräter:</label>
+                                        <select value={imposterCount} onChange={e => setImposterCount(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
+                                            {[1,2,3,4,5].filter(n => n < players.length).map(n => <option key={n} value={n}>{n} Spieler</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase">Zeit:</label>
-                                        <select value={timerMinutes} onChange={e => setTimerMinutes(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold">
+                                        <label className="text-[10px] font-black uppercase opacity-60">Zeit:</label>
+                                        <select value={timerMinutes} onChange={e => setTimerMinutes(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
                                             {[0,1,2,3,4,5].map(m => <option key={m} value={m}>{m > 0 ? m+' Min.' : 'Aus'}</option>)}
                                         </select>
                                     </div>
                                 </div>
 
-                                <div className="space-y-1">
-                                    <div className="flex justify-between items-center px-1">
-                                        <span className="font-black text-[10px] uppercase underline">Spieler:</span>
-                                        <button onClick={() => setPlayers([...players, `Spieler ${players.length+1}`])} className="text-[10px] font-black">+ NEU</button>
+                                <div className="space-y-2 pt-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-black text-[10px] uppercase">Mitspieler & Stats:</span>
+                                        <button onClick={addPlayer} className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black">+ ADD</button>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-1 max-h-24 overflow-y-auto border-2 border-black p-1 bg-gray-50">
+                                    <div className="grid grid-cols-2 gap-1 max-h-20 overflow-y-auto border border-black p-1 bg-gray-50">
                                         {players.map((p, i) => (
-                                            <div key={i} className="flex bg-white border border-black">
-                                                <input value={p} onChange={e => {let n=[...players]; n[i]=e.target.value; setPlayers(n);}} className="w-full p-1 text-[10px] font-bold uppercase outline-none" />
+                                            <div key={i} className="flex border border-black bg-white">
+                                                <input value={p} onChange={e => {let n=[...players]; n[i]=e.target.value; setPlayers(n);}} className="w-full p-1 text-[10px] font-bold outline-none uppercase" />
                                                 <span className="text-[9px] font-black bg-yellow-400 px-1 border-l border-black flex items-center">🕵️{stats[p] || 0}</span>
-                                                <button onClick={() => players.length > 3 && setPlayers(players.filter((_, idx) => idx !== i))} className="bg-red-500 text-white px-1">×</button>
+                                                <button onClick={() => removePlayer(i)} className="bg-red-500 text-white px-1 font-black">×</button>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar border-t-2 border-black pt-2">
+                                <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2">
                                     {groups.map(g => (
-                                        <button key={g} onClick={() => updateView(g)} className={`px-3 py-1 border-2 border-black font-black text-[10px] uppercase ${selectedGroup === g ? 'bg-red-600 text-white' : 'bg-white'}`}>{g}</button>
+                                        <button key={g} onClick={() => updateView(g)} className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap ${selectedGroup === g ? 'bg-red-600 text-white' : 'bg-white'}`}>{g}</button>
                                     ))}
                                 </div>
 
                                 <div className="scroll-container hide-scrollbar">
                                     {subCats.map(s => (
-                                        <button key={s.name} onClick={() => setSelectedSub(s.name)} className={`w-full p-3 border-b-2 border-black font-black text-left text-xs uppercase ${selectedSub === s.name ? 'bg-black text-white' : 'bg-white'}`}>{s.name}</button>
+                                        <button key={s.name} onClick={() => setSelectedSub(s.name)} className={`w-full p-4 border-b-2 border-black font-black text-left text-sm uppercase transition-colors ${selectedSub === s.name ? 'bg-black text-white' : 'bg-white active:bg-gray-200'}`}>
+                                            {selectedSub === s.name ? "➔ " : ""}{s.name}
+                                        </button>
                                     ))}
                                 </div>
 
-                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box uppercase">Start</button>
-                                <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] opacity-10" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
+                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box active:bg-red-700 uppercase">Start</button>
+                                <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
                             </>
                         ) : gameState === 'reveal' ? (
-                            <div className="py-4 flex flex-col items-center space-y-4">
-                                <h2 className="text-2xl font-black uppercase italic underline">{players[gameData.currentPlayer]}</h2>
+                            <div className="space-y-6 py-4 flex flex-col items-center">
+                                <h2 className="text-2xl font-black uppercase italic border-b-4 border-black px-4">{players[gameData.currentPlayer]}</h2>
                                 <div onClick={() => setGameData({...gameData, showingWord: true})} 
                                      className={`w-full h-64 flex flex-col items-center justify-center border-4 border-black p-6 
                                      ${gameData.showingWord ? (gameData.imposterIndices.includes(gameData.currentPlayer) ? 'bg-black text-white' : 'bg-red-600 text-white') : 'bg-gray-100 animate-pulse'}`}>
                                     {gameData.showingWord ? (
                                         gameData.imposterIndices.includes(gameData.currentPlayer) ? (
                                             <div className="text-center">
-                                                <div className="text-red-500 font-black text-xl uppercase">Du bist</div>
-                                                <div className="text-5xl font-black uppercase">Imposter</div>
-                                                <div className="mt-6 p-2 border-2 border-white font-bold text-sm uppercase">Tipp: {gameData.hint}</div>
+                                                <div className="text-red-500 font-black text-xl mb-1 uppercase">Du bist</div>
+                                                <div className="text-5xl font-black tracking-tighter uppercase">Imposter</div>
+                                                <div className="mt-6 p-3 border-2 border-white text-sm font-bold uppercase">Tipp: {gameData.hint}</div>
                                             </div>
-                                        ) : <span className="text-5xl font-black uppercase text-center">{gameData.word}</span>
-                                    ) : <span className="text-xl font-black uppercase underline">Anzeigen</span>}
+                                        ) : <span className="text-5xl font-black uppercase tracking-tighter text-center">{gameData.word}</span>
+                                    ) : <span className="text-2xl font-black italic underline uppercase text-black">Anzeigen</span>}
                                 </div>
                                 {gameData.showingWord && (
                                     <button onClick={() => {
@@ -239,21 +251,20 @@
                         ) : gameState === 'play' ? (
                             <div className={`py-12 flex flex-col items-center space-y-8 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'timer-warn' : ''}`}>
                                 {timerMinutes > 0 && <div className="text-6xl font-black px-6 py-2 border-4 border-black neo-box">{formatTime(timeLeft)}</div>}
-                                <h2 className="text-5xl font-black text-center uppercase italic">Diskutiert!</h2>
+                                <h2 className="text-6xl font-black text-red-600 italic animate-bounce uppercase">Diskussion!</h2>
                                 <button onClick={() => setGameState('finish')} className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase">Auflösen</button>
                             </div>
                         ) : (
-                            <div className="py-6 flex flex-col items-center space-y-4 text-center">
-                                <h2 className="text-xl font-black uppercase underline">
+                            <div className="py-10 flex flex-col items-center space-y-6 text-center">
+                                <h2 className="text-2xl font-black uppercase underline">
                                     {gameData.chaosMode === "ALL" ? "ALLE WAREN IMPOSTER!" : 
-                                     gameData.chaosMode === "NONE" ? "NIEMAND WAR IMPOSTER!" : "Verräter:"}
+                                     gameData.chaosMode === "NONE" ? "NIEMAND WAR IMPOSTER!" : "Die Verräter:"}
                                 </h2>
                                 {gameData.imposterIndices.length > 0 ? gameData.imposterIndices.map(idx => (
-                                    <div key={idx} className="text-4xl font-black text-red-600 italic uppercase">{players[idx]}</div>
+                                    <div key={idx} className="text-4xl font-black text-red-600 italic uppercase tracking-tighter">{players[idx]}</div>
                                 )) : <div className="text-4xl font-black text-green-600 italic uppercase">Keiner!</div>}
-                                <div className="text-md font-bold bg-gray-100 p-3 border-2 border-black uppercase mt-4">Wort: {gameData.word}</div>
+                                <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase mt-4">Wort: {gameData.word}</div>
                                 <button onClick={() => setGameState('setup')} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase">Neu</button>
-                                <button onClick={() => setStats({})} className="text-[10px] font-black uppercase underline opacity-30">Stats Reset</button>
                             </div>
                         )}
                     </div>
