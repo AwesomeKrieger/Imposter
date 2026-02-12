@@ -233,10 +233,10 @@ Wähle ein SPEZIFISCHES Wort aus diesem Bereich. Antworte NUR im Format: Wort|Hi
                                         </button>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase opacity-60">Zeit:</label>
+                                        <label className="text-[10px] font-black uppercase opacity-60">Zeitlimit:</label>
                                         <select value={timerMinutes} onChange={e => setTimerMinutes(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
                                             {[0,1,2,3,5,10].map(m => <option key={m} value={m}>
-  {m === 0 ? "AUS" : `${m}m`}                                                
+  {m === 0 ? "AUS" : `${m}min`}                                                
                                                 </option>)}
                                         </select>
                                     </div>
