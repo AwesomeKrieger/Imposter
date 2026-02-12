@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMPOSTER</title>
+    <title>IMPOSTER.AI</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -28,7 +28,15 @@
         input:checked + .slider:before { transform: translateX(22px); background-color: #fff; }
 
         .word-box { min-height: 14rem; display: flex; align-items: center; justify-content: center; text-align: center; padding: 1rem; width: 100%; overflow: hidden; }
-        .dynamic-text { word-wrap: break-word; overflow-wrap: break-word; width: 100%; line-height: 1.1; font-weight: 900; text-transform: uppercase; }
+        
+        /* Erzwingt Einzeiler */
+        .dynamic-text { 
+            white-space: nowrap; 
+            display: block;
+            width: 100%;
+            font-weight: 900; 
+            text-transform: uppercase; 
+        }
     </style>
 </head>
 <body>
@@ -55,13 +63,16 @@
                 localStorage.setItem('imp_key', apiKey);
             }, [players, apiKey]);
 
+            // Dynamische Schriftgröße für Einzeiler-Zwang
             const getDynamicStyle = (text, factor = 1) => {
                 const len = text ? text.length : 0;
-                let size = 3; 
-                if (len > 20) size = 1.2;
-                else if (len > 15) size = 1.6;
-                else if (len > 10) size = 2.2;
-                else if (len > 5) size = 2.8;
+                let size = 3.5; 
+                if (len > 25) size = 0.9;
+                else if (len > 20) size = 1.1;
+                else if (len > 15) size = 1.4;
+                else if (len > 10) size = 2.0;
+                else if (len > 7) size = 2.8;
+                
                 return { fontSize: `${size * factor}rem` };
             };
 
@@ -72,10 +83,9 @@
                 try {
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
                     
-                    // Neuer Prompt für normale, aber nicht zu einfache Begriffe
                     const promptText = withHint 
-                        ? `Wähle zwei normale, gut erratbare Begriffe zum Thema "${topic}". Sie sollen keine extremen Klischees sein (z.B. nicht "Pizza" bei Essen), aber für jeden verständlich. Trenne sie mit einem Komma. Nur die Wörter ausgeben.`
-                        : `Wähle ein gängiges Substantiv zum Thema "${topic}". Es soll kein Kinderspiel sein, aber auch nicht zu abstrakt. Nur das Wort ausgeben.`;
+                        ? `Wähle zwei Begriffe zum Thema "${topic}". Wichtig: Nutze jeweils nur EIN EINZELNES WORT pro Begriff. Keine Sätze, keine Bindestriche. Trenne sie mit einem Komma. Nur Wörter ausgeben.`
+                        : `Wähle EIN EINZELNES Substantiv zum Thema "${topic}". Nur das Wort ausgeben, keine Begleiter.`;
                     
                     const response = await fetch(url, {
                         method: 'POST',
@@ -85,7 +95,9 @@
                     const data = await response.json();
                     const text = data.candidates[0].content.parts[0].text.trim();
                     setStatus("Wort gefunden!");
-                    return withHint ? text.split(',').map(s => s.trim()) : [text];
+                    // Filtert alles außer Buchstaben und Komma zur Sicherheit
+                    const cleanText = text.replace(/[^a-zA-ZäöüÄÖÜß,]/g, '');
+                    return withHint ? cleanText.split(',').map(s => s.trim()) : [cleanText];
                 } catch (e) { setStatus("Fehler."); return null; } finally { setLoading(false); }
             };
 
@@ -147,7 +159,7 @@
                                             </button>
                                         ))}
                                     </div>
-                                    <input className="w-full p-3 border-2 border-black font-black uppercase text-center bg-yellow-50" value={category} onChange={e => setCategory(e.target.value)} placeholder="Eigenes Thema..." />
+                                    <input className="w-full p-3 border-2 border-black font-black uppercase text-center bg-yellow-50" value={category} onChange={e => setCategory(e.target.value)} placeholder="Thema..." />
                                 </section>
 
                                 <button disabled={loading} onClick={startGame} className="w-full bg-red-600 text-white font-black py-5 uppercase text-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all">
@@ -160,7 +172,7 @@
                         {gameState === 'reveal' && (
                             <div className="space-y-8 py-4">
                                 <div className="inline-block px-4 border-b-4 border-red-600">
-                                    <h2 className="dynamic-text italic" style={getDynamicStyle(players[gameData.currentPlayer], 0.8)}>
+                                    <h2 className="dynamic-text italic" style={getDynamicStyle(players[gameData.currentPlayer], 0.7)}>
                                         {players[gameData.currentPlayer]}
                                     </h2>
                                 </div>
@@ -174,7 +186,7 @@
                                             {gameData.currentPlayer === gameData.imposterIdx ? (
                                                 <div className="flex flex-col items-center gap-4">
                                                     {hintMode && (
-                                                        <p className="dynamic-text border-b-2 border-white/30 pb-2 italic" style={getDynamicStyle(gameData.words[gameData.currentPlayer])}>
+                                                        <p className="dynamic-text border-b-2 border-white/30 pb-2 italic" style={getDynamicStyle(gameData.words[gameData.currentPlayer], 0.9)}>
                                                             {gameData.words[gameData.currentPlayer]}
                                                         </p>
                                                     )}
