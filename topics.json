@@ -407,7 +407,36 @@
         ["Pfanne", "Herd"],
         ["Ofen", "Backen"]
       ]
+    },
+    
+ 
+    "Spicy": {
+      "pairs": [
+        ["Handschellen", "Bürokratie"], ["Vibrator", "Maschinenbau"], ["Peitsche", "Zirkuszelt"],
+        ["Kondom", "Versicherungspolice"], ["Gleitgel", "Schmiermittel"], ["Latex", "Chemiewerk"],
+        ["Knutschfleck", "Souvenir"], ["Fesselspiel", "Segelschiff"], ["Blindfold", "Nachtwanderung"],
+        ["Striptease", "Zwiebelschale"], ["Dirty Talk", "Podcast"], ["Orgie", "Großbaustelle"],
+        ["Sextoy", "Batteriefach"], ["Bondage", "Gerüstbau"], ["Schlafzimmer", "Ruheraum"],
+        ["Höschen", "Textilindustrie"], ["Kamasutra", "Geometrieunterricht"], ["Dominanz", "Vorstandsetage"],
+        ["Wachs", "Imkerei"], ["Rollenspiel", "Karneval"], ["Massageöl", "Wellnessurlaub"],
+        ["Analkette", "Schmuckkästchen"], ["Nippelclip", "Büroklammer"], ["Dildo", "Skulptur"],
+        ["Swingertreff", "Tauschbörse"], ["Camgirl", "Heimarbeit"], ["Eskorte", "Reisebüro"],
+        ["Peepshow", "Kinoabend"], ["Fetisch", "Spezialgebiet"], ["Ménage-à-trois", "WG-Leben"],
+        ["Lustschmerz", "Marathonlauf"], ["Straps", "Aufhängung"], ["Korsett", "Stützkonstruktion"],
+        ["Gag", "Stummschaltung"], ["Pornostar", "Kamerapräsenz"], ["Aftercare", "Erste Hilfe"],
+        ["Gloryhole", "Mauerdurchbruch"], ["Quickie", "Fast-Food"], ["One-Night-Stand", "Gastauftritt"],
+        ["Tinder", "Speisekarte"], ["Love-Hotel", "Kurzzeitmiete"], ["Spanking", "Erziehungsmaßnahme"],
+        ["Erotik-Shop", "Fachgeschäft"], ["Pheromone", "Laborprobe"], ["Dessous", "Geschenkpapier"],
+        ["Squirting", "Wasserfall"], ["Petting", "Fingerübung"], ["Vorspiel", "Ouvertüre"],
+        ["Höhepunkt", "Bergspitze"], ["Stellung", "Schachzug"], ["Leder", "Gerberei"],
+        ["Knebel", "Redeverbot"], ["Sado-Maso", "Gegenspiel"], ["Zimmermädchen", "Hotelservice"],
+        ["Halsband", "Besitzurkunde"], ["Lust", "Antriebskraft"], ["Ekstase", "Ausnahmezustand"],
+        ["Verhütung", "Vorsorgemaßnahme"], ["Gummipuppe", "Requisit"], ["Bettlaken", "Segeltuch"]
+      ]
     }
+  
+
+
   },
   "Sport": {
     "Fussball": {
