@@ -29,10 +29,10 @@
         .word-box { min-height: 14rem; display: flex; align-items: center; justify-content: center; text-align: center; padding: 1rem; width: 100%; overflow: hidden; }
         .dynamic-text { white-space: nowrap; display: block; width: 100%; font-weight: 900; text-transform: uppercase; }
 
-        /* Verlangsamter Ladebalken */
-        .progress-container { width: 100%; max-width: 300px; height: 12px; border: 3px solid #000; background: #fff; overflow: hidden; }
-        .progress-fill { height: 100%; background: #000; width: 0%; animation: slowLoad 4s forwards cubic-bezier(0.2, 0, 0.3, 1); }
-        @keyframes slowLoad { 0% { width: 0%; } 100% { width: 100%; } }
+        /* Deutlich langsamerer Ladebalken */
+        .progress-container { width: 100%; max-width: 300px; height: 14px; border: 4px solid #000; background: #fff; overflow: hidden; }
+        .progress-fill { height: 100%; background: #000; width: 0%; animation: extraSlowLoad 6s forwards linear; }
+        @keyframes extraSlowLoad { 0% { width: 0%; } 100% { width: 100%; } }
     </style>
 </head>
 <body>
@@ -42,7 +42,7 @@
         const { useState, useEffect } = React;
 
         const CATEGORIES = [
-            { name: "EIGENES THEMA", desc: "Tippe unten dein Wort ein" },
+            { name: "EIGENES THEMA", desc: "Tippe unten ein Thema ein" },
             { name: "Trends", desc: "Hypes und Phänomene" },
             { name: "Spicy", desc: "Zweideutig & provokant" },
             { name: "Filme & Serien", desc: "Blockbuster & Kult" },
@@ -72,23 +72,25 @@
             const getDynamicStyle = (text, factor = 1) => {
                 const len = text ? text.length : 0;
                 let size = 3.5; 
-                if (len > 15) size = 1.6;
-                else if (len > 10) size = 2.2;
-                else if (len > 5) size = 3.0;
+                if (len > 15) size = 1.4;
+                else if (len > 10) size = 2.0;
+                else if (len > 5) size = 2.8;
                 return { fontSize: `${size * factor}rem` };
             };
 
             const fetchAI = async () => {
-                if (!apiKey) return alert("API Key fehlt!");
+                if (!apiKey) return alert("Bitte API Key eingeben!");
+                if (selectedCat.name === "EIGENES THEMA" && !customTopic) return alert("Bitte Thema eingeben!");
+                
                 setLoading(true);
                 
                 try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                     const topic = selectedCat.name === "EIGENES THEMA" ? customTopic : selectedCat.name;
-                    const seed = Math.random(); // Sorgt für Abwechslung
+                    const seed = Math.random();
 
                     const promptText = `Wähle für das Spiel Imposter zum Thema "${topic}" (Zufallswert: ${seed}) ${hintMode ? 'ZWEI eng verwandte Begriffe' : 'EIN Substantiv'}. 
-                    Regeln: NICHT die Wörter aus dieser Liste nutzen: "${selectedCat.desc}". Nur EIN Wort pro Begriff. Keine Sätze. Einzeiler. Nur die Wörter mit Komma getrennt ausgeben.`;
+                    Regeln: NICHT die Wörter aus dieser Liste nutzen: "${selectedCat.desc}". Nur EIN Wort pro Begriff. Keine Sätze. Nur die Begriffe mit einem Komma getrennt ausgeben. Nur Text, kein Markup.`;
                     
                     const response = await fetch(url, {
                         method: 'POST',
@@ -97,12 +99,16 @@
                     });
                     
                     const data = await response.json();
-                    const text = data.candidates[0].content.parts[0].text.trim().replace(/[^a-zA-ZäöüÄÖÜß,]/g, '');
-                    const words = hintMode ? text.split(',').map(s => s.trim()) : [text];
+                    if(!data.candidates) throw new Error("API Limit oder Key falsch");
+
+                    let text = data.candidates[0].content.parts[0].text.trim();
+                    // Entferne alles außer Buchstaben und Kommas
+                    text = text.replace(/[^a-zA-ZäöüÄÖÜß,]/g, '');
                     
-                    // Imposter-Wechsel Logik
+                    const words = text.split(',').map(s => s.trim()).filter(s => s.length > 0);
                     const impIdx = Math.floor(Math.random() * players.length);
 
+                    // Der Ladebalken braucht 6s (CSS), wir warten hier kurz davor
                     setTimeout(() => {
                         setGameData({
                             words: players.map((_, i) => i === impIdx ? (words[1] || words[0]) : words[0]),
@@ -112,9 +118,10 @@
                         });
                         setLoading(false);
                         setGameState('reveal');
-                    }, 3800); // Balken füllt sich langsam über 4s
+                    }, 5800); 
+
                 } catch (e) { 
-                    alert("Fehler."); 
+                    alert("Fehler: " + e.message); 
                     setLoading(false); 
                 }
             };
@@ -137,10 +144,10 @@
                     <div className="w-full max-w-md bg-white p-6 neo-box space-y-6">
                         {gameState === 'setup' && (
                             <div className="space-y-6">
-                                <section className="space-y-4">
+                                <section className="space-y-4 text-left">
                                     <input type="password" placeholder="API Key..." className="w-full p-2 border-b border-gray-100 text-[10px] mb-4 text-center" value={apiKey} onChange={e => setApiKey(e.target.value)} />
                                     <div className="flex items-center justify-between p-3 border-2 border-black bg-gray-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                                        <span className="font-black uppercase text-xs">Ähnliche Wörter</span>
+                                        <span className="font-black uppercase text-xs">Hinweis-Wort (Imposter)</span>
                                         <label className="switch">
                                             <input type="checkbox" checked={hintMode} onChange={() => setHintMode(!hintMode)} />
                                             <span className="slider"></span>
@@ -171,11 +178,11 @@
                                         ))}
                                     </div>
                                     {selectedCat.name === "EIGENES THEMA" && (
-                                        <input className="w-full p-3 border-2 border-black font-black uppercase text-center bg-yellow-50" value={customTopic} onChange={e => setCustomTopic(e.target.value)} placeholder="Dein Thema tippen..." />
+                                        <input className="w-full p-3 border-2 border-black font-black uppercase text-center bg-yellow-50" value={customTopic} onChange={e => setCustomTopic(e.target.value)} placeholder="Thema hier eintippen..." />
                                     )}
                                 </section>
 
-                                <button onClick={fetchAI} className="w-full bg-red-600 text-white font-black py-5 uppercase text-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                                <button onClick={fetchAI} className="w-full bg-red-600 text-white font-black py-5 uppercase text-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-transform">
                                     START
                                 </button>
                             </div>
@@ -211,7 +218,7 @@
 
                         {gameState === 'play' && (
                             <div className="py-12 space-y-8">
-                                <h2 className="dynamic-text text-red-600 italic" style={getDynamicStyle("WER LÜGT?", 0.8)}>WER LÜGT?</h2>
+                                <h2 className="dynamic-text text-red-600 italic" style={getDynamicStyle("WER LÜGT?", 0.6)}>WER LÜGT?</h2>
                                 <button onClick={() => setGameState('setup')} className="w-full bg-black text-white py-5 font-black uppercase text-xl shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]">NEUE RUNDE</button>
                             </div>
                         )}
