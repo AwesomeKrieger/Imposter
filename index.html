@@ -74,7 +74,9 @@
         const { useState, useEffect } = React;
 
         const GITHUB_TOPICS_URL = "https://raw.githubusercontent.com/AwesomeKrieger/Imposter/main/topics.json";
-        const AI_MODEL = "gemini-2.5-flash-lite"; 
+        const AI_MODEL = "gemini-2.5-flash-lite"; // Füge diesen State oben bei den anderen hinzu:
+const [aiWordPool, setAiWordPool] = useState({}); // Format: { "Thema": [{word, hint}, ...] }
+
 
         const App = () => {
             const [data, setData] = useState(null);
@@ -190,27 +192,51 @@ const resetAll = () => {
                     if (rng < 0.05) chaos = "ALL";
                     else if (rng < 0.10) chaos = "NONE";
 
-                    if (selectedGroup === "EIGENE") {
-                        const promptText = `Du bist ein Spiel-Master. Das Thema ist "${randomSub}". 
-Wähle ein SPEZIFISCHES Wort aus diesem Bereich. Antworte NUR im Format: Wort|Hinweis. Wort und Hinweis EINZELNE Wörter. Kein Synonym!`;
+if (selectedGroup === "EIGENE") {
+    // Prüfen, ob wir noch Wörter im Pool für dieses Thema haben
+    if (aiWordPool[randomSub] && aiWordPool[randomSub].length > 0) {
+        const nextPair = aiWordPool[randomSub][0];
+        word = nextPair.word;
+        hint = nextPair.hint;
+        
+        // Wort aus dem Pool entfernen
+        setAiWordPool(prev => ({
+            ...prev,
+            [randomSub]: prev[randomSub].slice(1)
+        }));
+    } else {
+        // Pool leer -> 10 Wörter generieren
+        const promptText = `Du bist ein Spiel-Master. Thema: "${randomSub}". 
+Generiere 10 verschiedene, spezifische Wort-Paare. 
+Format: Wort|Hinweis (jeweils 1 Wort). 
+Trenne die Paare mit Komma. Beispiel: Apfel|Obst, Auto|Motor. 
+Antworte NUR mit der Liste.`;
 
-                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
-                            method: 'POST', headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
-                        });
-                        const d = await res.json();
-                        const raw = d.candidates[0].content.parts[0].text.trim().replace(/```/g, "");
-                        const parts = raw.split('|');
-                        word = parts[0].trim().split(" ")[0];
-                        hint = parts[1] ? parts[1].trim().split(" ")[0] : "Aktion";
-                    } else {
-                        const target = subCats.find(c => c.name === randomSub);
-                        const catData = data[target.parent][randomSub];
-                        const pair = catData.pairs[Math.floor(Math.random() * catData.pairs.length)];
-                        const flip = Math.random() > 0.5;
-                        word = flip ? pair[0] : pair[1];
-                        hint = flip ? pair[1] : pair[0];
-                    }
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+        });
+        
+        const d = await res.json();
+        const raw = d.candidates[0].content.parts[0].text.trim().replace(/```/g, "");
+        
+        // String in Objekte umwandeln
+        const pairs = raw.split(',').map(p => {
+            const [w, h] = p.split('|');
+            return { word: w.trim(), hint: h ? h.trim() : "Aktion" };
+        });
+
+        word = pairs[0].word;
+        hint = pairs[0].hint;
+
+        // Die restlichen 9 Wörter für später speichern
+        setAiWordPool(prev => ({
+            ...prev,
+            [randomSub]: pairs.slice(1)
+        }));
+    }
+}
+
 
                     if (chaos === "ALL") {
                         indices = players.map((_, i) => i);
