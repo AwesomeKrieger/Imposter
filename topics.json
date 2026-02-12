@@ -27,4 +27,89 @@
       ]
     }
   }
+    "Sport": {
+    "Fussball": {
+      "examples": ["Rasen", "Taktik", "Kurve", "Leidenschaft"],
+      "pairs": [
+        ["Tradition", "Kommerz"],
+        ["Ehrentreffer", "Abstiegskampf"],
+        ["Flutlicht", "Stadionwurst"],
+        ["Zweitliga", "Amateure"],
+        ["Fehlentscheidung", "Schwalbe"],
+        ["Eckfahne", "Mittelkreis"],
+        ["Saisonabbruch", "Geisterspiel"],
+        ["Eigentor", "Platzverweis"],
+        ["Winterpause", "Transfermarkt"],
+        ["Kapitän", "Spielmacher"],
+        ["Lattenkracher", "Tunnel"],
+        ["Bierbecher", "Choreo"],
+        ["Nationalhymne", "Fankurve"],
+        ["Sprechchor", "Trillerpfeife"],
+        ["Rasenpflege", "Kabinenpredigt"]
+      ]
+    },
+    "Fitness & Gym": {
+      "examples": ["Schweiß", "Disziplin", "Spiegel", "Eisen"],
+      "pairs": [
+        ["Durchhaltevermögen", "Willenskraft"],
+        ["Eitelkeit", "Selbstoptimierung"],
+        ["Regeneration", "Übertraining"],
+        ["Nahrungsergänzung", "Steroid"],
+        ["Muskelversagen", "Pump"],
+        ["Körperfett", "Definition"],
+        ["Ganzkörper", "Split"],
+        ["Kaloriendefizit", "Heißhunger"],
+        ["Trainingsplan", "Gewohnheit"],
+        ["Probetraining", "Mitgliedschaft"],
+        ["Laufband", "Hamsterrad"],
+        ["Schwergewicht", "Leichtathlet"],
+        ["Aerobic", "Crossfit"],
+        ["Saunagang", "Wechseldusche"],
+        ["Handtuch", "Trinkflasche"]
+      ]
+    }
+  },
+  "Technik & Wissen": {
+    "Weltraum": {
+      "examples": ["Leere", "Unendlichkeit", "Stille", "Licht"],
+      "pairs": [
+        ["Schwerelosigkeit", "Vakuum"],
+        ["Urknall", "Ewigkeit"],
+        ["Sonnensystem", "Nachbargalaxie"],
+        ["Sternenstaub", "Dunkle Materie"],
+        ["Lichtjahr", "Zeitdilatation"],
+        ["Utopie", "Kolonisation"],
+        ["Teleskop", "Zeitmaschine"],
+        ["Sonden", "Satelliten"],
+        ["Marsmission", "Einbahnstraße"],
+        ["Sternbild", "Mythologie"],
+        ["UFO", "Wetterballon"],
+        ["Mondfinsternis", "Sonnenwende"],
+        ["Raumanzug", "Sauerstoff"],
+        ["Meteor", "Kratereinschlag"],
+        ["Schwarzes Loch", "Ereignishorizont"]
+      ]
+    },
+    "Technologie": {
+      "examples": ["Strom", "Code", "Zukunft", "Vernetzung"],
+      "pairs": [
+        ["Algorithmus", "Instinkt"],
+        ["Überwachung", "Datenschutz"],
+        ["Fortschritt", "Abhängigkeit"],
+        ["Virtuell", "Simuliert"],
+        ["Cloud", "Festplatte"],
+        ["Update", "Verschlimmbesserung"],
+        ["Glasfaser", "Nervensystem"],
+        ["Hacker", "Sicherheitslücke"],
+        ["Smart Home", "Gläserner Mensch"],
+        ["Künstlich", "Authentisch"],
+        ["Anonymität", "Pseudonym"],
+        ["Plagiat", "Open Source"],
+        ["Kurzschluss", "Systemfehler"],
+        ["Analog", "Digital"],
+        ["Kabelbruch", "Funkstille"]
+      ]
+    }
+  }
+
 }
