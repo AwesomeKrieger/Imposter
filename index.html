@@ -30,9 +30,10 @@
         .word-box { min-height: 14rem; display: flex; align-items: center; justify-content: center; text-align: center; padding: 1rem; width: 100%; overflow: hidden; }
         .dynamic-text { white-space: nowrap; display: block; width: 100%; font-weight: 900; text-transform: uppercase; }
 
-        /* Dynamischer Ladebalken */
-        .progress-container { width: 100%; max-width: 300px; height: 12px; border: 3px solid #000; background: #fff; position: relative; overflow: hidden; }
-        .progress-fill { height: 100%; background: #000; transition: width 0.4s ease-out; }
+        /* Flüssiger Ladebalken */
+        .progress-container { width: 100%; max-width: 300px; height: 12px; border: 3px solid #000; background: #fff; overflow: hidden; }
+        .progress-fill { height: 100%; background: #000; width: 0%; animation: smoothLoad 2.5s forwards cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes smoothLoad { 0% { width: 0%; } 100% { width: 100%; } }
     </style>
 </head>
 <body>
@@ -63,7 +64,6 @@
             const [apiKey, setApiKey] = useState(() => localStorage.getItem('imp_key') || '');
             const [hintMode, setHintMode] = useState(false);
             const [loading, setLoading] = useState(false);
-            const [progress, setProgress] = useState(0);
             const [gameData, setGameData] = useState({ words: [], imposterIdx: -1, currentPlayer: 0, showingWord: false });
 
             useEffect(() => {
@@ -84,31 +84,30 @@
             const fetchAI = async () => {
                 if (!apiKey) return alert("API Key fehlt!");
                 setLoading(true);
-                setProgress(10);
                 
                 try {
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
                     
-                    const promptText = `Du bist ein Spiele-Master. Thema: "${selectedCat.name}" (${selectedCat.desc}). 
-                    Wähle ${hintMode ? 'ZWEI verwandte Begriffe' : 'EIN Substantiv'}. 
-                    ${hintMode ? 'WICHTIG: Die beiden Wörter müssen eng verwandt sein, sodass man vom zweiten auf das erste kommen kann (z.B. "Batman" und "Robin" oder "Pasta" und "Italien").' : ''}
-                    Regeln: Nur EINZELLER (ein Wort pro Begriff). Nur das Wort/die Wörter mit Komma getrennt ausgeben.`;
+                    const promptText = `Du bist ein Spiele-Master für das Spiel Imposter.
+                    Thema: "${selectedCat.name}". 
+                    WICHTIG: Verwende NICHT die Begriffe aus dieser Beschreibung: "${selectedCat.desc}".
+                    Suche ${hintMode ? 'ZWEI verwandte Begriffe' : 'EIN Substantiv'}, die man im Spiel gut umschreiben kann.
+                    Regeln: Nur EINZELLER (ein Wort pro Begriff). Nur das Wort/die Wörter mit Komma getrennt ausgeben. 
+                    Beispiel für Anime (aber nicht Naruto nutzen): "Shuriken" oder "Titan".`;
                     
-                    setProgress(40);
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
                     });
                     
-                    setProgress(70);
                     const data = await response.json();
                     const text = data.candidates[0].content.parts[0].text.trim().replace(/[^a-zA-ZäöüÄÖÜß,]/g, '');
                     
                     const words = hintMode ? text.split(',').map(s => s.trim()) : [text];
                     const impIdx = Math.floor(Math.random() * players.length);
 
-                    setProgress(100);
+                    // Warte bis die Animation fast fertig ist (2.2s)
                     setTimeout(() => {
                         setGameData({
                             words: players.map((_, i) => i === impIdx ? (words[1] || words[0]) : words[0]),
@@ -118,8 +117,7 @@
                         });
                         setLoading(false);
                         setGameState('reveal');
-                        setProgress(0);
-                    }, 500);
+                    }, 2200);
                 } catch (e) { 
                     alert("KI-Fehler."); 
                     setLoading(false); 
@@ -129,9 +127,9 @@
             if (loading) {
                 return (
                     <div className="min-h-screen flex flex-col items-center justify-center bg-white p-10">
-                        <h2 className="text-xl font-black uppercase mb-6 tracking-[0.2em] animate-pulse text-gray-400">Wort wird gefunden...</h2>
+                        <h2 className="text-xl font-black uppercase mb-6 tracking-[0.2em] text-gray-400">Wort wird gefunden...</h2>
                         <div className="progress-container">
-                            <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+                            <div className="progress-fill"></div>
                         </div>
                     </div>
                 );
