@@ -13,62 +13,58 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-   <style>
+  <style>
     html, body { 
-        background-color: #ffffff; 
-        color: #000; 
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+        background-color: #ffffff; color: #000; 
+        font-family: -apple-system, sans-serif; 
         margin: 0; padding: 0;
-        /* Verhindert das "Gummiband"-Scrollen auf iOS */
         height: 100%; width: 100%;
+        /* WICHTIG: overflow hidden nur auf body, damit die Seite nicht springt */
         overflow: hidden; 
-        position: fixed; 
     }
 
     .main-container { 
-        height: 100dvh; /* Nutzt die tatsächliche Displayhöhe inkl. Safari-Leisten */
+        height: 100dvh; 
         display: flex; 
         flex-direction: column; 
-        align-items: center; 
-        padding: 1rem;
+        padding: 1rem; 
         box-sizing: border-box;
     }
 
     .game-card { 
         width: 100%; 
         max-width: 400px; 
+        margin: 0 auto;
         display: flex; 
         flex-direction: column; 
-        height: 100%; /* Wichtig: Nimmt den verfügbaren Platz ein */
-        overflow: hidden;
+        height: 100%; 
+        overflow: hidden; 
     }
 
-    .neo-box { border: 4px solid #000; box-shadow: 6px 6px 0px 0px #000; }
-
     .scroll-container { 
-        flex: 1; /* Nimmt den restlichen Platz zwischen Header und Footer ein */
+        flex: 1; 
         overflow-y: auto !important; 
+        /* Ermöglicht Scrollen auf iOS trotz fixed body */
         -webkit-overflow-scrolling: touch; 
         border: 4px solid black; 
         background: #fafafa; 
-        touch-action: pan-y;
-        /* Hier war der Tippfehler: */
+        /* Erlaubt vertikales Wischen */
+        touch-action: pan-y; 
         max-height: 45vh; 
     }
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     
-    /* Footer/Button-Bereich fixieren */
+    /* Footer-Bereich fest unten halten */
     .setup-footer {
-        margin-top: auto;
-        padding-top: 1rem;
-        flex-shrink: 0; /* Verhindert, dass die Buttons gequetscht werden */
+        flex-shrink: 0; 
+        margin-top: 10px;
     }
 
+    .neo-box { border: 4px solid #000; box-shadow: 6px 6px 0px 0px #000; }
     .progress-fill { height: 100%; background: #ef4444; transition: width 0.4s ease-out; width: 0%; }
-    @keyframes pulse-red { 0% { background: #fff; } 50% { background: #fee2e2; } 100% { background: #fff; } }
-    .timer-warn { animation: pulse-red 1s infinite; }
 </style>
+
 
 </head>
 <body>
