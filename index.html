@@ -9,37 +9,39 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #ffffff; color: #000; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #ffffff; color: #000; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
         .neo-box { border: 4px solid #000; box-shadow: 6px 6px 0px 0px #000; transition: all 0.1s; }
         .neo-box:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px 0px #000; }
-        .progress-fill { height: 100%; background: #000; transition: width 0.4s ease-out; width: 0%; }
+        .progress-fill { height: 100%; background: #ef4444; transition: width 0.4s ease-out; width: 0%; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .scroll-container { max-height: 250px; overflow-y: auto; border: 2px solid black; padding: 5px; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect } = React;
 
-        // DEINE GITHUB RAW URL HIER EINTRAGEN
-        const GITHUB_TOPICS_URL = "https://raw.githubusercontent.com/AwesomeKrieger/Imposter/refs/heads/main/topics.json";
+        // Nutze hier deinen GitHub Raw Link
+        const GITHUB_TOPICS_URL = "https://raw.githubusercontent.com/AwesomeKrieger/Imposter/main/topics.json";
 
         const App = () => {
-            const [data, setData] = useState(null); // Die gesamte JSON von GitHub
-            const [groups, setGroups] = useState([]); // Liste der Oberkategorien
+            const [data, setData] = useState(null);
+            const [groups, setGroups] = useState([]);
             const [selectedGroup, setSelectedGroup] = useState("BELIEBT");
-            const [subCats, setSubCats] = useState([]); // Gefilterte Unterkategorien
+            const [subCats, setSubCats] = useState([]);
             const [selectedSub, setSelectedSub] = useState("");
             
             const [gameState, setGameState] = useState('setup'); 
             const [players, setPlayers] = useState(['Spieler 1', 'Spieler 2', 'Spieler 3']);
+            const [newPlayerName, setNewPlayerName] = useState("");
             const [apiKey, setApiKey] = useState(() => localStorage.getItem('imp_key') || '');
             const [loading, setLoading] = useState(false);
+            const [loadingText, setLoadingText] = useState("Wörter werden geladen...");
             const [visualProgress, setVisualProgress] = useState(0);
             const [gameData, setGameData] = useState({ words: [], imposterIdx: -1, currentPlayer: 0, showingWord: false });
 
-            // 1. Daten laden & Gruppen erstellen
             useEffect(() => {
                 fetch(GITHUB_TOPICS_URL)
                     .then(res => res.json())
@@ -49,19 +51,18 @@
                         setGroups(["BELIEBT", ...g]);
                         updateView("BELIEBT", json);
                     })
-                    .catch(err => alert("GitHub Fehler: " + err));
+                    .catch(err => console.error("Fehler:", err));
             }, []);
 
-            // 2. Filter-Logik
             const updateView = (groupName, fullData = data) => {
+                if (!fullData) return;
                 setSelectedGroup(groupName);
                 let list = [];
                 if (groupName === "BELIEBT") {
-                    // Mix aus allen Gruppen
                     Object.keys(fullData).forEach(g => {
                         Object.keys(fullData[g]).forEach(s => list.push({ name: s, parent: g }));
                     });
-                    list = list.sort(() => 0.5 - Math.random()).slice(0, 10);
+                    list = list.sort(() => 0.5 - Math.random()).slice(0, 5); // Nur 5 bei Beliebt
                 } else {
                     Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
                 }
@@ -69,56 +70,63 @@
                 setSelectedSub(list[0]?.name || "");
             };
 
+            const addPlayer = () => {
+                if(newPlayerName.trim() && players.length < 8) {
+                    setPlayers([...players, newPlayerName.trim()]);
+                    setNewPlayerName("");
+                }
+            };
+
+            const removePlayer = (index) => {
+                if(players.length > 3) {
+                    setPlayers(players.filter((_, i) => i !== index));
+                }
+            };
+
             const startGame = async () => {
                 setLoading(true);
-                setVisualProgress(0);
-                const interval = setInterval(() => setVisualProgress(p => p < 90 ? p + 5 : p), 100);
+                setVisualProgress(10);
+                setLoadingText("Wähle Wortpaar...");
 
-                // Finde die Daten der gewählten Unterkategorie
-                const parentGroup = subCats.find(c => c.name === selectedSub).parent;
+                const targetSub = subCats.find(c => c.name === selectedSub);
+                const parentGroup = targetSub.parent;
                 const catData = data[parentGroup][selectedSub];
                 
                 let wordPair = [];
-                const useAI = Math.random() > 0.4 && apiKey;
+                setVisualProgress(40);
 
                 try {
-                    if (useAI) {
-                        const prompt = `Thema: ${selectedSub}. Beispiele: ${catData.examples.join(",")}. Gib 2 verwandte Wörter getrennt durch Komma.`;
-                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                        });
-                        const d = await res.json();
-                        wordPair = d.candidates[0].content.parts[0].text.split(',').map(s => s.trim());
-                    } else {
-                        wordPair = catData.pairs[Math.floor(Math.random() * catData.pairs.length)];
-                    }
+                    // Simulation der KI oder Zufall aus Liste
+                    setLoadingText("Generiere Geheimwörter...");
+                    wordPair = catData.pairs[Math.floor(Math.random() * catData.pairs.length)];
+                    setVisualProgress(80);
                 } catch (e) {
-                    wordPair = catData.pairs[0];
+                    wordPair = ["Fehler", "Fehler"];
                 }
 
                 const impIdx = Math.floor(Math.random() * players.length);
-                clearInterval(interval);
-                setVisualProgress(100);
-
+                
                 setTimeout(() => {
-                    setGameData({
-                        words: players.map((_, i) => i === impIdx ? wordPair[1] : wordPair[0]),
-                        imposterIdx: impIdx,
-                        currentPlayer: 0,
-                        showingWord: false
-                    });
-                    setLoading(false);
-                    setGameState('reveal');
-                }, 500);
+                    setVisualProgress(100);
+                    setTimeout(() => {
+                        setGameData({
+                            words: players.map((_, i) => i === impIdx ? wordPair[1] : wordPair[0]),
+                            imposterIdx: impIdx,
+                            currentPlayer: 0,
+                            showingWord: false
+                        });
+                        setLoading(false);
+                        setGameState('reveal');
+                    }, 400);
+                }, 600);
             };
 
-            if (!data) return <div className="p-20 text-center font-black animate-pulse">CONNECTING TO GITHUB...</div>;
+            if (!data) return <div className="min-h-screen flex items-center justify-center font-black animate-pulse">LADE THEMEN VON GITHUB...</div>;
 
             if (loading) return (
-                <div className="min-h-screen flex flex-col items-center justify-center p-10">
-                    <div className="w-full max-w-xs border-4 border-black h-6 bg-white overflow-hidden">
+                <div className="min-h-screen flex flex-col items-center justify-center p-10 space-y-4">
+                    <div className="font-black text-xl italic uppercase">{loadingText}</div>
+                    <div className="w-full max-w-xs border-4 border-black h-8 bg-white overflow-hidden">
                         <div className="progress-fill" style={{width: `${visualProgress}%`}}></div>
                     </div>
                 </div>
@@ -126,11 +134,26 @@
 
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 text-center">
-                    <h1 className="text-3xl font-black italic mb-6 border-b-4 border-black tracking-tighter">IMPOSTER.AI</h1>
+                    <h1 className="text-4xl font-black italic mb-4 border-b-8 border-red-600 tracking-tighter">IMPOSTER.AI</h1>
 
                     <div className="w-full max-w-md bg-white p-5 neo-box space-y-6">
                         {gameState === 'setup' && (
                             <>
+                                {/* Spieler-Sektion */}
+                                <div className="space-y-2 border-b-4 border-black pb-4">
+                                    <div className="flex gap-2">
+                                        <input value={newPlayerName} onChange={e => setNewPlayerName(e.target.value)} placeholder="Spielername..." className="flex-1 p-2 border-2 border-black font-bold outline-none" />
+                                        <button onClick={addPlayer} className="bg-black text-white px-4 font-black">+</button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 justify-center">
+                                        {players.map((p, i) => (
+                                            <span key={i} className="bg-gray-100 border-2 border-black px-2 py-1 text-xs font-black flex items-center gap-1">
+                                                {p} <button onClick={() => removePlayer(i)} className="text-red-600 ml-1">×</button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
                                 {/* Filter Bar */}
                                 <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
                                     {groups.map(g => (
@@ -140,40 +163,54 @@
                                     ))}
                                 </div>
 
-                                {/* Sub Categories */}
-                                <div className="grid grid-cols-2 gap-2 h-48 overflow-y-auto p-1 border-t-2 border-black pt-4">
+                                {/* Sub Categories Scrollable */}
+                                <div className="scroll-container grid grid-cols-1 gap-2">
                                     {subCats.map(s => (
-                                        <button key={s.name} onClick={() => setSelectedSub(s.name)} className={`p-3 border-2 border-black font-black text-[10px] uppercase text-left ${selectedSub === s.name ? 'bg-black text-white' : 'bg-gray-50'}`}>
-                                            {s.name}
+                                        <button key={s.name} onClick={() => setSelectedSub(s.name)} className={`p-3 border-2 border-black font-black text-sm uppercase text-left transition-colors ${selectedSub === s.name ? 'bg-black text-white' : 'bg-gray-50'}`}>
+                                            {selectedSub === s.name ? "➔ " : ""}{s.name}
                                         </button>
                                     ))}
                                 </div>
 
-                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-5 text-2xl shadow-[4px_4px_0px_0px_#000]">START</button>
-                                
-                                <input type="password" placeholder="API Key..." className="w-full p-1 border-b text-[8px] text-center opacity-30" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
+                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-5 text-3xl neo-box active:bg-red-700">START</button>
                             </>
                         )}
 
                         {gameState === 'reveal' && (
                             <div className="space-y-6 py-4">
                                 <h2 className="text-2xl font-black uppercase italic border-b-4 border-black inline-block px-4">{players[gameData.currentPlayer]}</h2>
-                                <div onClick={() => setGameData({...gameData, showingWord: true})} className={`h-48 flex items-center justify-center border-4 border-black text-3xl font-black p-4 ${gameData.showingWord ? 'bg-red-600 text-white' : 'bg-gray-100 animate-pulse'}`}>
-                                    {gameData.showingWord ? gameData.words[gameData.currentPlayer] : "TIPPEN"}
+                                <p className="text-xs font-bold uppercase">Tippe auf das Feld, um dein Wort zu sehen!</p>
+                                <div onClick={() => setGameData({...gameData, showingWord: true})} className={`h-48 flex items-center justify-center border-4 border-black text-4xl font-black p-6 transition-all ${gameData.showingWord ? 'bg-red-600 text-white rotate-1' : 'bg-gray-100 animate-pulse'}`}>
+                                    {gameData.showingWord ? gameData.words[gameData.currentPlayer] : "WORT ZEIGEN"}
                                 </div>
                                 {gameData.showingWord && (
                                     <button onClick={() => {
                                         if(gameData.currentPlayer + 1 < players.length) setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
                                         else setGameState('play');
-                                    }} className="w-full bg-black text-white py-4 font-black text-xl">VERSTANDEN</button>
+                                    }} className="w-full bg-black text-white py-4 font-black text-xl neo-box">ICH HABE ES GESEHEN</button>
                                 )}
                             </div>
                         )}
 
                         {gameState === 'play' && (
-                            <div className="py-10 space-y-8">
-                                <h2 className="text-4xl font-black text-red-600 italic animate-bounce">WER LÜGT?</h2>
-                                <button onClick={() => setGameState('setup')} className="w-full bg-black text-white py-5 font-black text-xl">NÄCHSTE RUNDE</button>
+                            <div className="py-6 space-y-8">
+                                <h2 className="text-5xl font-black text-red-600 italic animate-bounce tracking-tighter">WER LÜGT?</h2>
+                                <div className="p-4 border-4 border-dashed border-black bg-yellow-50">
+                                    <p className="font-bold text-sm">Diskutiert jetzt! Jeder beschreibt sein Wort mit EINEM Begriff. Der Imposter muss so tun, als wüsste er das Wort.</p>
+                                </div>
+                                <button onClick={() => setGameState('finish')} className="w-full bg-black text-white py-5 font-black text-xl">AUFLÖSEN</button>
+                            </div>
+                        )}
+
+                        {gameState === 'finish' && (
+                            <div className="py-6 space-y-6">
+                                <h2 className="text-3xl font-black uppercase">Der Imposter war:</h2>
+                                <div className="text-5xl font-black text-red-600 underline decoration-black">{players[gameData.imposterIdx]}</div>
+                                <div className="text-sm font-bold bg-gray-100 p-2 border-2 border-black">
+                                    Wort der Gruppe: {gameData.words[gameData.imposterIdx === 0 ? 1 : 0]} <br/>
+                                    Wort des Imposters: {gameData.words[gameData.imposterIdx]}
+                                </div>
+                                <button onClick={() => setGameState('setup')} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box">NEUE RUNDE</button>
                             </div>
                         )}
                     </div>
