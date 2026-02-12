@@ -14,7 +14,7 @@
         .neo-box:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px 0px #000; }
         .progress-fill { height: 100%; background: #ef4444; transition: width 0.4s ease-out; width: 0%; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .scroll-container { max-height: 250px; overflow-y: auto; border: 2px solid black; padding: 5px; }
+        .scroll-container { max-height: 220px; overflow-y: auto; border: 3px solid black; background: #fafafa; }
     </style>
 </head>
 <body>
@@ -23,7 +23,6 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Nutze hier deinen GitHub Raw Link
         const GITHUB_TOPICS_URL = "https://raw.githubusercontent.com/AwesomeKrieger/Imposter/main/topics.json";
 
         const App = () => {
@@ -35,26 +34,25 @@
             
             const [gameState, setGameState] = useState('setup'); 
             const [players, setPlayers] = useState(['Spieler 1', 'Spieler 2', 'Spieler 3']);
-            const [newPlayerName, setNewPlayerName] = useState("");
-            const [apiKey, setApiKey] = useState(() => localStorage.getItem('imp_key') || '');
+            const [showHint, setShowHint] = useState(true);
+            const [customTopics, setCustomTopics] = useState([]);
+            
             const [loading, setLoading] = useState(false);
-            const [loadingText, setLoadingText] = useState("Wörter werden geladen...");
             const [visualProgress, setVisualProgress] = useState(0);
-            const [gameData, setGameData] = useState({ words: [], imposterIdx: -1, currentPlayer: 0, showingWord: false });
+            const [gameData, setGameData] = useState({ word: "", hint: "", imposterIdx: -1, currentPlayer: 0, showingWord: false });
 
             useEffect(() => {
                 fetch(GITHUB_TOPICS_URL)
                     .then(res => res.json())
                     .then(json => {
                         setData(json);
-                        const g = Object.keys(json);
-                        setGroups(["BELIEBT", ...g]);
-                        updateView("BELIEBT", json);
+                        setGroups(["BELIEBT", "EIGENE", ...Object.keys(json)]);
+                        updateView("BELIEBT", json, []);
                     })
                     .catch(err => console.error("Fehler:", err));
             }, []);
 
-            const updateView = (groupName, fullData = data) => {
+            const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
                 if (!fullData) return;
                 setSelectedGroup(groupName);
                 let list = [];
@@ -62,7 +60,9 @@
                     Object.keys(fullData).forEach(g => {
                         Object.keys(fullData[g]).forEach(s => list.push({ name: s, parent: g }));
                     });
-                    list = list.sort(() => 0.5 - Math.random()).slice(0, 5); // Nur 5 bei Beliebt
+                    list = list.sort(() => 0.5 - Math.random()).slice(0, 5);
+                } else if (groupName === "EIGENE") {
+                    list = currentCustom.map(t => ({ name: t.name, parent: "EIGENE" }));
                 } else {
                     Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
                 }
@@ -70,65 +70,59 @@
                 setSelectedSub(list[0]?.name || "");
             };
 
-            const addPlayer = () => {
-                if(newPlayerName.trim() && players.length < 8) {
-                    setPlayers([...players, newPlayerName.trim()]);
-                    setNewPlayerName("");
-                }
+            const addPlayer = () => players.length < 10 && setPlayers([...players, `Spieler ${players.length + 1}`]);
+            const removePlayer = (idx) => players.length > 3 && setPlayers(players.filter((_, i) => i !== idx));
+            const editPlayer = (idx, val) => {
+                const p = [...players]; p[idx] = val; setPlayers(p);
             };
 
-            const removePlayer = (index) => {
-                if(players.length > 3) {
-                    setPlayers(players.filter((_, i) => i !== index));
+            const addCustomTopic = () => {
+                const name = prompt("Themen-Name:");
+                const word = prompt("Wort für die Gruppe:");
+                const hint = prompt("Hinweis für den Imposter:");
+                if(name && word && hint) {
+                    const newList = [...customTopics, { name, word, hint }];
+                    setCustomTopics(newList);
+                    if(selectedGroup === "EIGENE") updateView("EIGENE", data, newList);
                 }
             };
 
             const startGame = async () => {
                 setLoading(true);
-                setVisualProgress(10);
-                setLoadingText("Wähle Wortpaar...");
-
-                const targetSub = subCats.find(c => c.name === selectedSub);
-                const parentGroup = targetSub.parent;
-                const catData = data[parentGroup][selectedSub];
+                setVisualProgress(30);
                 
-                let wordPair = [];
-                setVisualProgress(40);
-
-                try {
-                    // Simulation der KI oder Zufall aus Liste
-                    setLoadingText("Generiere Geheimwörter...");
-                    wordPair = catData.pairs[Math.floor(Math.random() * catData.pairs.length)];
-                    setVisualProgress(80);
-                } catch (e) {
-                    wordPair = ["Fehler", "Fehler"];
+                let word = "", hint = "";
+                if(selectedGroup === "EIGENE") {
+                    const t = customTopics.find(x => x.name === selectedSub);
+                    word = t.word; hint = t.hint;
+                } else {
+                    const parent = subCats.find(c => c.name === selectedSub).parent;
+                    const cat = data[parent][selectedSub];
+                    const pair = cat.pairs[Math.floor(Math.random() * cat.pairs.length)];
+                    word = pair[0];
+                    hint = cat.examples[Math.floor(Math.random() * cat.examples.length)];
                 }
 
-                const impIdx = Math.floor(Math.random() * players.length);
-                
+                setVisualProgress(100);
                 setTimeout(() => {
-                    setVisualProgress(100);
-                    setTimeout(() => {
-                        setGameData({
-                            words: players.map((_, i) => i === impIdx ? wordPair[1] : wordPair[0]),
-                            imposterIdx: impIdx,
-                            currentPlayer: 0,
-                            showingWord: false
-                        });
-                        setLoading(false);
-                        setGameState('reveal');
-                    }, 400);
-                }, 600);
+                    setGameData({
+                        word: word,
+                        hint: hint,
+                        imposterIdx: Math.floor(Math.random() * players.length),
+                        currentPlayer: 0,
+                        showingWord: false
+                    });
+                    setLoading(false);
+                    setGameState('reveal');
+                }, 500);
             };
 
-            if (!data) return <div className="min-h-screen flex items-center justify-center font-black animate-pulse">LADE THEMEN VON GITHUB...</div>;
+            if (!data) return <div className="min-h-screen flex items-center justify-center font-black animate-pulse">CONNECTING...</div>;
 
             if (loading) return (
                 <div className="min-h-screen flex flex-col items-center justify-center p-10 space-y-4">
-                    <div className="font-black text-xl italic uppercase">{loadingText}</div>
-                    <div className="w-full max-w-xs border-4 border-black h-8 bg-white overflow-hidden">
-                        <div className="progress-fill" style={{width: `${visualProgress}%`}}></div>
-                    </div>
+                    <div className="font-black text-2xl italic">LADE RUNDE...</div>
+                    <div className="w-full max-w-xs border-4 border-black h-8 bg-white"><div className="progress-fill" style={{width: `${visualProgress}%`}}></div></div>
                 </div>
             );
 
@@ -136,81 +130,90 @@
                 <div className="min-h-screen flex flex-col items-center p-4 text-center">
                     <h1 className="text-4xl font-black italic mb-4 border-b-8 border-red-600 tracking-tighter">IMPOSTER.AI</h1>
 
-                    <div className="w-full max-w-md bg-white p-5 neo-box space-y-6">
+                    <div className="w-full max-w-md bg-white p-5 neo-box space-y-4">
                         {gameState === 'setup' && (
                             <>
-                                {/* Spieler-Sektion */}
                                 <div className="space-y-2 border-b-4 border-black pb-4">
-                                    <div className="flex gap-2">
-                                        <input value={newPlayerName} onChange={e => setNewPlayerName(e.target.value)} placeholder="Spielername..." className="flex-1 p-2 border-2 border-black font-bold outline-none" />
-                                        <button onClick={addPlayer} className="bg-black text-white px-4 font-black">+</button>
+                                    <div className="flex justify-between items-center px-1">
+                                        <span className="font-black text-xs uppercase">Spieler bearbeiten:</span>
+                                        <button onClick={addPlayer} className="bg-green-500 text-white px-3 py-1 neo-box text-[10px] font-black">+ ADD</button>
                                     </div>
-                                    <div className="flex flex-wrap gap-2 justify-center">
+                                    <div className="grid grid-cols-2 gap-2">
                                         {players.map((p, i) => (
-                                            <span key={i} className="bg-gray-100 border-2 border-black px-2 py-1 text-xs font-black flex items-center gap-1">
-                                                {p} <button onClick={() => removePlayer(i)} className="text-red-600 ml-1">×</button>
-                                            </span>
+                                            <div key={i} className="flex border-2 border-black bg-white">
+                                                <input value={p} onChange={e => editPlayer(i, e.target.value)} className="w-full p-1 text-[10px] font-bold outline-none uppercase" />
+                                                <button onClick={() => removePlayer(i)} className="bg-black text-white px-2 font-black">×</button>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* Filter Bar */}
                                 <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
                                     {groups.map(g => (
-                                        <button key={g} onClick={() => updateView(g)} className={`px-4 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap ${selectedGroup === g ? 'bg-red-600 text-white' : 'bg-white'}`}>
-                                            {g}
-                                        </button>
+                                        <button key={g} onClick={() => updateView(g)} className={`px-4 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap ${selectedGroup === g ? 'bg-red-600 text-white' : 'bg-white'}`}>{g}</button>
                                     ))}
                                 </div>
 
-                                {/* Sub Categories Scrollable */}
-                                <div className="scroll-container grid grid-cols-1 gap-2">
+                                <div className="scroll-container flex flex-col">
+                                    {selectedGroup === "EIGENE" && <button onClick={addCustomTopic} className="m-2 p-3 border-2 border-dashed border-black font-black text-xs uppercase">+ Thema erstellen</button>}
                                     {subCats.map(s => (
-                                        <button key={s.name} onClick={() => setSelectedSub(s.name)} className={`p-3 border-2 border-black font-black text-sm uppercase text-left transition-colors ${selectedSub === s.name ? 'bg-black text-white' : 'bg-gray-50'}`}>
+                                        <button key={s.name} onClick={() => setSelectedSub(s.name)} className={`p-4 border-b-2 border-black font-black text-left text-sm uppercase ${selectedSub === s.name ? 'bg-black text-white' : 'bg-white'}`}>
                                             {selectedSub === s.name ? "➔ " : ""}{s.name}
                                         </button>
                                     ))}
                                 </div>
 
-                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-5 text-3xl neo-box active:bg-red-700">START</button>
+                                <label className="flex items-center justify-center gap-2 p-2 border-2 border-black bg-gray-50 cursor-pointer">
+                                    <input type="checkbox" checked={showHint} onChange={() => setShowHint(!showHint)} className="w-4 h-4 accent-red-600" />
+                                    <span className="font-black text-[10px] uppercase">Hilfswort für Imposter</span>
+                                </label>
+
+                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-5 text-3xl neo-box">SPIEL STARTEN</button>
                             </>
                         )}
 
                         {gameState === 'reveal' && (
                             <div className="space-y-6 py-4">
                                 <h2 className="text-2xl font-black uppercase italic border-b-4 border-black inline-block px-4">{players[gameData.currentPlayer]}</h2>
-                                <p className="text-xs font-bold uppercase">Tippe auf das Feld, um dein Wort zu sehen!</p>
-                                <div onClick={() => setGameData({...gameData, showingWord: true})} className={`h-48 flex items-center justify-center border-4 border-black text-4xl font-black p-6 transition-all ${gameData.showingWord ? 'bg-red-600 text-white rotate-1' : 'bg-gray-100 animate-pulse'}`}>
-                                    {gameData.showingWord ? gameData.words[gameData.currentPlayer] : "WORT ZEIGEN"}
+                                <div onClick={() => setGameData({...gameData, showingWord: true})} 
+                                     className={`h-48 flex flex-col items-center justify-center border-4 border-black p-6 transition-all 
+                                     ${gameData.showingWord ? (gameData.currentPlayer === gameData.imposterIdx ? 'bg-black text-white' : 'bg-red-600 text-white rotate-1') : 'bg-gray-100 animate-pulse'}`}>
+                                    {gameData.showingWord ? (
+                                        gameData.currentPlayer === gameData.imposterIdx ? (
+                                            <div className="text-center">
+                                                <div className="text-red-600 font-black text-xl mb-1">DU BIST DER</div>
+                                                <div className="text-5xl font-black tracking-tighter">IMPOSTER</div>
+                                                {showHint && <div className="mt-4 p-2 border-2 border-white text-[10px] font-bold">HINWEIS: {gameData.hint}</div>}
+                                            </div>
+                                        ) : (
+                                            <span className="text-5xl font-black uppercase tracking-tighter">{gameData.word}</span>
+                                        )
+                                    ) : (
+                                        <span className="text-2xl font-black italic">ANZEIGEN</span>
+                                    )}
                                 </div>
                                 {gameData.showingWord && (
                                     <button onClick={() => {
                                         if(gameData.currentPlayer + 1 < players.length) setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
                                         else setGameState('play');
-                                    }} className="w-full bg-black text-white py-4 font-black text-xl neo-box">ICH HABE ES GESEHEN</button>
+                                    }} className="w-full bg-black text-white py-4 font-black text-xl">VERSTANDEN</button>
                                 )}
                             </div>
                         )}
 
                         {gameState === 'play' && (
-                            <div className="py-6 space-y-8">
-                                <h2 className="text-5xl font-black text-red-600 italic animate-bounce tracking-tighter">WER LÜGT?</h2>
-                                <div className="p-4 border-4 border-dashed border-black bg-yellow-50">
-                                    <p className="font-bold text-sm">Diskutiert jetzt! Jeder beschreibt sein Wort mit EINEM Begriff. Der Imposter muss so tun, als wüsste er das Wort.</p>
-                                </div>
+                            <div className="py-10 space-y-8">
+                                <h2 className="text-5xl font-black text-red-600 italic animate-bounce">WER LÜGT?</h2>
                                 <button onClick={() => setGameState('finish')} className="w-full bg-black text-white py-5 font-black text-xl">AUFLÖSEN</button>
                             </div>
                         )}
 
                         {gameState === 'finish' && (
                             <div className="py-6 space-y-6">
-                                <h2 className="text-3xl font-black uppercase">Der Imposter war:</h2>
-                                <div className="text-5xl font-black text-red-600 underline decoration-black">{players[gameData.imposterIdx]}</div>
-                                <div className="text-sm font-bold bg-gray-100 p-2 border-2 border-black">
-                                    Wort der Gruppe: {gameData.words[gameData.imposterIdx === 0 ? 1 : 0]} <br/>
-                                    Wort des Imposters: {gameData.words[gameData.imposterIdx]}
-                                </div>
-                                <button onClick={() => setGameState('setup')} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box">NEUE RUNDE</button>
+                                <h2 className="text-2xl font-black uppercase">Der Imposter war:</h2>
+                                <div className="text-5xl font-black text-red-600 underline decoration-black italic">{players[gameData.imposterIdx]}</div>
+                                <div className="text-xs font-bold bg-gray-100 p-4 border-2 border-black">WORT: {gameData.word}</div>
+                                <button onClick={() => setGameState('setup')} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box">HAUPTMENÜ</button>
                             </div>
                         )}
                     </div>
