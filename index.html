@@ -27,7 +27,8 @@
         input:checked + .slider { background-color: #ef4444; }
         input:checked + .slider:before { transform: translateX(22px); background-color: #fff; }
 
-        .word-box { min-height: 14rem; display: flex; align-items: center; justify-content: center; text-align: center; padding: 1.5rem; }
+        .word-box { min-height: 14rem; display: flex; align-items: center; justify-content: center; text-align: center; padding: 1rem; width: 100%; overflow: hidden; }
+        .dynamic-text { word-wrap: break-word; overflow-wrap: break-word; width: 100%; line-height: 1.1; font-weight: 900; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -46,7 +47,7 @@
             const [apiKey, setApiKey] = useState(() => localStorage.getItem('imp_key') || '');
             const [hintMode, setHintMode] = useState(false);
             const [loading, setLoading] = useState(false);
-            const [status, setStatus] = useState('System bereit.');
+            const [status, setStatus] = useState('Wort wird gesucht...');
             const [gameData, setGameData] = useState({ words: [], imposterIdx: -1, currentPlayer: 0, showingWord: false });
 
             useEffect(() => {
@@ -54,16 +55,28 @@
                 localStorage.setItem('imp_key', apiKey);
             }, [players, apiKey]);
 
+            // Dynamische Schriftgröße basierend auf Länge und Container
+            const getDynamicStyle = (text, factor = 1) => {
+                const len = text ? text.length : 0;
+                let size = 3; 
+                if (len > 20) size = 1.2;
+                else if (len > 15) size = 1.6;
+                else if (len > 10) size = 2.2;
+                else if (len > 5) size = 2.8;
+                
+                return { fontSize: `${size * factor}rem` };
+            };
+
             const fetchAI = async (topic, withHint) => {
                 if (!apiKey) return alert("API Key fehlt!");
                 setLoading(true);
-                setStatus("Gemini 3 generiert...");
+                setStatus("Wort wird gefunden...");
                 try {
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
                     
                     const promptText = withHint 
-                        ? `Wähle zwei Begriffe zum Thema "${topic}". Wichtig: Wähle keine zu offensichtlichen Wörter. Sie sollen etwas weiter weg liegen oder spezifischer sein. Trenne sie mit einem Komma. Nur die zwei Wörter.`
-                        : `Wähle ein Substantiv zum Thema "${topic}". Wichtig: Nicht das erstbeste Wort. Wähle etwas Spezifischeres. Nur das Wort ausgeben.`;
+                        ? `Wähle zwei Begriffe zum Thema "${topic}". Wichtig: Sie müssen weit weg vom Kern des Themas liegen (keine Klischees). Trenne sie mit einem Komma. Nur Wörter ausgeben.`
+                        : `Wähle ein Substantiv zum Thema "${topic}". Es darf nicht offensichtlich sein. Nur das Wort ausgeben.`;
                     
                     const response = await fetch(url, {
                         method: 'POST',
@@ -72,8 +85,9 @@
                     });
                     const data = await response.json();
                     const text = data.candidates[0].content.parts[0].text.trim();
+                    setStatus("Wort gefunden!");
                     return withHint ? text.split(',').map(s => s.trim()) : [text];
-                } catch (e) { setStatus("Fehler."); return null; } finally { setLoading(false); }
+                } catch (e) { setStatus("Fehler bei Suche."); return null; } finally { setLoading(false); }
             };
 
             const startGame = async () => {
@@ -93,24 +107,16 @@
                 setGameState('reveal');
             };
 
-            const getFontSize = (text) => {
-                const len = text ? text.length : 0;
-                if (len > 18) return '1.2rem';
-                if (len > 12) return '1.8rem';
-                return '2.8rem';
-            };
-
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 pt-8">
-                    <h1 className="text-4xl font-black italic mb-8 uppercase border-b-4 border-black tracking-tighter shadow-sm">IMPOSTER.AI</h1>
+                    <h1 className="text-4xl font-black italic mb-8 uppercase border-b-4 border-black tracking-tighter">IMPOSTER.AI</h1>
 
-                    <div className="w-full max-w-md bg-white p-6 neo-box space-y-8">
+                    <div className="w-full max-w-md bg-white p-6 neo-box space-y-6">
                         {gameState === 'setup' && (
                             <div className="space-y-6">
                                 <section>
                                     <input type="password" placeholder="API Key..." className="w-full p-2 border-b border-gray-200 text-[10px] mb-4" value={apiKey} onChange={e => setApiKey(e.target.value)} />
-                                    
-                                    <div className="flex items-center justify-between p-3 border-2 border-black bg-gray-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                                    <div className="flex items-center justify-between p-3 border-2 border-black bg-gray-50">
                                         <span className="font-black uppercase text-xs">Hinweis-Modus</span>
                                         <label className="switch">
                                             <input type="checkbox" checked={hintMode} onChange={() => setHintMode(!hintMode)} />
@@ -120,14 +126,13 @@
                                 </section>
 
                                 <section className="space-y-4">
-                                    <label className="text-xs font-black uppercase text-gray-400">Spieler</label>
                                     <div className="flex gap-2">
-                                        <input className="flex-1 p-3 border-2 border-black font-bold" value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Name..." />
-                                        <button onClick={() => {if(nameInput){setPlayers([...players, nameInput]); setNameInput('');}}} className="bg-black text-white px-5 font-bold text-xl">+</button>
+                                        <input className="flex-1 p-3 border-2 border-black font-bold" value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Spielername..." />
+                                        <button onClick={() => {if(nameInput){setPlayers([...players, nameInput]); setNameInput('');}}} className="bg-black text-white px-5 font-bold">+</button>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         {players.map((p, i) => (
-                                            <div key={i} className="flex items-center bg-red-600 text-white px-3 py-1 text-xs font-black uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                                            <div key={i} className="flex items-center bg-red-600 text-white px-3 py-1 text-[10px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                                 <span onClick={() => {const n=prompt("Name:",p); if(n){const c=[...players]; c[i]=n; setPlayers(c);}}} className="cursor-pointer">{p}</span>
                                                 <button onClick={() => setPlayers(players.filter((_, idx) => idx !== i))} className="ml-2 border-l border-white/40 pl-2">×</button>
                                             </div>
@@ -135,63 +140,70 @@
                                     </div>
                                 </section>
 
-                                <section className="space-y-4">
-                                    <label className="text-xs font-black uppercase text-gray-400">Kategorien</label>
+                                <section className="space-y-3">
                                     <div className="grid grid-cols-3 gap-2">
                                         {CATEGORIES.map(cat => (
-                                            <button key={cat} onClick={() => setCategory(cat)} className={`py-2 text-[10px] font-black uppercase border-2 border-black ${category === cat ? 'bg-black text-white' : 'bg-white text-black'}`}>
+                                            <button key={cat} onClick={() => setCategory(cat)} className={`py-2 text-[10px] font-black uppercase border-2 border-black ${category === cat ? 'bg-black text-white' : 'bg-white'}`}>
                                                 {cat}
                                             </button>
                                         ))}
                                     </div>
-                                    <input className="w-full p-3 border-2 border-black font-black uppercase text-center" value={category} onChange={e => setCategory(e.target.value)} placeholder="Eigenes Thema..." />
+                                    <input className="w-full p-3 border-2 border-black font-black uppercase text-center bg-yellow-50" value={category} onChange={e => setCategory(e.target.value)} placeholder="Thema..." />
                                 </section>
 
                                 <button disabled={loading} onClick={startGame} className="w-full bg-red-600 text-white font-black py-5 uppercase text-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all">
-                                    {loading ? "KI LÄDT..." : "START"}
+                                    {loading ? "SUCHE..." : "START"}
                                 </button>
-                                <p className="text-center text-[10px] font-mono text-red-600 uppercase">Status: {status}</p>
+                                <p className="text-center text-[10px] font-mono text-red-600 uppercase tracking-widest">{status}</p>
                             </div>
                         )}
 
                         {gameState === 'reveal' && (
-                            <div className="text-center space-y-8 py-4">
-                                <h2 className="text-3xl font-black uppercase italic border-b-4 border-red-600 inline-block px-4">{players[gameData.currentPlayer]}</h2>
+                            <div className="text-center space-y-8">
+                                <div className="inline-block px-4 border-b-4 border-red-600">
+                                    <h2 className="dynamic-text italic" style={getDynamicStyle(players[gameData.currentPlayer], 0.8)}>
+                                        {players[gameData.currentPlayer]}
+                                    </h2>
+                                </div>
                                 
                                 <div 
                                     onClick={() => setGameData({...gameData, showingWord: true})} 
                                     className={`word-box border-4 border-black transition-all ${gameData.showingWord ? 'bg-red-600 text-white' : 'bg-gray-100 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}
                                 >
                                     {gameData.showingWord ? (
-                                        <div className="space-y-4">
+                                        <div className="w-full px-2">
                                             {gameData.currentPlayer === gameData.imposterIdx ? (
-                                                <>
-                                                    {hintMode && <p className="font-black uppercase break-words border-b-2 border-white/30 pb-2" style={{ fontSize: getFontSize(gameData.words[gameData.currentPlayer]) }}>{gameData.words[gameData.currentPlayer]}</p>}
-                                                    <div className="bg-black text-white py-2 px-4 inline-block font-black uppercase text-lg animate-pulse">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    {hintMode && (
+                                                        <p className="dynamic-text border-b-2 border-white/30 pb-2 italic" style={getDynamicStyle(gameData.words[gameData.currentPlayer])}>
+                                                            {gameData.words[gameData.currentPlayer]}
+                                                        </p>
+                                                    )}
+                                                    <div className="bg-black text-white py-2 px-4 dynamic-text animate-pulse" style={getDynamicStyle("DU BIST DER IMPOSTER", 0.5)}>
                                                         DU BIST DER IMPOSTER
                                                     </div>
-                                                </>
+                                                </div>
                                             ) : (
-                                                <p className="font-black uppercase break-words leading-tight" style={{ fontSize: getFontSize(gameData.words[gameData.currentPlayer]) }}>
+                                                <p className="dynamic-text" style={getDynamicStyle(gameData.words[gameData.currentPlayer])}>
                                                     {gameData.words[gameData.currentPlayer]}
                                                 </p>
                                             )}
                                         </div>
-                                    ) : <p className="font-black text-red-600 animate-pulse text-xl uppercase">Tap to Reveal</p>}
+                                    ) : <p className="font-black text-red-600 animate-pulse text-xl uppercase">Anzeigen</p>}
                                 </div>
 
                                 {gameData.showingWord && (
                                     <button onClick={() => {
                                         if(gameData.currentPlayer + 1 < players.length) setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
                                         else setGameState('play');
-                                    }} className="w-full bg-black text-white py-4 font-black uppercase text-xl shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]">VERSTANDEN</button>
+                                    }} className="w-full bg-black text-white py-4 font-black uppercase text-xl">VERSTANDEN</button>
                                 )}
                             </div>
                         )}
 
                         {gameState === 'play' && (
                             <div className="text-center py-12 space-y-8">
-                                <h2 className="text-6xl font-black text-red-600 italic uppercase leading-none">WER LÜGT?</h2>
+                                <h2 className="dynamic-text text-red-600 italic" style={getDynamicStyle("WER LÜGT?", 1.5)}>WER LÜGT?</h2>
                                 <button onClick={() => setGameState('setup')} className="w-full bg-black text-white py-5 font-black uppercase text-xl shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]">NEUE RUNDE</button>
                             </div>
                         )}
