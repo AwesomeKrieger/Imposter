@@ -10,24 +10,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         html, body { 
-            background-color: #ffffff; 
-            color: #000; 
+            background-color: #ffffff; color: #000; 
             font-family: -apple-system, sans-serif; 
             margin: 0; padding: 0;
             height: 100%; width: 100%;
-            overflow: hidden; 
-            position: fixed; 
-            touch-action: none; 
+            overflow: hidden; position: fixed; touch-action: none; 
         }
         .neo-box { border: 4px solid #000; box-shadow: 6px 6px 0px 0px #000; }
         .progress-fill { height: 100%; background: #ef4444; transition: width 0.4s ease-out; width: 0%; }
         .scroll-container { 
-            flex-grow: 1;
-            overflow-y: auto !important; 
-            -webkit-overflow-scrolling: touch;
-            border: 3px solid black; 
-            background: #fafafa;
-            touch-action: pan-y;
+            flex-grow: 1; overflow-y: auto !important; 
+            -webkit-overflow-scrolling: touch; border: 3px solid black; 
+            background: #fafafa; touch-action: pan-y;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .main-container { height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 1rem; }
@@ -62,7 +56,7 @@
             const [apiKey, setApiKey] = useState(() => localStorage.getItem('imp_key') || '');
             const [usedWords, setUsedWords] = useState([]);
             const [customTopics, setCustomTopics] = useState(() => {
-                const saved = localStorage.getItem('imp_custom_v11');
+                const saved = localStorage.getItem('imp_custom_v12');
                 return saved ? JSON.parse(saved) : [];
             });
             
@@ -99,14 +93,26 @@
                     Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
                 }
                 setSubCats(list);
-                setSelectedSub(list[0]?.name || "");
+                if (list.length > 0) setSelectedSub(list[0].name);
             };
 
-            const addPlayer = () => players.length < 10 && setPlayers([...players, `Spieler ${players.length + 1}`]);
-            const removePlayer = (idx) => players.length > 3 && setPlayers(players.filter((_, i) => i !== idx));
+            const addCustomTopic = () => {
+                const name = prompt("Gib ein Thema für die KI ein (z.B. Star Wars, Kochen, Memes):");
+                if(name && name.trim() !== "") {
+                    const newList = [...customTopics, { name: name.trim() }];
+                    setCustomTopics(newList);
+                    localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
+                    // Sofortige Anzeige in der Liste
+                    const newSubList = newList.map(t => ({ name: t.name, parent: "EIGENE" }));
+                    setSubCats(newSubList);
+                    setSelectedSub(name.trim());
+                }
+            };
 
             const startGame = async () => {
-                if(selectedGroup === "EIGENE" && !apiKey) return alert("API Key fehlt!");
+                if(selectedGroup === "EIGENE" && !apiKey) return alert("Bitte API Key unten eintragen!");
+                if(!selectedSub) return alert("Wähle zuerst ein Thema aus!");
+
                 setLoading(true);
                 setVisualProgress(50);
                 
@@ -119,7 +125,7 @@
                     else if (rng < 0.10) chaos = "NONE";
 
                     if (selectedGroup === "EIGENE") {
-                        const promptText = `Antworte NUR: Wort|Hinweis. Beides GENAU EIN WORT. Thema: "${selectedSub}". Nicht: ${usedWords.slice(-5).join(",")}`;
+                        const promptText = `Antworte NUR im Format: Wort|Hinweis. Beides GENAU EIN WORT. Thema: "${selectedSub}". Nicht diese Wörter: ${usedWords.slice(-5).join(",")}`;
                         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
@@ -128,7 +134,7 @@
                         const raw = d.candidates[0].content.parts[0].text.trim().replace(/```/g, "");
                         const parts = raw.split('|');
                         word = parts[0].trim().split(" ")[0];
-                        hint = parts[1] ? parts[1].trim().split(" ")[0] : "Geheim";
+                        hint = parts[1] ? parts[1].trim().split(" ")[0] : "Geheimnis";
                     } else {
                         const target = subCats.find(c => c.name === selectedSub);
                         const catData = data[target.parent][selectedSub];
@@ -158,12 +164,12 @@
                     setTimeLeft(timerMinutes * 60);
                     setVisualProgress(100);
                     setTimeout(() => { setGameState('reveal'); setLoading(false); }, 400);
-                } catch (e) { alert("Fehler!"); setLoading(false); }
+                } catch (e) { alert("KI-Fehler! Prüfe deinen API Key."); setLoading(false); }
             };
 
             const formatTime = (s) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2, '0')}`;
 
-            if (!data) return <div className="h-screen flex items-center justify-center font-black uppercase">Lade...</div>;
+            if (!data) return <div className="h-screen flex items-center justify-center font-black uppercase">Lade System...</div>;
 
             return (
                 <div className="main-container">
@@ -172,7 +178,7 @@
                     <div className="game-card bg-white p-5 neo-box space-y-4">
                         {loading ? (
                              <div className="flex flex-col items-center justify-center p-10 space-y-4">
-                                <div className="font-black text-xl italic uppercase">Wähle Begriffe...</div>
+                                <div className="font-black text-xl italic uppercase">KI generiert Begriffe...</div>
                                 <div className="w-full border-4 border-black h-8 bg-white"><div className="progress-fill" style={{width: `${visualProgress}%`}}></div></div>
                             </div>
                         ) : gameState === 'setup' ? (
@@ -194,15 +200,15 @@
 
                                 <div className="space-y-2 pt-2">
                                     <div className="flex justify-between items-center">
-                                        <span className="font-black text-[10px] uppercase">Mitspieler & Stats:</span>
-                                        <button onClick={addPlayer} className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black">+ ADD</button>
+                                        <span className="font-black text-[10px] uppercase underline">Mitspieler & Stats:</span>
+                                        <button onClick={() => setPlayers([...players, `Spieler ${players.length+1}`])} className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black uppercase">+ Add</button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-1 max-h-20 overflow-y-auto border border-black p-1 bg-gray-50">
                                         {players.map((p, i) => (
                                             <div key={i} className="flex border border-black bg-white">
                                                 <input value={p} onChange={e => {let n=[...players]; n[i]=e.target.value; setPlayers(n);}} className="w-full p-1 text-[10px] font-bold outline-none uppercase" />
                                                 <span className="text-[9px] font-black bg-yellow-400 px-1 border-l border-black flex items-center">🕵️{stats[p] || 0}</span>
-                                                <button onClick={() => removePlayer(i)} className="bg-red-500 text-white px-1 font-black">×</button>
+                                                <button onClick={() => players.length > 3 && setPlayers(players.filter((_, idx) => idx !== i))} className="bg-red-500 text-white px-1 font-black">×</button>
                                             </div>
                                         ))}
                                     </div>
@@ -215,6 +221,11 @@
                                 </div>
 
                                 <div className="scroll-container hide-scrollbar">
+                                    {selectedGroup === "EIGENE" && (
+                                        <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100 hover:bg-yellow-200 transition-colors">
+                                            + NEUES KI-THEMA
+                                        </button>
+                                    )}
                                     {subCats.map(s => (
                                         <button key={s.name} onClick={() => setSelectedSub(s.name)} className={`w-full p-4 border-b-2 border-black font-black text-left text-sm uppercase transition-colors ${selectedSub === s.name ? 'bg-black text-white' : 'bg-white active:bg-gray-200'}`}>
                                             {selectedSub === s.name ? "➔ " : ""}{s.name}
@@ -222,8 +233,8 @@
                                     ))}
                                 </div>
 
-                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box active:bg-red-700 uppercase">Start</button>
-                                <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
+                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box active:bg-red-700 uppercase">Spiel Starten</button>
+                                <input type="password" placeholder="API Key hier..." className="w-full p-1 text-[8px] border-b opacity-10" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
                             </>
                         ) : gameState === 'reveal' ? (
                             <div className="space-y-6 py-4 flex flex-col items-center">
@@ -234,37 +245,37 @@
                                     {gameData.showingWord ? (
                                         gameData.imposterIndices.includes(gameData.currentPlayer) ? (
                                             <div className="text-center">
-                                                <div className="text-red-500 font-black text-xl mb-1 uppercase">Du bist</div>
-                                                <div className="text-5xl font-black tracking-tighter uppercase">Imposter</div>
+                                                <div className="text-red-500 font-black text-xl mb-1 uppercase tracking-widest">Du bist der</div>
+                                                <div className="text-6xl font-black uppercase italic">Imposter</div>
                                                 <div className="mt-6 p-3 border-2 border-white text-sm font-bold uppercase">Tipp: {gameData.hint}</div>
                                             </div>
                                         ) : <span className="text-5xl font-black uppercase tracking-tighter text-center">{gameData.word}</span>
-                                    ) : <span className="text-2xl font-black italic underline uppercase text-black">Anzeigen</span>}
+                                    ) : <span className="text-2xl font-black italic underline uppercase text-black">Karte aufdecken</span>}
                                 </div>
                                 {gameData.showingWord && (
                                     <button onClick={() => {
                                         if(gameData.currentPlayer + 1 < players.length) setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
                                         else setGameState('play');
-                                    }} className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase">Gelesen</button>
+                                    }} className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase">Verstanden</button>
                                 )}
                             </div>
                         ) : gameState === 'play' ? (
                             <div className={`py-12 flex flex-col items-center space-y-8 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'timer-warn' : ''}`}>
-                                {timerMinutes > 0 && <div className="text-6xl font-black px-6 py-2 border-4 border-black neo-box">{formatTime(timeLeft)}</div>}
+                                {timerMinutes > 0 && <div className="text-6xl font-black px-6 py-2 border-4 border-black neo-box shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">{formatTime(timeLeft)}</div>}
                                 <h2 className="text-6xl font-black text-red-600 italic animate-bounce uppercase">Diskussion!</h2>
                                 <button onClick={() => setGameState('finish')} className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase">Auflösen</button>
                             </div>
                         ) : (
                             <div className="py-10 flex flex-col items-center space-y-6 text-center">
-                                <h2 className="text-2xl font-black uppercase underline">
-                                    {gameData.chaosMode === "ALL" ? "ALLE WAREN IMPOSTER!" : 
-                                     gameData.chaosMode === "NONE" ? "NIEMAND WAR IMPOSTER!" : "Die Verräter:"}
+                                <h2 className="text-2xl font-black uppercase underline decoration-4">
+                                    {gameData.chaosMode === "ALL" ? "MASSEN-PANIK! Alle Imposter!" : 
+                                     gameData.chaosMode === "NONE" ? "FEHLALARM! Keiner war's!" : "Die Verräter:"}
                                 </h2>
                                 {gameData.imposterIndices.length > 0 ? gameData.imposterIndices.map(idx => (
                                     <div key={idx} className="text-4xl font-black text-red-600 italic uppercase tracking-tighter">{players[idx]}</div>
-                                )) : <div className="text-4xl font-black text-green-600 italic uppercase">Keiner!</div>}
-                                <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase mt-4">Wort: {gameData.word}</div>
-                                <button onClick={() => setGameState('setup')} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase">Neu</button>
+                                )) : <div className="text-4xl font-black text-green-600 italic uppercase">Niemand</div>}
+                                <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase mt-4">Das Wort: {gameData.word}</div>
+                                <button onClick={() => setGameState('setup')} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase tracking-tighter">Nächste Runde</button>
                             </div>
                         )}
                     </div>
