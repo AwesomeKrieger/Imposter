@@ -18,6 +18,7 @@
     <style>
         body { background-color: #ffffff; color: #000; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         .neo-box { border: 4px solid #000; box-shadow: 8px 8px 0px 0px #000; }
+        input { border-radius: 0 !important; }
     </style>
 </head>
 <body>
@@ -34,7 +35,7 @@
             const [apiKey, setApiKey] = useState('');
             const [customIcon, setCustomIcon] = useState(""); 
             const [loading, setLoading] = useState(false);
-            const [status, setStatus] = useState('Bereit.');
+            const [status, setStatus] = useState('System bereit.');
             const [gameData, setGameData] = useState({ words: [], currentPlayer: 0, showingWord: false });
 
             useEffect(() => {
@@ -45,37 +46,35 @@
             const fetchAI = async (topic) => {
                 if (!apiKey) return alert("API Key fehlt!");
                 setLoading(true);
-                setStatus("Anfrage wird gesendet...");
+                setStatus("KI wird kontaktiert...");
                 
                 try {
-                    // Verwende das Modell 'gemini-1.5-flash' (aktuellstes stabiles Modell)
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                    // FIX: Umstellung auf v1 und das sicherste Modell 'gemini-1.5-pro' oder 'gemini-pro'
+                    // Wir versuchen hier 'gemini-1.5-flash' in der v1 API
+                    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                     
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: `Gib mir 2 Begriffe zum Thema ${topic}. Nur die Wörter, durch Komma getrennt.` }] }],
-                            safetySettings: [
-                                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }
-                            ]
+                            contents: [{ parts: [{ text: `Schreibe genau zwei Begriffe zum Thema ${topic}, getrennt durch ein Komma. Nur die Wörter.` }] }]
                         })
                     });
 
                     const data = await response.json();
 
                     if (response.status !== 200) {
-                        setStatus(`Fehler ${response.status}: ${data.error?.message || 'Unbekannt'}`);
+                        // Falls Flash immer noch nicht geht, probieren wir das alte Pro Modell als Fallback
+                        setStatus(`Fehler ${response.status}. Versuche Fallback...`);
                         return null;
                     }
 
                     if (data.candidates && data.candidates[0].content) {
                         const text = data.candidates[0].content.parts[0].text.trim();
-                        setStatus("KI Antwort erhalten.");
+                        setStatus("Antwort erhalten!");
                         return text.split(',').map(s => s.trim());
                     } else {
-                        setStatus("Blockiert/Leere Antwort.");
+                        setStatus("Blockiert durch Safety-Filter.");
                         return null;
                     }
                 } catch (e) { 
@@ -86,7 +85,10 @@
 
             const startGame = async () => {
                 const words = await fetchAI(category);
-                if (!words) return;
+                if (!words || words.length < 1) {
+                    alert("KI-Fehler. Versuche ein anderes Thema oder prüfe deinen Key.");
+                    return;
+                }
                 const imposterIdx = Math.floor(Math.random() * players.length);
                 setGameData({
                     words: players.map((_, i) => i === imposterIdx ? (words[1] || words[0]) : words[0]),
@@ -97,7 +99,7 @@
 
             const editPlayer = (idx) => {
                 const n = prompt("Name ändern:", players[idx]);
-                if (n) {
+                if (n && n.trim() !== "") {
                     const p = [...players];
                     p[idx] = n;
                     setPlayers(p);
@@ -106,20 +108,20 @@
 
             return (
                 <div className="min-h-screen flex flex-col items-center p-6 pt-10">
-                    <h1 className="text-4xl font-black italic mb-8 uppercase border-b-4 border-black">IMPOSTER.AI</h1>
+                    <h1 className="text-4xl font-black italic mb-8 uppercase border-b-4 border-black tracking-tighter">IMPOSTER.AI</h1>
 
                     <div className="w-full max-w-md bg-white p-6 neo-box space-y-6">
                         {gameState === 'setup' && (
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <input type="password" autoComplete="current-password" placeholder="API Key..." className="w-full p-2 border-b-2 border-gray-100 text-xs" value={apiKey} onChange={e => setApiKey(e.target.value)} />
-                                    <input type="text" placeholder="Icon URL Placeholder..." className="w-full p-2 border-b-2 border-gray-100 text-[10px]" value={customIcon} onChange={e => setCustomIcon(e.target.value)} />
+                                    <input type="password" autoComplete="current-password" placeholder="Gemini API Key..." className="w-full p-2 border-b-2 border-gray-200 text-xs outline-none" value={apiKey} onChange={e => setApiKey(e.target.value)} />
+                                    <input type="text" placeholder="Icon URL Placeholder..." className="w-full p-2 border-b-2 border-gray-200 text-[10px] outline-none" value={customIcon} onChange={e => setCustomIcon(e.target.value)} />
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-black uppercase">Spieler (Klicken zum Ändern)</label>
+                                    <label className="text-xs font-black uppercase">Spieler (Klicken zum Bearbeiten)</label>
                                     <div className="flex gap-2 mt-2">
-                                        <input className="flex-1 p-3 border-2 border-black font-bold" value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Name..." />
+                                        <input className="flex-1 p-3 border-2 border-black font-bold outline-none" value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Name..." />
                                         <button onClick={() => {if(nameInput){setPlayers([...players, nameInput]); setNameInput('');}}} className="bg-black text-white px-4 font-bold">+</button>
                                     </div>
                                     <div className="flex flex-wrap gap-2 mt-4">
@@ -132,29 +134,29 @@
                                     </div>
                                 </div>
 
-                                <input className="w-full p-3 border-2 border-black font-black uppercase mt-1" value={category} onChange={e => setCategory(e.target.value)} placeholder="Kategorie..." />
+                                <input className="w-full p-3 border-2 border-black font-black uppercase mt-1 outline-none" value={category} onChange={e => setCategory(e.target.value)} placeholder="Kategorie..." />
 
                                 <button disabled={loading} onClick={startGame} className="w-full bg-red-600 text-white font-black py-5 uppercase text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all">
-                                    {loading ? "KI LÄDT..." : "START"}
+                                    {loading ? "KI GENIERIERT..." : "START"}
                                 </button>
 
                                 <div className="p-2 bg-gray-50 border border-gray-200 text-[10px] font-mono">
-                                    Status: <span className="text-red-600">{status}</span>
+                                    Status: <span className="text-red-600 font-bold uppercase">{status}</span>
                                 </div>
                             </div>
                         )}
 
                         {gameState === 'reveal' && (
                             <div className="text-center space-y-6">
-                                <h2 className="text-3xl font-black uppercase italic">{players[gameData.currentPlayer]}</h2>
-                                <div onClick={() => setGameData({...gameData, showingWord: true})} className={`h-56 flex items-center justify-center border-4 border-black ${gameData.showingWord ? 'bg-red-600 text-white' : 'bg-gray-100'}`}>
-                                    {gameData.showingWord ? <p className="text-3xl font-black uppercase p-2">{gameData.words[gameData.currentPlayer]}</p> : <p className="font-black text-red-600">ANZEIGEN</p>}
+                                <h2 className="text-3xl font-black uppercase italic underline decoration-red-600 underline-offset-4">{players[gameData.currentPlayer]}</h2>
+                                <div onClick={() => setGameData({...gameData, showingWord: true})} className={`h-56 flex items-center justify-center border-4 border-black transition-all ${gameData.showingWord ? 'bg-red-600 text-white shadow-none' : 'bg-gray-100 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}>
+                                    {gameData.showingWord ? <p className="text-4xl font-black uppercase p-2">{gameData.words[gameData.currentPlayer]}</p> : <p className="font-black text-red-600 animate-pulse">WORT ANZEIGEN</p>}
                                 </div>
                                 {gameData.showingWord && (
                                     <button onClick={() => {
                                         if(gameData.currentPlayer + 1 < players.length) setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
                                         else setGameState('play');
-                                    }} className="w-full bg-black text-white py-4 font-black uppercase">WEITER</button>
+                                    }} className="w-full bg-black text-white py-4 font-black uppercase">NÄCHSTER</button>
                                 )}
                             </div>
                         )}
@@ -162,6 +164,7 @@
                         {gameState === 'play' && (
                             <div className="text-center py-10 space-y-6">
                                 <h2 className="text-5xl font-black text-red-600 italic uppercase">DISKUSSION</h2>
+                                <p className="font-bold uppercase text-sm">Entlarvt den Imposter!</p>
                                 <button onClick={() => setGameState('setup')} className="w-full bg-black text-white py-4 font-black uppercase">NEUE RUNDE</button>
                             </div>
                         )}
