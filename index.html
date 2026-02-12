@@ -86,7 +86,7 @@
                 let list = [];
                 if (groupName === "BELIEBT") {
                     Object.keys(fullData).forEach(g => Object.keys(fullData[g]).forEach(s => list.push({ name: s, parent: g })));
-                    list = list.sort(() => 0.5 - Math.random()).slice(0, 5);
+                    list = list.sort(() => 0.5 - Math.random()).slice(0, 3);
                 } else if (groupName === "EIGENE") {
                     list = currentCustom.map(t => ({ name: t.name, parent: "EIGENE" }));
                 } else {
@@ -229,7 +229,9 @@ Wähle ein SPEZIFISCHES Wort aus diesem Bereich. Antworte NUR im Format: Wort|Hi
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black uppercase opacity-60">Zeit:</label>
                                         <select value={timerMinutes} onChange={e => setTimerMinutes(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
-                                            {[0,1,2,3,5,10].map(m => <option key={m} value={m}>{m}m</option>)}
+                                            {[0,1,2,3,5,10].map(m => <option key={m} value={m}>
+  {m === 0 ? "AUS" : `${m}m`}                                                
+                                                </option>)}
                                         </select>
                                     </div>
                                 </div>
