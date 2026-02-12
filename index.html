@@ -14,12 +14,10 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     
     <style>
         body { background-color: #ffffff; color: #000; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         .neo-box { border: 4px solid #000; box-shadow: 8px 8px 0px 0px #000; }
-        input:focus { outline: none; border-color: #dc2626; }
     </style>
 </head>
 <body>
@@ -32,101 +30,94 @@
             const [gameState, setGameState] = useState('setup'); 
             const [players, setPlayers] = useState(['Spieler 1', 'Spieler 2', 'Spieler 3']);
             const [nameInput, setNameInput] = useState('');
-            const [category, setCategory] = useState('Party');
+            const [category, setCategory] = useState('Essen');
             const [apiKey, setApiKey] = useState('');
-            const [customIcon, setCustomIcon] = useState(""); // Dein Icon-Placeholder
+            const [customIcon, setCustomIcon] = useState(""); 
             const [loading, setLoading] = useState(false);
-            const [debug, setDebug] = useState('System bereit.');
+            const [status, setStatus] = useState('Bereit.');
             const [gameData, setGameData] = useState({ words: [], currentPlayer: 0, showingWord: false });
 
-            // Icon Fallback Logik
             useEffect(() => {
                 const link = document.getElementById('app-icon');
-                // Wenn customIcon leer ist, wird das Standard-Icon genutzt
-                link.href = customIcon || "https://img.icons8.com/ios-filled/180/ff0000/spy.png";
+                if (customIcon) link.href = customIcon;
             }, [customIcon]);
 
             const fetchAI = async (topic) => {
-                if (!apiKey) return alert("Bitte API Key eingeben!");
+                if (!apiKey) return alert("API Key fehlt!");
                 setLoading(true);
-                setDebug("KI denkt nach...");
+                setStatus("Anfrage wird gesendet...");
                 
                 try {
-                    // Ultra-sicherer Prompt um Filter zu umgehen
-                    const promptText = `Schreibe zwei Begriffe zum Thema "${topic}". Trenne sie nur durch ein Komma. Beispiel: Baum, Wald. Schreibe keine Sätze, nur die Wörter.`;
+                    // Verwende das Modell 'gemini-1.5-flash' (aktuellstes stabiles Modell)
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                     
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: promptText }] }],
+                            contents: [{ parts: [{ text: `Gib mir 2 Begriffe zum Thema ${topic}. Nur die Wörter, durch Komma getrennt.` }] }],
                             safetySettings: [
                                 { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }
                             ]
                         })
                     });
-                    
+
                     const data = await response.json();
-                    
+
+                    if (response.status !== 200) {
+                        setStatus(`Fehler ${response.status}: ${data.error?.message || 'Unbekannt'}`);
+                        return null;
+                    }
+
                     if (data.candidates && data.candidates[0].content) {
                         const text = data.candidates[0].content.parts[0].text.trim();
-                        setDebug("Erhalten: " + text);
+                        setStatus("KI Antwort erhalten.");
                         return text.split(',').map(s => s.trim());
                     } else {
-                        // Zeige den exakten Grund der Blockade an
-                        const reason = data.candidates?.[0]?.finishReason || "SAFETY/FILTER";
-                        setDebug("BLOCKIERT: " + reason);
-                        alert("Die KI blockiert dieses Thema (" + reason + "). Versuche ein einfacheres Wort.");
+                        setStatus("Blockiert/Leere Antwort.");
                         return null;
                     }
                 } catch (e) { 
-                    setDebug("Fehler: " + e.message); 
+                    setStatus("Verbindungsfehler: " + e.message); 
                     return null; 
                 } finally { setLoading(false); }
             };
 
             const startGame = async () => {
                 const words = await fetchAI(category);
-                if (!words || words.length < 1) return;
-                
-                const mainWord = words[0];
-                const hintWord = words[1] || mainWord;
+                if (!words) return;
                 const imposterIdx = Math.floor(Math.random() * players.length);
-                
                 setGameData({
-                    words: players.map((_, i) => i === imposterIdx ? hintWord : mainWord),
-                    currentPlayer: 0, 
-                    showingWord: false
+                    words: players.map((_, i) => i === imposterIdx ? (words[1] || words[0]) : words[0]),
+                    currentPlayer: 0, showingWord: false
                 });
                 setGameState('reveal');
             };
 
-            const editPlayer = (index) => {
-                const val = prompt("Name ändern:", players[index]);
-                if (val !== null && val.trim() !== "") {
-                    const updated = [...players];
-                    updated[index] = val;
-                    setPlayers(updated);
+            const editPlayer = (idx) => {
+                const n = prompt("Name ändern:", players[idx]);
+                if (n) {
+                    const p = [...players];
+                    p[idx] = n;
+                    setPlayers(p);
                 }
             };
 
             return (
                 <div className="min-h-screen flex flex-col items-center p-6 pt-10">
-                    <h1 className="text-5xl font-black italic mb-8 uppercase tracking-tighter border-b-4 border-black">IMPOSTER.AI</h1>
+                    <h1 className="text-4xl font-black italic mb-8 uppercase border-b-4 border-black">IMPOSTER.AI</h1>
 
                     <div className="w-full max-w-md bg-white p-6 neo-box space-y-6">
                         {gameState === 'setup' && (
-                            <div className="space-y-6 animate__animated animate__fadeIn">
+                            <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <input type="password" autoComplete="current-password" placeholder="Gemini API Key..." className="w-full p-2 border-b-2 border-gray-200 text-xs" value={apiKey} onChange={e => setApiKey(e.target.value)} />
-                                    <input type="text" placeholder="Icon-URL (Placeholder)..." className="w-full p-2 border-b-2 border-gray-200 text-[10px]" value={customIcon} onChange={e => setCustomIcon(e.target.value)} />
+                                    <input type="password" autoComplete="current-password" placeholder="API Key..." className="w-full p-2 border-b-2 border-gray-100 text-xs" value={apiKey} onChange={e => setApiKey(e.target.value)} />
+                                    <input type="text" placeholder="Icon URL Placeholder..." className="w-full p-2 border-b-2 border-gray-100 text-[10px]" value={customIcon} onChange={e => setCustomIcon(e.target.value)} />
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-black uppercase">Spieler (Tap zum Editieren)</label>
+                                    <label className="text-xs font-black uppercase">Spieler (Klicken zum Ändern)</label>
                                     <div className="flex gap-2 mt-2">
                                         <input className="flex-1 p-3 border-2 border-black font-bold" value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Name..." />
                                         <button onClick={() => {if(nameInput){setPlayers([...players, nameInput]); setNameInput('');}}} className="bg-black text-white px-4 font-bold">+</button>
@@ -134,48 +125,44 @@
                                     <div className="flex flex-wrap gap-2 mt-4">
                                         {players.map((p, i) => (
                                             <div key={i} className="flex items-center bg-red-600 text-white px-3 py-1 text-xs font-black uppercase">
-                                                <span onClick={() => editPlayer(i)}>{p}</span>
-                                                <button onClick={() => setPlayers(players.filter((_, idx) => idx !== i))} className="ml-2 border-l border-white/30 pl-2">×</button>
+                                                <span onClick={() => editPlayer(i)} className="cursor-pointer">{p}</span>
+                                                <button onClick={() => setPlayers(players.filter((_, idx) => idx !== i))} className="ml-2 pl-2 border-l border-white/20">×</button>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="text-xs font-black uppercase">Kategorie / Thema</label>
-                                    <input className="w-full p-3 border-2 border-black font-black uppercase mt-1" value={category} onChange={e => setCategory(e.target.value)} />
-                                </div>
+                                <input className="w-full p-3 border-2 border-black font-black uppercase mt-1" value={category} onChange={e => setCategory(e.target.value)} placeholder="Kategorie..." />
 
                                 <button disabled={loading} onClick={startGame} className="w-full bg-red-600 text-white font-black py-5 uppercase text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 transition-all">
-                                    {loading ? "KI SCHREIBT..." : "SPIEL STARTEN"}
+                                    {loading ? "KI LÄDT..." : "START"}
                                 </button>
 
-                                <div className="p-2 bg-gray-50 border-2 border-dashed border-gray-200 text-[10px] font-mono text-red-500 overflow-hidden">
-                                    Status: {debug}
+                                <div className="p-2 bg-gray-50 border border-gray-200 text-[10px] font-mono">
+                                    Status: <span className="text-red-600">{status}</span>
                                 </div>
                             </div>
                         )}
 
                         {gameState === 'reveal' && (
-                            <div className="text-center space-y-6 animate__animated animate__fadeIn">
+                            <div className="text-center space-y-6">
                                 <h2 className="text-3xl font-black uppercase italic">{players[gameData.currentPlayer]}</h2>
-                                <div onClick={() => setGameData({...gameData, showingWord: true})} className={`h-56 flex items-center justify-center border-4 border-black transition-all ${gameData.showingWord ? 'bg-red-600 text-white shadow-none' : 'bg-gray-50 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'}`}>
-                                    {gameData.showingWord ? <p className="text-4xl font-black uppercase p-4">{gameData.words[gameData.currentPlayer]}</p> : <p className="font-black text-red-600 animate-pulse text-xl">TAP TO REVEAL</p>}
+                                <div onClick={() => setGameData({...gameData, showingWord: true})} className={`h-56 flex items-center justify-center border-4 border-black ${gameData.showingWord ? 'bg-red-600 text-white' : 'bg-gray-100'}`}>
+                                    {gameData.showingWord ? <p className="text-3xl font-black uppercase p-2">{gameData.words[gameData.currentPlayer]}</p> : <p className="font-black text-red-600">ANZEIGEN</p>}
                                 </div>
                                 {gameData.showingWord && (
                                     <button onClick={() => {
                                         if(gameData.currentPlayer + 1 < players.length) setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
                                         else setGameState('play');
-                                    }} className="w-full bg-black text-white py-4 font-black uppercase">VERSTANDEN</button>
+                                    }} className="w-full bg-black text-white py-4 font-black uppercase">WEITER</button>
                                 )}
                             </div>
                         )}
 
                         {gameState === 'play' && (
-                            <div className="text-center py-10 space-y-8 animate__animated animate__zoomIn">
-                                <h2 className="text-5xl font-black text-red-600 italic uppercase underline decoration-black">WER LÜGT?</h2>
-                                <p className="font-bold uppercase text-xs tracking-widest">Entlarvt den Imposter!</p>
-                                <button onClick={() => setGameState('setup')} className="w-full bg-black text-white py-4 font-black uppercase shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]">NEUE RUNDE</button>
+                            <div className="text-center py-10 space-y-6">
+                                <h2 className="text-5xl font-black text-red-600 italic uppercase">DISKUSSION</h2>
+                                <button onClick={() => setGameState('setup')} className="w-full bg-black text-white py-4 font-black uppercase">NEUE RUNDE</button>
                             </div>
                         )}
                     </div>
