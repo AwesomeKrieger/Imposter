@@ -122,7 +122,13 @@
                 try {
                     if (isCustom) {
                         setVisualProgress(50);
-                        const promptText = `Antworte NUR: Wort|Hinweis. Thema: "${selectedSub}". Wort darf nicht sein: ${usedWords.slice(-10).join(", ")}.`;
+                        const promptText = `Thema: "${selectedSub}". 
+Antworte NUR im Format: Wort|Hinweis. 
+Regel: Sowohl Wort als auch Hinweis müssen jeweils aus GENAU EINEM EINZELNEN WORT bestehen. 
+Keine Sätze, keine Artikel, keine Erklärungen. 
+Beispiel: Pizza|Teig. 
+Bereits genutzte Wörter: ${usedWords.slice(-10).join(", ")}.`;
+
                         
                         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
                             method: 'POST',
