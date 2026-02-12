@@ -93,7 +93,7 @@
                     Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
                 }
                 setSubCats(list);
-                setSelectedSubs([]);
+                
             };
 
             const toggleSub = (name) => {
@@ -102,13 +102,27 @@
                 );
             };
 
-            const selectAll = () => {
-                if (selectedSubs.length === subCats.length) {
-                    setSelectedSubs([]);
-                } else {
-                    setSelectedSubs(subCats.map(s => s.name));
-                }
-            };
+            // Wählt alle Themen der AKTUELLEN Ansicht aus oder ab
+const selectAll = () => {
+    const currentNames = subCats.map(s => s.name);
+    const allCurrentSelected = currentNames.every(name => selectedSubs.includes(name));
+
+    if (allCurrentSelected) {
+        // Nur die Themen der aktuellen Kategorie entfernen
+        setSelectedSubs(prev => prev.filter(name => !currentNames.includes(name)));
+    } else {
+        // Aktuelle Themen hinzufügen, Rest behalten (Set verhindert Duplikate)
+        setSelectedSubs(prev => [...new Set([...prev, ...currentNames])]);
+    }
+};
+
+// Löscht die komplette Auswahl ÜBERALL
+const resetAll = () => {
+    if(confirm("Alle ausgewählten Themen löschen?")) {
+        setSelectedSubs([]);
+    }
+};
+
 
             const addCustomTopic = () => {
                 const name = prompt("Gib ein Thema für die KI ein:");
@@ -234,21 +248,42 @@ Wähle ein SPEZIFISCHES Wort aus diesem Bereich. Antworte NUR im Format: Wort|Hi
                                             </div>
                                         ))}
                                     </div>
-                                </div>
+                                
 
-                                <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2">
-                                    {groups.map(g => (
-                                        <button key={g} onClick={() => updateView(g)} className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap ${selectedGroup === g ? 'bg-red-600 text-white' : 'bg-white'}`}>{g}</button>
-                                    ))}
-                                </div>
+ <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2">
+    {groups.map(g => {
+        // Prüfen, ob in dieser Gruppe Themen ausgewählt sind
+        const hasSelection = data && data[g] && Object.keys(data[g]).some(s => selectedSubs.includes(s));
+        const isCustomSelection = g === "EIGENE" && customTopics.some(t => selectedSubs.includes(t.name));
+        
+        return (
+            <button 
+                key={g} 
+                onClick={() => updateView(g)} 
+                className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all
+                    ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection || isCustomSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}
+            >
+                {g} {(hasSelection || isCustomSelection) && "●"}
+            </button>
+        );
+    })}
+</div>
 
-                                <div className="scroll-container hide-scrollbar relative">
-                                    <button 
-                                        onClick={selectAll} 
-                                        className="w-full p-2 bg-yellow-400 border-b-4 border-black font-black text-[10px] uppercase sticky top-0 z-10 hover:bg-yellow-500"
-                                    >
-                                        {selectedSubs.length === subCats.length ? "× Auswahl aufheben" : "✓ Alle auswählen"}
-                                    </button>
+<div className="sticky top-0 z-10 flex border-b-4 border-black bg-white">
+    <button
+        onClick={selectAll}
+        className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase hover:bg-yellow-500 border-r-4 border-black transition-all active:bg-yellow-600"
+    >
+        {subCats.length > 0 && subCats.every(s => selectedSubs.includes(s.name)) ? "× Abwählen" : "✓ Alle (Gruppe)"}
+    </button>
+    <button
+        onClick={resetAll}
+        className="w-1/3 p-3 bg-red-500 text-white font-black text-[10px] uppercase hover:bg-red-600 transition-all active:bg-red-800"
+    >
+        Reset ({selectedSubs.length})
+    </button>
+</div>
+
 
                                     {selectedGroup === "EIGENE" && (
                                         <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100 hover:bg-yellow-200 transition-colors">
