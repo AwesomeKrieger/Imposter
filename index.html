@@ -14,21 +14,20 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     
     <style>
-        body { 
-            background-color: #ffffff; 
-            color: #000; 
-            font-family: -apple-system, system-ui, sans-serif; 
-            -webkit-tap-highlight-color: transparent; 
-        }
-        .neo-brutalism { 
-            border: 4px solid #000; 
-            box-shadow: 8px 8px 0px 0px #000; 
-        }
+        body { background-color: #ffffff; color: #000; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .neo-brutalism { border: 4px solid #000; box-shadow: 12px 12px 0px 0px #000; }
         input { border-radius: 0 !important; outline: none; }
-        .player-chip:active { transform: scale(0.95); }
+        
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #fff; border: 3px solid #000; transition: .3s; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 4px; bottom: 4px; background-color: #000; transition: .3s; }
+        input:checked + .slider { background-color: #ef4444; }
+        input:checked + .slider:before { transform: translateX(22px); background-color: #fff; }
+
+        .word-box { min-height: 18rem; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2.5rem; }
     </style>
 </head>
 <body>
@@ -37,194 +36,168 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        const CATEGORIES = ["Gourmet", "Handwerk", "Fauna", "Kino", "Olympia", "High-Tech", "Metropolen"];
+
         const App = () => {
             const [gameState, setGameState] = useState('setup'); 
             const [players, setPlayers] = useState(() => JSON.parse(localStorage.getItem('imp_players')) || ['Spieler 1', 'Spieler 2', 'Spieler 3']);
             const [nameInput, setNameInput] = useState('');
-            const [category, setCategory] = useState('Alltag');
+            const [category, setCategory] = useState('Gourmet');
             const [apiKey, setApiKey] = useState(() => localStorage.getItem('imp_key') || '');
+            const [hintMode, setHintMode] = useState(false);
             const [loading, setLoading] = useState(false);
-            const [status, setStatus] = useState('Bereit.');
-            const [gameData, setGameData] = useState({ words: [], currentPlayer: 0, showingWord: false });
+            const [status, setStatus] = useState('System bereit.');
+            const [gameData, setGameData] = useState({ words: [], imposterIdx: -1, currentPlayer: 0, showingWord: false });
 
-            // Speichern der Daten & Icon Fallback Logik
             useEffect(() => {
                 localStorage.setItem('imp_players', JSON.stringify(players));
                 localStorage.setItem('imp_key', apiKey);
             }, [players, apiKey]);
 
-            const fetchAI = async (topic) => {
-                if (!apiKey) return alert("Kein API Key hinterlegt!");
+            const fetchAI = async (topic, withHint) => {
+                if (!apiKey) return alert("API Key fehlt!");
                 setLoading(true);
-                setStatus("Gemini 3 Flash rechnet...");
-                
+                setStatus("Gemini 3 sucht Deep-Level Wörter...");
                 try {
-                    // Aktuelle Version: Gemini 3 Flash Preview
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                    
+                    // Der neue Prompt für "weit entfernte" Wörter
+                    const promptText = withHint 
+                        ? `Wähle zwei Begriffe zum Thema "${topic}". Wichtig: Die Wörter dürfen NICHT offensichtlich sein. Wähle seltene, spezifische oder abstrakte Begriffe, die man erst auf den zweiten Blick dem Thema zuordnet. Trenne sie mit einem Komma. Nur die zwei Wörter ausgeben.`
+                        : `Wähle ein Substantiv zum Thema "${topic}". Wichtig: Es soll NICHT das erste sein, woran man denkt. Wähle etwas Abstraktes oder sehr Spezifisches. Nur das eine Wort ausgeben.`;
                     
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: `Gib mir zwei ähnliche Begriffe zum Thema "${topic}". Trenne sie nur mit einem Komma. Beispiel: Auto, Bus. Keine Sätze.` }] }]
-                        })
+                        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
                     });
-
                     const data = await response.json();
-                    if (data.error) throw new Error(data.error.message);
-
-                    if (data.candidates && data.candidates[0].content) {
-                        const rawText = data.candidates[0].content.parts[0].text.trim();
-                        setStatus("OK!");
-                        return rawText.split(',').map(s => s.trim());
-                    } else {
-                        setStatus("KI Blockiert.");
-                        return null;
-                    }
-                } catch (e) { 
-                    setStatus("Fehler: " + e.message); 
-                    return null; 
-                } finally { setLoading(false); }
+                    const text = data.candidates[0].content.parts[0].text.trim();
+                    return withHint ? text.split(',').map(s => s.trim()) : [text];
+                } catch (e) { setStatus("Fehler."); return null; } finally { setLoading(false); }
             };
 
             const startGame = async () => {
-                const words = await fetchAI(category);
-                if (!words || words.length < 1) return;
+                const results = await fetchAI(category, hintMode);
+                if (!results) return;
                 
-                const imposterIdx = Math.floor(Math.random() * players.length);
+                const impIdx = Math.floor(Math.random() * players.length);
+                const mainWord = results[0];
+                const hintWord = hintMode ? results[1] : null;
+
                 setGameData({
-                    words: players.map((_, i) => i === imposterIdx ? (words[1] || words[0]) : words[0]),
+                    words: players.map((_, i) => i === impIdx ? hintWord : mainWord),
+                    imposterIdx: impIdx,
                     currentPlayer: 0, 
                     showingWord: false
                 });
                 setGameState('reveal');
             };
 
-            const editPlayer = (idx) => {
-                const current = players[idx];
-                const neu = prompt("Spielername bearbeiten:", current);
-                if (neu && neu.trim() !== "") {
-                    const copy = [...players];
-                    copy[idx] = neu.trim();
-                    setPlayers(copy);
-                }
+            const getFontSize = (text) => {
+                const len = text ? text.length : 0;
+                if (len > 18) return '1.2rem';
+                if (len > 12) return '1.8rem';
+                return '3.2rem';
             };
 
             return (
-                <div className="min-h-screen flex flex-col items-center p-6 pt-12">
-                    <h1 className="text-5xl font-black italic mb-10 uppercase border-b-8 border-black tracking-tighter animate__animated animate__pulse animate__infinite">
-                        IMPOSTER.AI
-                    </h1>
+                <div className="min-h-screen flex flex-col items-center p-6 pt-16">
+                    <h1 className="text-5xl font-black italic mb-16 uppercase border-b-8 border-black tracking-tighter">IMPOSTER.AI</h1>
 
-                    <div className="w-full max-w-md bg-white p-6 neo-brutalism space-y-8">
+                    <div className="w-full max-w-md bg-white p-10 neo-brutalism space-y-16">
                         {gameState === 'setup' && (
-                            <div className="space-y-6 animate__animated animate__fadeIn">
-                                {/* API Key Sektion */}
-                                <div>
-                                    <label className="text-[10px] font-black uppercase text-gray-400">API Key</label>
-                                    <input 
-                                        type="password" 
-                                        placeholder="Gemini API Key..." 
-                                        className="w-full p-2 border-b-2 border-gray-100 text-xs" 
-                                        value={apiKey} 
-                                        onChange={e => setApiKey(e.target.value)} 
-                                    />
-                                </div>
-
-                                {/* Spieler Management */}
-                                <div>
-                                    <label className="text-xs font-black uppercase mb-2 block">Spieler (Klicken zum Editieren)</label>
-                                    <div className="flex gap-2">
-                                        <input 
-                                            className="flex-1 p-3 border-4 border-black font-bold" 
-                                            value={nameInput} 
-                                            onChange={e => setNameInput(e.target.value)} 
-                                            placeholder="Name..." 
-                                        />
-                                        <button onClick={() => {if(nameInput){setPlayers([...players, nameInput]); setNameInput('');}}} className="bg-black text-white px-6 font-bold text-2xl">+</button>
+                            <div className="space-y-12">
+                                <section>
+                                    <input type="password" placeholder="Gemini API Key..." className="w-full p-2 border-b-2 border-black/10 text-[10px] mb-6" value={apiKey} onChange={e => setApiKey(e.target.value)} />
+                                    
+                                    <div className="flex items-center justify-between p-5 border-4 border-black bg-gray-50 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                                        <div className="flex flex-col">
+                                            <span className="font-black uppercase text-xs tracking-tighter">Deep-Hint Modus</span>
+                                            <span className="text-[9px] text-gray-400 uppercase leading-none">Abstrakte Hinweise aktiv</span>
+                                        </div>
+                                        <label className="switch">
+                                            <input type="checkbox" checked={hintMode} onChange={() => setHintMode(!hintMode)} />
+                                            <span className="slider"></span>
+                                        </label>
                                     </div>
-                                    <div className="flex flex-wrap gap-2 mt-4">
+                                </section>
+
+                                <section className="space-y-6">
+                                    <label className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Spieler-Kader</label>
+                                    <div className="flex gap-2">
+                                        <input className="flex-1 p-4 border-4 border-black font-bold text-lg" value={nameInput} onChange={e => setNameInput(e.target.value)} placeholder="Name..." />
+                                        <button onClick={() => {if(nameInput){setPlayers([...players, nameInput]); setNameInput('');}}} className="bg-black text-white px-8 font-bold text-3xl active:translate-y-1 transition-all">+</button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-4">
                                         {players.map((p, i) => (
-                                            <div key={i} className="flex items-center bg-red-600 text-white px-3 py-1 text-xs font-black uppercase player-chip shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                                                <span onClick={() => editPlayer(i)} className="cursor-pointer">{p}</span>
-                                                <button onClick={() => setPlayers(players.filter((_, idx) => idx !== i))} className="ml-2 border-l border-white/30 pl-2">×</button>
+                                            <div key={i} className="flex items-center bg-red-600 text-white px-5 py-2 text-xs font-black uppercase shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
+                                                <span onClick={() => {const n=prompt("Name:",p); if(n){const c=[...players]; c[i]=n; setPlayers(c);}}} className="cursor-pointer">{p}</span>
+                                                <button onClick={() => setPlayers(players.filter((_, idx) => idx !== i))} className="ml-4 border-l border-white/40 pl-4 text-lg">×</button>
                                             </div>
                                         ))}
                                     </div>
-                                </div>
+                                </section>
 
-                                {/* Kategorie */}
-                                <div>
-                                    <label className="text-xs font-black uppercase">Thema der Runde</label>
-                                    <input 
-                                        className="w-full p-3 border-4 border-black font-black uppercase mt-1" 
-                                        value={category} 
-                                        onChange={e => setCategory(e.target.value)} 
-                                    />
-                                </div>
+                                <section className="space-y-6">
+                                    <label className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Deep-Categories</label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {CATEGORIES.map(cat => (
+                                            <button key={cat} onClick={() => setCategory(cat)} className={`py-3 text-[10px] font-black uppercase border-4 border-black transition-all ${category === cat ? 'bg-black text-white translate-x-1 translate-y-1 shadow-none' : 'bg-white text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'}`}>
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <input className="w-full p-5 border-4 border-black font-black uppercase text-center bg-yellow-50 text-xl" value={category} onChange={e => setCategory(e.target.value)} placeholder="Eigenes Thema..." />
+                                </section>
 
-                                <button 
-                                    disabled={loading} 
-                                    onClick={startGame} 
-                                    className="w-full bg-red-600 text-white font-black py-6 uppercase text-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all"
-                                >
-                                    {loading ? "KI SCHREIBT..." : "SPIEL STARTEN"}
+                                <button disabled={loading} onClick={startGame} className="w-full bg-red-600 text-white font-black py-10 uppercase text-4xl shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:translate-y-2 active:shadow-none transition-all">
+                                    {loading ? "KI DENKT NACH..." : "RUNDE STARTEN"}
                                 </button>
-
-                                <div className="text-center">
-                                    <p className="text-[10px] font-mono text-red-600 font-bold uppercase tracking-widest">
-                                        Status: {status}
-                                    </p>
-                                </div>
+                                <p className="text-center text-[10px] font-mono text-red-600 uppercase">Status: {status}</p>
                             </div>
                         )}
 
                         {gameState === 'reveal' && (
-                            <div className="text-center space-y-8 animate__animated animate__fadeIn">
-                                <h2 className="text-4xl font-black uppercase italic underline decoration-red-600 underline-offset-8">
-                                    {players[gameData.currentPlayer]}
-                                </h2>
+                            <div className="text-center space-y-16 py-8 animate__animated animate__fadeIn">
+                                <h2 className="text-5xl font-black uppercase italic border-b-8 border-red-600 inline-block px-6 leading-none">{players[gameData.currentPlayer]}</h2>
                                 
                                 <div 
                                     onClick={() => setGameData({...gameData, showingWord: true})} 
-                                    className={`h-64 flex flex-col items-center justify-center border-8 border-black transition-all duration-300 ${gameData.showingWord ? 'bg-red-600 text-white shadow-none' : 'bg-gray-50 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]'}`}
+                                    className={`word-box border-[10px] border-black transition-all duration-300 ${gameData.showingWord ? 'bg-red-600 text-white' : 'bg-gray-100 shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]'}`}
                                 >
                                     {gameData.showingWord ? (
-                                        <p className="text-5xl font-black uppercase p-4 text-center">{gameData.words[gameData.currentPlayer]}</p>
-                                    ) : (
-                                        <p className="font-black text-red-600 animate-pulse text-2xl uppercase">Tap zum Anzeigen</p>
-                                    )}
+                                        <div className="space-y-8 w-full">
+                                            {gameData.currentPlayer === gameData.imposterIdx ? (
+                                                <div className="space-y-6">
+                                                    {hintMode && <p className="font-black uppercase break-words italic border-b-4 border-white/30 pb-4" style={{ fontSize: getFontSize(gameData.words[gameData.currentPlayer]) }}>{gameData.words[gameData.currentPlayer]}</p>}
+                                                    <div className="bg-black text-white py-3 px-6 inline-block font-black uppercase text-2xl animate-pulse">
+                                                        DU BIST DER IMPOSTER
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className="font-black uppercase break-words leading-none" style={{ fontSize: getFontSize(gameData.words[gameData.currentPlayer]) }}>
+                                                    {gameData.words[gameData.currentPlayer]}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : <p className="font-black text-red-600 animate-pulse text-3xl uppercase tracking-tighter">Tap to Reveal</p>}
                                 </div>
 
                                 {gameData.showingWord && (
-                                    <button 
-                                        onClick={() => {
-                                            if(gameData.currentPlayer + 1 < players.length) {
-                                                setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
-                                            } else {
-                                                setGameState('play');
-                                            }
-                                        }} 
-                                        className="w-full bg-black text-white py-5 font-black uppercase text-xl shadow-[6px_6px_0px_0px_rgba(220,38,38,1)]"
-                                    >
-                                        VERSTANDEN
-                                    </button>
+                                    <button onClick={() => {
+                                        if(gameData.currentPlayer + 1 < players.length) setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
+                                        else setGameState('play');
+                                    }} className="w-full bg-black text-white py-8 font-black uppercase text-3xl shadow-[8px_8px_0px_0px_rgba(220,38,38,1)]">VERSTANDEN</button>
                                 )}
                             </div>
                         )}
 
                         {gameState === 'play' && (
-                            <div className="text-center py-12 space-y-10 animate__animated animate__zoomIn">
-                                <h2 className="text-6xl font-black text-red-600 italic uppercase leading-none">WER LÜGT?</h2>
-                                <p className="font-bold uppercase text-sm border-y-4 border-black py-4">
-                                    Findet den Imposter, bevor er die Antwort errät!
-                                </p>
-                                <button 
-                                    onClick={() => setGameState('setup')} 
-                                    className="w-full bg-black text-white py-5 font-black uppercase text-xl"
-                                >
-                                    NÄCHSTE RUNDE
-                                </button>
+                            <div className="text-center py-24 space-y-16">
+                                <h2 className="text-8xl font-black text-red-600 italic uppercase leading-none tracking-tighter animate__animated animate__bounceIn">INFILTRIERT!</h2>
+                                <p className="font-black uppercase text-lg border-y-8 border-black py-6 mx-2">Enttarnt den Lügner!</p>
+                                <button onClick={() => setGameState('setup')} className="w-full bg-black text-white py-8 font-black uppercase text-3xl">NEUE MISSION</button>
                             </div>
                         )}
                     </div>
