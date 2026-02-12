@@ -49,8 +49,8 @@
             const [gameState, setGameState] = useState('setup'); 
             const [players, setPlayers] = useState(['Spieler 1', 'Spieler 2', 'Spieler 3']);
             const [imposterCount, setImposterCount] = useState(1);
-            const [showHint, setShowHint] = useState(true); // NEU: Status für den Hinweis
-            const [timerMinutes, setTimerMinutes] = useState(3);
+            const [showHint, setShowHint] = useState(false); // NEU: Status für den Hinweis
+            const [timerMinutes, setTimerMinutes] = useState(0);
             const [timeLeft, setTimeLeft] = useState(0);
             const [stats, setStats] = useState({});
 
