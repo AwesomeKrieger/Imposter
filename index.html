@@ -39,39 +39,45 @@
         height: 100%; 
         overflow: hidden; 
     }
-/* Grundzustand der Kategorien & Themen */
+/* Grundzustand: Nur eine schwarze Linie unten */
 .category-item {
-    padding: 15px;
-    background: #fff; 
-    border: none;
-    color: #000;
-    cursor: pointer;
-    transition: all 0.1s ease;
-    display: block;
-    width: 100%;
-    text-align: left;
+  padding: 15px;
+  background: #ffffff;
+  color: #000;
+  border: none;
+  border-bottom: 2px solid #000; 
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.1s;
 }
 
-/* Der "Abgrenzungs-Trick": Wenn ausgewählt, weißer Rand */
+/* Wenn ausgewählt: Hintergrund dunkel */
 .category-item.selected {
-    background: #222; /* Dunkler Kontrast */
-    color: #fff;
-    /* Wir nutzen ein Box-Shadow statt Border, um die Linien-Dicke zu kontrollieren ohne das Layout zu verschieben */
-    box-shadow: inset 0 0 0 2px #ffffff; 
-    position: relative;
-    z-index: 10;
+  background: #222;
+  color: #ffffff;
+  border-bottom: 2px solid #000; /* Standardmäßig bleibt die untere Linie schwarz zum Kontrast */
 }
 
-/* Damit zwischen zwei schwarzen Feldern kein fetter Doppel-Strich entsteht */
+/* Spezialfall: Wenn zwei ausgewählte Elemente aufeinanderfolgen, 
+   wird die Linie dazwischen WEISS */
 .category-item.selected + .category-item.selected {
-    border-top: 1px solid #444; /* Feine Trennung innen */
-    box-shadow: inset 2px 0 0 #fff, inset -2px 0 0 #fff, inset 0 -2px 0 #fff;
+  border-top: 2px solid #ffffff;
 }
 
-/* Hover-Effekt für die Liste */
-.category-item:hover:not(.selected) {
-    background: #f0f0f0;
+/* Damit das erste ausgewählte Element in einer Gruppe 
+   eine weiße Linie nach UNTEN zum nächsten ausgewählten hat */
+.category-item.selected:has(+ .category-item.selected) {
+  border-bottom: none; 
 }
+
+.scroll-container { 
+    flex: 1; 
+    overflow-y: auto !important; 
+    border: 4px solid black; 
+    background: #fafafa; 
+}
+
 
 .scroll-container { 
     flex: 1; 
@@ -442,32 +448,34 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
     {selectedGroup === "EIGENE" && (
         <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100">+ NEUES KI-THEMA</button>
     )}
-    {subCats.map((s, index) => {
+    
+    {subCats.map((s) => {
         const isSelected = selectedSubs.includes(s.name);
         return (
-            <div key={s.name} className={`flex ${isSelected ? '' : 'border-b-2 border-black'}`}>
+            <div key={s.name} className="flex flex-col"> 
+                {/* Wir verzichten auf das Flex-Row div, damit Buttons direkt untereinander stehen können */}
                 <button 
                     type="button" 
                     onClick={() => toggleSub(s.name)} 
-                    className={`flex-1 p-4 font-black text-left text-sm uppercase transition-all 
-                        ${isSelected ? 'category-item selected !m-0 !rounded-none w-full' : 'bg-white text-black'}
-                    `}
+                    className={`category-item font-black text-sm uppercase ${isSelected ? 'selected' : ''}`}
                 >
-                    {isSelected ? "✓ " : ""}{s.name}
+                    <span>{isSelected ? "✓ " : ""}{s.name}</span>
+                    
+                    {/* Der Löschen-Button nur bei EIGENE, absolut positioniert oder als kleiner Text-Link */}
+                    {selectedGroup === "EIGENE" && (
+                        <span 
+                            onClick={(e) => { e.stopPropagation(); triggerDelete(e, s.name); }}
+                            className="ml-4 text-[10px] bg-red-600 px-2 py-1 text-white border border-white"
+                        >
+                            LÖSCHEN
+                        </span>
+                    )}
                 </button>
-                {selectedGroup === "EIGENE" && (
-                    <button 
-                        type="button"
-                        onClick={(e) => triggerDelete(e, s.name)} 
-                        className={`bg-red-500 text-white px-3 font-black text-[10px] uppercase cursor-pointer ${isSelected ? 'border-2 border-white border-l-0' : 'border-l-2 border-black'}`}
-                    >
-                        Löschen
-                    </button>
-                )}
             </div>
         );
     })}
 </div>
+
 
 
 
