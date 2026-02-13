@@ -39,36 +39,38 @@
         height: 100%; 
         overflow: hidden; 
     }
-/* Grundzustand: Nur eine schwarze Linie unten */
+/* Grundzustand: Rand in Box-Grau */
 .category-item {
   padding: 15px;
   background: #ffffff;
   color: #000;
   border: none;
-  border-bottom: 2px solid #000; 
+  /* Standard-Trennlinie in hellem Grau (wie der Box-Hintergrund) */
+  border-bottom: 4px solid #fafafa; 
   cursor: pointer;
   width: 100%;
   text-align: left;
-  transition: all 0.1s;
+  transition: background 0.1s;
 }
 
 /* Wenn ausgewählt: Hintergrund dunkel */
 .category-item.selected {
   background: #222;
   color: #ffffff;
-  border-bottom: 2px solid #000; /* Standardmäßig bleibt die untere Linie schwarz zum Kontrast */
+  /* Unten bleibt es erstmal grau zum nächsten weißen Feld */
+  border-bottom: 4px solid #fafafa; 
 }
 
-/* Spezialfall: Wenn zwei ausgewählte Elemente aufeinanderfolgen, 
-   wird die Linie dazwischen WEISS */
+/* Der Trick für die dicke weiße Linie zwischen zwei Schwarzen Feldern */
 .category-item.selected + .category-item.selected {
-  border-top: 2px solid #ffffff;
+  border-top: 4px solid #ffffff;
+  margin-top: -4px; /* Zieht sie zusammen für exakt 4px Stärke */
+  border-bottom: 4px solid #fafafa;
 }
 
-/* Damit das erste ausgewählte Element in einer Gruppe 
-   eine weiße Linie nach UNTEN zum nächsten ausgewählten hat */
-.category-item.selected:has(+ .category-item.selected) {
-  border-bottom: none; 
+/* Letztes Element braucht keinen extra Rand unten */
+.category-item:last-child {
+  border-bottom: none;
 }
 
 .scroll-container { 
@@ -76,7 +78,10 @@
     overflow-y: auto !important; 
     border: 4px solid black; 
     background: #fafafa; 
+    display: flex;
+    flex-direction: column;
 }
+
 
 
 .scroll-container { 
@@ -196,7 +201,7 @@ const getShuffledBeliebt = (fullData) => {
     Object.keys(fullData).forEach(g => {
         Object.keys(fullData[g]).forEach(s => list.push({ name: s, parent: g }));
     });
-    return list.sort(() => 0.5 - Math.random()).slice(0, 4);
+    return list.sort(() => 0.5 - Math.random()).slice(0, 5);
 };
 
 const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
@@ -444,37 +449,37 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
 
                                 </div>
 
-                              <div className="scroll-container hide-scrollbar my-2">
+                             <div className="scroll-container hide-scrollbar my-2">
     {selectedGroup === "EIGENE" && (
-        <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100">+ NEUES KI-THEMA</button>
+        <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100 shrink-0">+ NEUES KI-THEMA</button>
     )}
     
     {subCats.map((s) => {
         const isSelected = selectedSubs.includes(s.name);
         return (
-            <div key={s.name} className="flex flex-col"> 
-                {/* Wir verzichten auf das Flex-Row div, damit Buttons direkt untereinander stehen können */}
-                <button 
-                    type="button" 
-                    onClick={() => toggleSub(s.name)} 
-                    className={`category-item font-black text-sm uppercase ${isSelected ? 'selected' : ''}`}
-                >
+            <button 
+                key={s.name}
+                type="button" 
+                onClick={() => toggleSub(s.name)} 
+                className={`category-item font-black text-sm uppercase shrink-0 ${isSelected ? 'selected' : ''}`}
+            >
+                <div className="flex justify-between items-center w-full">
                     <span>{isSelected ? "✓ " : ""}{s.name}</span>
                     
-                    {/* Der Löschen-Button nur bei EIGENE, absolut positioniert oder als kleiner Text-Link */}
                     {selectedGroup === "EIGENE" && (
                         <span 
                             onClick={(e) => { e.stopPropagation(); triggerDelete(e, s.name); }}
-                            className="ml-4 text-[10px] bg-red-600 px-2 py-1 text-white border border-white"
+                            className="ml-4 text-[10px] bg-red-600 px-2 py-1 text-white border-2 border-white"
                         >
                             LÖSCHEN
                         </span>
                     )}
-                </button>
-            </div>
+                </div>
+            </button>
         );
     })}
 </div>
+
 
 
 
