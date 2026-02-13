@@ -176,11 +176,12 @@
                 let word = "", hint = "", chaos = "";
                 let indices = [];
 
-                try {
+                                try {
                     const rng = Math.random();
                     if (rng < 0.05) chaos = "ALL";
                     else if (rng < 0.10) chaos = "NONE";
 
+                    // WORT-LOGIK START
                     if (selectedGroup === "EIGENE") {
                         if (aiWordPool[randomSub] && aiWordPool[randomSub].length > 0) {
                             const nextPair = aiWordPool[randomSub][0];
@@ -203,19 +204,29 @@
                             hint = pairs[0].hint;
                             setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
                         }
-                    }
-
-                    if (chaos === "ALL") {
-                        indices = players.map((_, i) => i);
-                    } else if (chaos === "NONE") {
-                        indices = [];
                     } else {
-                        const count = Math.min(imposterCount, players.length - 1);
-                        while(indices.length < count) {
-                            let r = Math.floor(Math.random() * players.length);
-                            if(!indices.includes(r)) indices.push(r);
+                        // LOGIK FÜR STANDARD-THEMEN (Fix!)
+                        const groupKeys = Object.keys(data);
+                        let found = false;
+                        for (let g of groupKeys) {
+                            if (data[g][randomSub]) {
+                                const list = data[g][randomSub];
+                                const pair = list[Math.floor(Math.random() * list.length)];
+                                // Falls deine JSON nur Strings statt Objekte hat:
+                                if (typeof pair === 'string') {
+                                    word = pair;
+                                    hint = "Thema: " + randomSub;
+                                } else {
+                                    word = pair.word;
+                                    hint = pair.hint;
+                                }
+                                found = true;
+                                break;
+                            }
                         }
-                    }
+                    
+                    // WORT-LOGIK ENDE
+
 
                     const newStats = { ...stats };
                     indices.forEach(idx => { newStats[players[idx]] = (newStats[players[idx]] || 0) + 1; });
