@@ -39,39 +39,38 @@
         height: 100%; 
         overflow: hidden; 
     }
-/* Grundzustand: Jedes Element hat einen 4px Rand in der Farbe des Hintergrunds */
+/* Grundzustand: Schwarze Trennlinie unten */
 .category-item {
   padding: 15px;
   background: #ffffff;
   color: #000;
   border: none;
-  /* Die Trennung ist IMMER die Hintergrundfarbe des Containers */
-  border-bottom: 4px solid #fafafa; 
+  /* Die Trennung ist immer in der schwarzen Farbe der Boxen (#222) */
+  border-bottom: 4px solid #222; 
   cursor: pointer;
   width: 100%;
   text-align: left;
   transition: background 0.1s;
 }
 
-/* Wenn ausgewählt: Hintergrund wird dunkel */
+/* Wenn ausgewählt: Hintergrund wird schwarz/dunkel */
 .category-item.selected {
   background: #222; 
   color: #ffffff;
-  /* Auch hier bleibt der Rand unten erst einmal in Hintergrundfarbe */
-  border-bottom: 4px solid #fafafa; 
+  /* Rand unten bleibt schwarz */
+  border-bottom: 4px solid #222; 
 }
 
-/* SPEZIALFALL: Wenn zwei ausgewählte (dunkle) Boxen direkt untereinander liegen */
+/* Spezialfall: Leichter Unterschied zwischen zwei schwarzen Feldern */
 .category-item.selected + .category-item.selected {
-  /* Jetzt wird die Trennung sichtbar: ein helleres Grau */
-  border-top: 4px solid #bbbbbb; 
-  /* Wir rücken das Element hoch, damit es exakt auf der Linie des Vorgängers liegt */
+  /* Ein sehr dunkles Grau für den minimalen Unterschied */
+  border-top: 4px solid #3d3d3d; 
+  /* Überlappung für exakte 4px Stärke */
   margin-top: -4px; 
-  /* Der Abschluss nach unten bleibt wieder in Hintergrundfarbe */
-  border-bottom: 4px solid #fafafa;
+  border-bottom: 4px solid #222;
 }
 
-/* Das allerletzte Element braucht keinen Rand unten */
+/* Letztes Element */
 .category-item:last-child {
   border-bottom: none;
 }
@@ -80,22 +79,9 @@
     flex: 1; 
     overflow-y: auto !important; 
     border: 4px solid black; 
-    background: #fafafa; /* Die Basis-Farbe für alle Trennlinien */
+    background: #fafafa; 
     display: flex;
     flex-direction: column;
-}
-
-
-
-
-.scroll-container { 
-    flex: 1; 
-    overflow-y: auto !important; 
-    -webkit-overflow-scrolling: touch; 
-    border: 4px solid black; 
-    background: #fafafa; 
-    touch-action: pan-y; 
-    min-height: 0; 
 }
 
 
