@@ -359,7 +359,7 @@ Antworte NUR mit der Liste.`;
 </div>
 
 
-                                    {selectedGroup === "EIGENE" && (
+<div className=" scroll-container hide-scrollbar my-2">                                   {selectedGroup === "EIGENE" && (
                                         <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100 hover:bg-yellow-200 transition-colors">
                                             + NEUES KI-THEMA
                                         </button>
@@ -367,6 +367,7 @@ Antworte NUR mit der Liste.`;
                                     {subCats.map(s => (
                                         <button key={s.name} onClick={() => toggleSub(s.name)} className={`w-full p-4 border-b-2 border-black font-black text-left text-sm uppercase transition-colors ${selectedSubs.includes(s.name) ? 'bg-black text-white' : 'bg-white'}`}>
                                             {selectedSubs.includes(s.name) ? "✓ " : ""}{s.name}
+</div>
                                         </button>
                                     ))}
                                 </div>
