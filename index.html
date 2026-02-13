@@ -99,9 +99,11 @@
             const [deleteConfirm, setDeleteConfirm] = useState(null);
 
 const triggerDelete = (e, name) => {
+    e.preventDefault();
     e.stopPropagation();
     setDeleteConfirm(name);
 };
+
 
 const confirmDelete = () => {
     const newList = customTopics.filter(t => t.name !== deleteConfirm);
@@ -350,8 +352,16 @@ const confirmDelete = () => {
                 {selectedSubs.includes(s.name) ? "✓ " : ""}{s.name}
             </button>
             {selectedGroup === "EIGENE" && (
-                <button onClick={(e) => triggerDelete(e, s.name)} className="bg-red-500 text-white px-3 font-black border-l-2 border-black text-[10px] uppercase">Löschen</button>
-            )}
+    <button 
+        type="button"
+        onClick={(e) => triggerDelete(e, s.name)} 
+        className="bg-red-500 text-white px-3 font-black border-l-2 border-black text-[10px] uppercase cursor-pointer"
+        style={{ zIndex: 40, position: 'relative' }}
+    >
+        Löschen
+    </button>
+)}
+
         </div>
     ))}
 </div>
