@@ -19,7 +19,6 @@
         font-family: -apple-system, sans-serif; 
         margin: 0; padding: 0;
         height: 100%; width: 100%;
-        /* WICHTIG: overflow hidden nur auf body, damit die Seite nicht springt */
         overflow: hidden; 
     }
 
@@ -44,23 +43,14 @@
     .scroll-container { 
         flex: 1; 
         overflow-y: auto !important; 
-        /* Ermöglicht Scrollen auf iOS trotz fixed body */
         -webkit-overflow-scrolling: touch; 
         border: 4px solid black; 
         background: #fafafa; 
-        /* Erlaubt vertikales Wischen */
         touch-action: pan-y; 
-        
+        min-height: 0; 
     }
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
-    
-    /* Footer-Bereich fest unten halten */
-    .setup-footer {
-        flex-shrink: 0; 
-        margin-top: 10px;
-    }
-
     .neo-box { border: 4px solid #000; box-shadow: 6px 6px 0px 0px #000; }
     .progress-fill { height: 100%; background: #ef4444; transition: width 0.4s ease-out; width: 0%; }
 </style>
@@ -79,11 +69,10 @@
 
         const App = () => {
             const [data, setData] = useState(null);
-    const [aiWordPool, setAiWordPool] = useState(() => {
-        const saved = localStorage.getItem('imp_word_pool_v1');
-        return saved ? JSON.parse(saved) : {};
-    });
-
+            const [aiWordPool, setAiWordPool] = useState(() => {
+                const saved = localStorage.getItem('imp_word_pool_v1');
+                return saved ? JSON.parse(saved) : {};
+            });
 
             const [groups, setGroups] = useState([]);
             const [selectedGroup, setSelectedGroup] = useState("BELIEBT");
@@ -123,10 +112,10 @@
                     updateView("BELIEBT", json, customTopics);
                 });
             }, []);
-            useEffect(() => {
-    localStorage.setItem('imp_word_pool_v1', JSON.stringify(aiWordPool));
-}, [aiWordPool]);
 
+            useEffect(() => {
+                localStorage.setItem('imp_word_pool_v1', JSON.stringify(aiWordPool));
+            }, [aiWordPool]);
 
             const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
                 if (!fullData) return;
@@ -141,7 +130,6 @@
                     Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
                 }
                 setSubCats(list);
-                
             };
 
             const toggleSub = (name) => {
@@ -150,27 +138,21 @@
                 );
             };
 
-            // Wählt alle Themen der AKTUELLEN Ansicht aus oder ab
-const selectAll = () => {
-    const currentNames = subCats.map(s => s.name);
-    const allCurrentSelected = currentNames.every(name => selectedSubs.includes(name));
+            const selectAll = () => {
+                const currentNames = subCats.map(s => s.name);
+                const allCurrentSelected = currentNames.every(name => selectedSubs.includes(name));
+                if (allCurrentSelected) {
+                    setSelectedSubs(prev => prev.filter(name => !currentNames.includes(name)));
+                } else {
+                    setSelectedSubs(prev => [...new Set([...prev, ...currentNames])]);
+                }
+            };
 
-    if (allCurrentSelected) {
-        // Nur die Themen der aktuellen Kategorie entfernen
-        setSelectedSubs(prev => prev.filter(name => !currentNames.includes(name)));
-    } else {
-        // Aktuelle Themen hinzufügen, Rest behalten (Set verhindert Duplikate)
-        setSelectedSubs(prev => [...new Set([...prev, ...currentNames])]);
-    }
-};
-
-// Löscht die komplette Auswahl ÜBERALL
-const resetAll = () => {
-    if(confirm("Alle ausgewählten Themen löschen?")) {
-        setSelectedSubs([]);
-    }
-};
-
+            const resetAll = () => {
+                if(confirm("Alle ausgewählten Themen löschen?")) {
+                    setSelectedSubs([]);
+                }
+            };
 
             const addCustomTopic = () => {
                 const name = prompt("Gib ein Thema für die KI ein:");
@@ -190,9 +172,7 @@ const resetAll = () => {
 
                 setLoading(true);
                 setVisualProgress(50);
-                
                 const randomSub = selectedSubs[Math.floor(Math.random() * selectedSubs.length)];
-                
                 let word = "", hint = "", chaos = "";
                 let indices = [];
 
@@ -201,51 +181,29 @@ const resetAll = () => {
                     if (rng < 0.05) chaos = "ALL";
                     else if (rng < 0.10) chaos = "NONE";
 
-if (selectedGroup === "EIGENE") {
-    // Prüfen, ob wir noch Wörter im Pool für dieses Thema haben
-    if (aiWordPool[randomSub] && aiWordPool[randomSub].length > 0) {
-        const nextPair = aiWordPool[randomSub][0];
-        word = nextPair.word;
-        hint = nextPair.hint;
-        
-        // Wort aus dem Pool entfernen
-        setAiWordPool(prev => ({
-            ...prev,
-            [randomSub]: prev[randomSub].slice(1)
-        }));
-    } else {
-        // Pool leer -> 10 Wörter generieren
-        const promptText = `Du bist ein Spiel-Master. Thema: "${randomSub}". 
-Generiere 10 verschiedene, spezifische Wort-Paare. 
-Format: Wort|Hinweis (jeweils 1 Wort). 
-Trenne die Paare mit Komma. Beispiel: Apfel|Obst, Auto|Motor. 
-Antworte NUR mit der Liste.`;
-
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
-        });
-        
-        const d = await res.json();
-        const raw = d.candidates[0].content.parts[0].text.trim().replace(/```/g, "");
-        
-        // String in Objekte umwandeln
-        const pairs = raw.split(',').map(p => {
-            const [w, h] = p.split('|');
-            return { word: w.trim(), hint: h ? h.trim() : "Aktion" };
-        });
-
-        word = pairs[0].word;
-        hint = pairs[0].hint;
-
-        // Die restlichen 9 Wörter für später speichern
-        setAiWordPool(prev => ({
-            ...prev,
-            [randomSub]: pairs.slice(1)
-        }));
-    }
-}
-
+                    if (selectedGroup === "EIGENE") {
+                        if (aiWordPool[randomSub] && aiWordPool[randomSub].length > 0) {
+                            const nextPair = aiWordPool[randomSub][0];
+                            word = nextPair.word;
+                            hint = nextPair.hint;
+                            setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
+                        } else {
+                            const promptText = `Du bist ein Spiel-Master. Thema: "${randomSub}". Generiere 10 verschiedene, spezifische Wort-Paare. Format: Wort|Hinweis (jeweils 1 Wort). Trenne die Paare mit Komma. Beispiel: Apfel|Obst, Auto|Motor. Antworte NUR mit der Liste.`;
+                            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+                            });
+                            const d = await res.json();
+                            const raw = d.candidates[0].content.parts[0].text.trim().replace(/```/g, "");
+                            const pairs = raw.split(',').map(p => {
+                                const [w, h] = p.split('|');
+                                return { word: w.trim(), hint: h ? h.trim() : "Aktion" };
+                            });
+                            word = pairs[0].word;
+                            hint = pairs[0].hint;
+                            setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
+                        }
+                    }
 
                     if (chaos === "ALL") {
                         indices = players.map((_, i) => i);
@@ -285,7 +243,7 @@ Antworte NUR mit der Liste.`;
                             </div>
                         ) : gameState === 'setup' ? (
                             <>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-3 gap-2 shrink-0">
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black uppercase opacity-60">Verräter:</label>
                                         <select value={imposterCount} onChange={e => setImposterCount(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
@@ -301,9 +259,7 @@ Antworte NUR mit der Liste.`;
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black uppercase opacity-60">Zeitlimit:</label>
                                         <select value={timerMinutes} onChange={e => setTimerMinutes(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
-                                            {[0,1,2,3,5,10].map(m => <option key={m} value={m}>
-  {m === 0 ? "AUS" : `${m}min`}                                                
-                                                </option>)}
+                                            {[0,1,2,3,5,10].map(m => <option key={m} value={m}>{m === 0 ? "AUS" : `${m}min`}</option>)}
                                         </select>
                                     </div>
                                 </div>
@@ -313,7 +269,7 @@ Antworte NUR mit der Liste.`;
                                         <span className="font-black text-[10px] uppercase underline">Mitspieler:</span>
                                         <button onClick={() => players.length < 10 && setPlayers([...players, `Spieler ${players.length+1}`])} className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black uppercase">+ Add</button>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-1 max-h-24 overflow-y-auto border border-black p-1 bg-gray-50 shrink-0">
+                                    <div className="grid grid-cols-2 gap-1 max-h-24 overflow-y-auto border border-black p-1 bg-gray-50">
                                         {players.map((p, i) => (
                                             <div key={i} className="flex border border-black bg-white">
                                                 <input value={p} onChange={e => {let n=[...players]; n[i]=e.target.value; setPlayers(n);}} className="w-full p-1 text-[10px] font-bold outline-none uppercase" />
@@ -321,73 +277,51 @@ Antworte NUR mit der Liste.`;
                                                 <button onClick={() => players.length > 3 && setPlayers(players.filter((_, idx) => idx !== i))} className="bg-red-500 text-white px-1 font-black">×</button>
                                             </div>
                                         ))}
-                                   
-                                
+                                    </div>
+                                </div>
 
- <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2 shrink-0">
-    {groups.map(g => {
-        // Prüfen, ob in dieser Gruppe Themen ausgewählt sind
-        const hasSelection = data && data[g] && Object.keys(data[g]).some(s => selectedSubs.includes(s));
-        const isCustomSelection = g === "EIGENE" && customTopics.some(t => selectedSubs.includes(t.name));
-        
-        return (
-            <button 
-                key={g} 
-                onClick={() => updateView(g)} 
-                className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all
-                    ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection || isCustomSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}
-            >
-                {g} {(hasSelection || isCustomSelection) && "●"}
-            </button>
-        );
-    })}
-</div>
+                                <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2 shrink-0">
+                                    {groups.map(g => {
+                                        const hasSelection = data && data[g] && Object.keys(data[g]).some(s => selectedSubs.includes(s));
+                                        const isCustomSelection = g === "EIGENE" && customTopics.some(t => selectedSubs.includes(t.name));
+                                        return (
+                                            <button key={g} onClick={() => updateView(g)} className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection || isCustomSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}>
+                                                {g} {(hasSelection || isCustomSelection) && "●"}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
 
-<div className="sticky top-0 z-10 flex border-b-4 border-black bg-white shrink-0">
-    <button
-        onClick={selectAll}
-        className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase hover:bg-yellow-500 border-r-4 border-black transition-all active:bg-yellow-600"
-    >
-        {subCats.length > 0 && subCats.every(s => selectedSubs.includes(s.name)) ? "× Abwählen" : "✓ Alle (Gruppe)"}
-    </button>
-    <button
-        onClick={resetAll}
-        className="w-1/3 p-3 bg-red-500 text-white font-black text-[10px] uppercase hover:bg-red-600 transition-all active:bg-red-800"
-    >
-        Reset ({selectedSubs.length})
-    </button>
-</div>
+                                <div className="sticky top-0 z-10 flex border-b-4 border-black bg-white shrink-0">
+                                    <button onClick={selectAll} className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase hover:bg-yellow-500 border-r-4 border-black transition-all active:bg-yellow-600">
+                                        {subCats.length > 0 && subCats.every(s => selectedSubs.includes(s.name)) ? "× Abwählen" : "✓ Alle (Gruppe)"}
+                                    </button>
+                                    <button onClick={resetAll} className="w-1/3 p-3 bg-red-500 text-white font-black text-[10px] uppercase hover:bg-red-600 transition-all active:bg-red-800">
+                                        Reset ({selectedSubs.length})
+                                    </button>
+                                </div>
 
-{/* START SCROLL CONTAINER */}
-<div className="scroll-container hide-scrollbar my-2">
-    {selectedGroup === "EIGENE" && (
-        <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100 hover:bg-yellow-200 transition-colors">
-            + NEUES KI-THEMA
-        </button>
-    )}
-    
-    {subCats.map(s => (
-        <button 
-            key={s.name} 
-            onClick={() => toggleSub(s.name)} 
-            className={`w-full p-4 border-b-2 border-black font-black text-left text-sm uppercase transition-colors ${selectedSubs.includes(s.name) ? 'bg-black text-white' : 'bg-white'}`}
-        >
-            {selectedSubs.includes(s.name) ? "✓ " : ""}{s.name}
-        </button>
-    ))}
-</div>
-{/* ENDE SCROLL CONTAINER */}
+                                <div className="scroll-container hide-scrollbar my-2">
+                                    {selectedGroup === "EIGENE" && (
+                                        <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100 hover:bg-yellow-200 transition-colors">
+                                            + NEUES KI-THEMA
+                                        </button>
+                                    )}
+                                    {subCats.map(s => (
+                                        <button key={s.name} onClick={() => toggleSub(s.name)} className={`w-full p-4 border-b-2 border-black font-black text-left text-sm uppercase transition-colors ${selectedSubs.includes(s.name) ? 'bg-black text-white' : 'bg-white'}`}>
+                                            {selectedSubs.includes(s.name) ? "✓ " : ""}{s.name}
+                                        </button>
+                                    ))}
+                                </div>
 
-<button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box active:bg-red-700 uppercase">
-    {selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Thema wählen'}
-</button>
+                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box shrink-0 active:bg-red-700 uppercase">
+                                    {selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Thema wählen'}
+                                </button>
 
-                                <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
+                                <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10 shrink-0" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
                             </>
                         ) : (
-                            /* Reveal, Play und Finish Screens bleiben identisch zu deiner Vorlage */
                             <div className="p-4 text-center">
-                                {/* Hier die restliche Logik einfügen, falls nötig */}
                                 {gameState === 'reveal' && (
                                     <div className="space-y-6 py-4 flex flex-col items-center">
                                         <h2 className="text-2xl font-black uppercase italic border-b-4 border-black px-4">{players[gameData.currentPlayer]}</h2>
