@@ -1,4 +1,4 @@
-wer<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -402,26 +402,49 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                             </>
                         ) : (
                             <div className="p-4 text-center">
-                                {gameState === 'reveal' && (
-                                    <div className="space-y-6 py-4 flex flex-col items-center">
-                                        <h2 className="text-2xl font-black uppercase italic border-b-4 border-black px-4">{players[gameData.currentPlayer]}</h2>
-                                        <div onClick={() => setGameData({...gameData, showingWord: true})} 
-                                             className={`w-full h-64 flex flex-col items-center justify-center border-4 border-black p-6 
-                                             ${gameData.showingWord ? (gameData.imposterIndices.includes(gameData.currentPlayer) ? 'bg-black text-white' : 'bg-red-600 text-white') : 'bg-gray-100 animate-pulse'}`}>
-                                            {gameData.showingWord ? (
-                                                gameData.imposterIndices.includes(gameData.currentPlayer) ? (
-                                                    <div className="text-center">
-                                                        <div className="text-red-500 font-black text-xl mb-1 uppercase tracking-widest">Du bist der</div>
-                                                        <div className="text-6xl font-black uppercase italic">Imposter</div>
-                                                        {showHint && <div className="mt-6 p-3 border-2 border-white text-sm font-bold uppercase">Tipp: {gameData.hint}</div>}
-                                                    </div>
-                                                ) : <span className={`${getFontSize(gameData.word)} font-black uppercase tracking-tighter text-center break-words w-full px-2`}>
-        {gameData.word}
-    </span>
+ {gameState === 'reveal' && (
+    <div className="space-y-6 py-4 flex flex-col items-center">
+        <h2 className="text-2xl font-black uppercase italic border-b-4 border-black px-4">
+            {players[gameData.currentPlayer]}
+        </h2>
+        
+        <div onClick={() => setGameData({...gameData, showingWord: true})} 
+             className={`w-full h-64 flex flex-col items-center justify-center border-4 border-black p-6 
+             ${gameData.showingWord 
+                ? (gameData.imposterIndices.includes(gameData.currentPlayer) ? 'bg-black text-white' : 'bg-red-600 text-white') 
+                : 'bg-gray-100 animate-pulse'}`}>
+            
+            {gameData.showingWord ? (
+                gameData.imposterIndices.includes(gameData.currentPlayer) ? (
+                    <div className="text-center">
+                        <div className="text-red-500 font-black text-xl mb-1 uppercase tracking-widest">Du bist der</div>
+                        <div className="text-6xl font-black uppercase italic">Imposter</div>
+                        {showHint && <div className="mt-6 p-3 border-2 border-white text-sm font-bold uppercase tracking-tight">Tipp: {gameData.hint}</div>}
+                    </div>
+                ) : (
+                    <span className={`${getFontSize(gameData.word)} font-black uppercase tracking-tighter text-center break-words w-full px-2`}>
+                        {gameData.word}
+                    </span>
+                )
+            ) : (
+                <span className="text-2xl font-black italic underline uppercase text-black">Karte aufdecken</span>
+            )}
+        </div>
 
-                                           <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase mt-4 break-all">
-    Das Wort: <span className="block text-xl">{gameData.word}</span>
-</div>
+        {gameData.showingWord && (
+            <button onClick={() => {
+                if(gameData.currentPlayer + 1 < players.length) {
+                    setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
+                } else {
+                    setGameState('play');
+                }
+            }} className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase">
+                Verstanden
+            </button>
+        )}
+    </div>
+)}
+
 
                                         
                                         {gameData.showingWord && (
