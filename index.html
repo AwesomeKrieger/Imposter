@@ -182,28 +182,37 @@
                     else if (rng < 0.10) chaos = "NONE";
 
                     if (selectedGroup === "EIGENE") {
-                        if (aiWordPool[randomSub] && aiWordPool[randomSub].length > 0) {
-                            const nextPair = aiWordPool[randomSub][0];
-                            word = nextPair.word;
-                            hint = nextPair.hint;
-                            setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
-                        } else {
-                            const promptText = `Du bist ein Spiel-Master. Thema: "${randomSub}". Generiere 10 verschiedene, spezifische Wort-Paare. Format: Wort|Hinweis (jeweils 1 Wort). Trenne die Paare mit Komma. Beispiel: Apfel|Obst, Auto|Motor. Antworte NUR mit der Liste.`;
-                            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
-                                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
-                            });
-                            const d = await res.json();
-                            const raw = d.candidates[0].content.parts[0].text.trim().replace(/```/g, "");
-                            const pairs = raw.split(',').map(p => {
-                                const [w, h] = p.split('|');
-                                return { word: w.trim(), hint: h ? h.trim() : "Aktion" };
-                            });
-                            word = pairs[0].word;
-                            hint = pairs[0].hint;
-                            setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
-                        }
-                    }
+    if (aiWordPool[randomSub] && aiWordPool[randomSub].length > 0) {
+        const nextPair = aiWordPool[randomSub][0];
+        word = nextPair.word;
+        hint = nextPair.hint;
+        setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
+    } else {
+        const promptText = `Du bist ein Spiel-Master. Thema: "${randomSub}". Generiere 10 verschiedene, spezifische Wort-Paare. Format: Wort|Hinweis (jeweils 1 Wort). Trenne die Paare mit Komma. Beispiel: Apfel|Obst, Auto|Motor. Antworte NUR mit der Liste.`;
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+        });
+        const d = await res.json();
+        const raw = d.candidates[0].content.parts[0].text.trim().replace(/```/g, "");
+        const pairs = raw.split(',').map(p => {
+            const [w, h] = p.split('|');
+            return { word: w.trim(), hint: h ? h.trim() : "Aktion" };
+        });
+        word = pairs[0].word;
+        hint = pairs[0].hint;
+        setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
+    }
+} else {
+    // Für normale Kategorien aus JSON laden
+    const parentGroup = subCats.find(s => s.name === randomSub)?.parent;
+    if (parentGroup && data[parentGroup] && data[parentGroup][randomSub]) {
+        const words = data[parentGroup][randomSub];
+        const randomWord = words[Math.floor(Math.random() * words.length)];
+        word = randomWord.word;
+        hint = randomWord.hint;
+    }
+}
 
                     if (chaos === "ALL") {
                         indices = players.map((_, i) => i);
