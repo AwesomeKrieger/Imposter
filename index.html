@@ -127,10 +127,17 @@
                 } else if (groupName === "EIGENE") {
                     list = currentCustom.map(t => ({ name: t.name, parent: "EIGENE" }));
                 } else {
-                    Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
-                }
-                setSubCats(list);
-            };
+    // Für normale Kategorien aus JSON laden
+    const parentGroup = subCats.find(s => s.name === randomSub)?.parent;
+    if (parentGroup && data[parentGroup] && data[parentGroup][randomSub]) {
+        const topicData = data[parentGroup][randomSub];
+        if (topicData.pairs && Array.isArray(topicData.pairs) && topicData.pairs.length > 0) {
+            const randomPair = topicData.pairs[Math.floor(Math.random() * topicData.pairs.length)];
+            word = randomPair[0];  // Erstes Element = Wort
+            hint = randomPair[1];  // Zweites Element = Hinweis
+        }
+    }
+}
 
             const toggleSub = (name) => {
                 setSelectedSubs(prev => 
