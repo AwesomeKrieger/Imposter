@@ -15,93 +15,100 @@
     <script src="https://cdn.tailwindcss.com"></script>
 <style>
     :root {
-        --bg-total: #000000;
-        --border-white: #ffffff;
-        --text-white: #ffffff;
+        /* HELLER MODUS (Standard) */
+        --bg-main: #ffffff;
+        --bg-card: #ffffff;
+        --text-color: #000000;
+        --border-color: #000000;
+        --item-selected-bg: #000000;
+        --item-selected-text: #ffffff;
     }
 
-    /* Entfernt den weißen Balken oben */
+    /* DARK MODE (Geräte-Einstellung) */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --bg-main: #000000;      /* Der Bereich beim Pfeil wird schwarz */
+            --bg-card: #000000;      /* Die Karte wird schwarz */
+            --text-color: #ffffff;   /* Text wird weiß */
+            --border-color: #ffffff; /* Ränder werden weiß */
+            --item-selected-bg: #ffffff;
+            --item-selected-text: #000000;
+        }
+    }
+
     html, body { 
-        background-color: var(--bg-total) !important; 
-        color: var(--text-white); 
+        background-color: var(--bg-main) !important; 
+        color: var(--text-color); 
         margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; 
+        transition: background-color 0.3s ease;
     }
 
     .main-container { 
         height: 100dvh; 
         display: flex; 
         flex-direction: column; 
-        padding: 10px; 
+        padding: 1rem; 
         box-sizing: border-box;
-        background-color: var(--bg-total); /* Alles dahinter schwarz */
+        background-color: var(--bg-main); /* Hier wird die Farbe am Gerät angepasst */
     }
 
-    /* Der weiße Rahmen um das gesamte Spiel */
     .game-card { 
-        background-color: var(--bg-total);
-        border: 4px solid var(--border-white) !important;
-        display: flex; 
-        flex-direction: column; 
-        height: 100%; 
-        overflow: hidden;
-        position: relative;
+        background-color: var(--bg-card);
+        border: 4px solid var(--border-color) !important;
+        display: flex; flex-direction: column; height: 100%; overflow: hidden; 
+        box-shadow: 6px 6px 0px 0px var(--border-color);
     }
 
-    /* Themen-Boxen: Volle Breite erzwingen */
+    /* Themen-Kacheln über die volle Länge */
     .category-item {
-        margin: 4px 0;
+        margin: 5px 0;
         padding: 15px;
-        background: #000000;
-        color: #ffffff;
-        border: 3px solid #ffffff !important;
+        background: var(--bg-card);
+        color: var(--text-color);
+        border: 3px solid var(--border-color) !important;
         cursor: pointer;
         text-align: left;
         font-weight: 900;
         text-transform: uppercase;
-        width: 100% !important; /* Füllt die ganze Breite */
+        width: 100%; /* Volle Breite */
         display: block;
         box-sizing: border-box;
     }
 
     .category-item.selected {
-        background: #ffffff !important;
-        color: #000000 !important;
+        background: var(--item-selected-bg) !important;
+        color: var(--item-selected-text) !important;
     }
 
     .scroll-container { 
         flex: 1; 
         overflow-y: auto !important; 
-        background: #000000; 
+        background: var(--bg-card); 
         padding: 8px;
         display: flex;
         flex-direction: column;
-        align-items: stretch; /* Streckt die Kinder auf volle Breite */
+        align-items: stretch; /* Kinder auf volle Breite strecken */
+        border-top: 4px solid var(--border-color);
     }
 
-    /* Header & Schrift */
-    h1 { 
-        color: #ffffff !important; 
-        margin: 10px 0;
-        text-transform: uppercase;
-        background: #000000;
-    }
-
-    /* UI Elemente */
+    /* Buttons oben */
     .neo-button {
-        border: 3px solid #ffffff !important;
-        background-color: #000000;
-        color: #ffffff;
+        border: 3px solid var(--border-color) !important;
+        background-color: var(--bg-card);
+        color: var(--text-color);
         font-weight: 900;
+        text-transform: uppercase;
     }
 
     input, select {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-        border: 2px solid #ffffff !important;
+        background-color: var(--bg-card) !important;
+        color: var(--text-color) !important;
+        border: 2px solid var(--border-color) !important;
     }
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
 </style>
+
 
 
 
