@@ -442,16 +442,15 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
     {selectedGroup === "EIGENE" && (
         <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100">+ NEUES KI-THEMA</button>
     )}
-    {subCats.map(s => {
+    {subCats.map((s, index) => {
         const isSelected = selectedSubs.includes(s.name);
         return (
-            <div key={s.name} className="flex border-b-2 border-black bg-gray-200">
+            <div key={s.name} className={`flex ${isSelected ? '' : 'border-b-2 border-black'}`}>
                 <button 
                     type="button" 
                     onClick={() => toggleSub(s.name)} 
-                    /* Wir wenden hier deine category-item CSS Logik an */
                     className={`flex-1 p-4 font-black text-left text-sm uppercase transition-all 
-                        ${isSelected ? 'category-item selected !m-0 !rounded-none' : 'bg-white text-black'}
+                        ${isSelected ? 'category-item selected !m-0 !rounded-none w-full' : 'bg-white text-black'}
                     `}
                 >
                     {isSelected ? "✓ " : ""}{s.name}
@@ -460,7 +459,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                     <button 
                         type="button"
                         onClick={(e) => triggerDelete(e, s.name)} 
-                        className="bg-red-500 text-white px-3 font-black border-l-2 border-black text-[10px] uppercase cursor-pointer"
+                        className={`bg-red-500 text-white px-3 font-black text-[10px] uppercase cursor-pointer ${isSelected ? 'border-2 border-white border-l-0' : 'border-l-2 border-black'}`}
                     >
                         Löschen
                     </button>
@@ -469,6 +468,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         );
     })}
 </div>
+
 
 
 
