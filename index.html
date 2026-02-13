@@ -324,7 +324,7 @@ Antworte NUR mit der Liste.`;
                                     </div>
                                 
 
- <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2 scroll-container ">
+ <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2 ">
     {groups.map(g => {
         // Prüfen, ob in dieser Gruppe Themen ausgewählt sind
         const hasSelection = data && data[g] && Object.keys(data[g]).some(s => selectedSubs.includes(s));
