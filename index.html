@@ -1,4 +1,45 @@
-/* Grundzustand: Schwarze Linie unten */
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/AwesomeKrieger/Imposter/refs/heads/main/AppIcon%7Eios-marketing.png">      
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/AwesomeKrieger/Imposter/refs/heads/main/AppIcon%7Eios-marketing.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>IMPOSTER</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body { 
+        background-color: #ffffff; color: #000; 
+        font-family: -apple-system, sans-serif; 
+        margin: 0; padding: 0;
+        height: 100%; width: 100%;
+        overflow: hidden; 
+    }
+
+    .main-container { 
+        height: 100dvh; 
+        display: flex; 
+        flex-direction: column; 
+        padding: 1rem; 
+        box-sizing: border-box;
+    }
+
+    .game-card { 
+        width: 100%; 
+        max-width: 400px; 
+        margin: 0 auto;
+        display: flex; 
+        flex-direction: column; 
+        height: 100%; 
+        overflow: hidden; 
+    }
+/* Grundzustand: Nur eine schwarze Linie unten */
 .category-item {
   padding: 15px;
   background: #ffffff;
@@ -15,17 +56,531 @@
 .category-item.selected {
   background: #222;
   color: #ffffff;
-  border-bottom: 2px solid #000; /* Standardmäßig schwarz zum nächsten weißen Feld */
+  border-bottom: 2px solid #000; /* Standardmäßig bleibt die untere Linie schwarz zum Kontrast */
 }
 
-/* WICHTIG: Wenn ZWEI ausgewählte Elemente aufeinanderfolgen */
+/* Spezialfall: Wenn zwei ausgewählte Elemente aufeinanderfolgen, 
+   wird die Linie dazwischen WEISS */
 .category-item.selected + .category-item.selected {
-  border-top: 2px solid #ffffff; /* Weiße Linie dazwischen */
-  margin-top: -2px; /* Zieht die Buttons zusammen, damit kein schwarz bleibt */
-  border-bottom: 2px solid #000;
+  border-top: 2px solid #ffffff;
 }
 
-/* Verhindert, dass das letzte Element eine dicke Linie zum Container-Rand hat */
-.category-item:last-child {
-    border-bottom: none;
+/* Damit das erste ausgewählte Element in einer Gruppe 
+   eine weiße Linie nach UNTEN zum nächsten ausgewählten hat */
+.category-item.selected:has(+ .category-item.selected) {
+  border-bottom: none; 
 }
+
+.scroll-container { 
+    flex: 1; 
+    overflow-y: auto !important; 
+    border: 4px solid black; 
+    background: #fafafa; 
+}
+
+
+.scroll-container { 
+    flex: 1; 
+    overflow-y: auto !important; 
+    -webkit-overflow-scrolling: touch; 
+    border: 4px solid black; 
+    background: #fafafa; 
+    touch-action: pan-y; 
+    min-height: 0; 
+}
+
+
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .neo-box { border: 4px solid #000; box-shadow: 6px 6px 0px 0px #000; }
+    .progress-fill { height: 100%; background: #ef4444; transition: width 0.4s ease-out; width: 0%; }
+</style>
+
+
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const GITHUB_TOPICS_URL = "https://raw.githubusercontent.com/AwesomeKrieger/Imposter/main/topics.json";
+        const AI_MODEL = "gemini-2.5-flash-lite"; 
+
+
+        const App = () => {
+            const [data, setData] = useState(null);
+            const [aiWordPool, setAiWordPool] = useState(() => {
+                const saved = localStorage.getItem('imp_word_pool_v1');
+                return saved ? JSON.parse(saved) : {};
+            });
+
+            const [groups, setGroups] = useState([]);
+            const [selectedGroup, setSelectedGroup] = useState("BELIEBT");
+            const [subCats, setSubCats] = useState([]);
+            const [selectedSubs, setSelectedSubs] = useState([]);
+            
+            const [gameState, setGameState] = useState('setup'); 
+            const [shuffledBeliebt, setShuffledBeliebt] = useState([]);
+            const [players, setPlayers] = useState(['Spieler 1', 'Spieler 2', 'Spieler 3']);
+            const [imposterCount, setImposterCount] = useState(1);
+            const [showHint, setShowHint] = useState(false);
+            const [timerMinutes, setTimerMinutes] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(0);
+            const [stats, setStats] = useState({});
+
+            const [apiKey, setApiKey] = useState(() => localStorage.getItem('imp_key') || '');
+            const [customTopics, setCustomTopics] = useState(() => {
+                const saved = localStorage.getItem('imp_custom_v12');
+                return saved ? JSON.parse(saved) : [];
+            });
+            
+            const [loading, setLoading] = useState(false);
+            const [visualProgress, setVisualProgress] = useState(0);
+            const [gameData, setGameData] = useState({ word: "", hint: "", imposterIndices: [], currentPlayer: 0, showingWord: false, chaosMode: "" });
+            const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+const triggerDelete = (e, name) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeleteConfirm(name);
+};
+const getFontSize = (text) => {
+    if (!text) return 'text-5xl';
+    const len = text.length;
+    if (len > 15) return 'text-xl';
+    if (len > 12) return 'text-2xl';
+    if (len > 9) return 'text-3xl';
+    if (len > 6) return 'text-4xl';
+    return 'text-5xl';
+};
+
+
+
+const confirmDelete = () => {
+    const newList = customTopics.filter(t => t.name !== deleteConfirm);
+    setCustomTopics(newList);
+    localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
+    setSelectedSubs(prev => prev.filter(n => n !== deleteConfirm));
+    setSubCats(newList.map(t => ({ name: t.name, parent: "EIGENE" })));
+    setDeleteConfirm(null);
+};
+
+
+            useEffect(() => {
+                let interval;
+                if (gameState === 'play' && timeLeft > 0) {
+                    interval = setInterval(() => setTimeLeft(prev => Math.max(0, prev - 1)), 1000);
+                }
+                return () => clearInterval(interval);
+            }, [gameState, timeLeft]);
+
+           useEffect(() => {
+    fetch(GITHUB_TOPICS_URL).then(res => res.json()).then(json => {
+        setData(json);
+        setGroups(["BELIEBT", "EIGENE", ...Object.keys(json)]);
+        // Hier einmalig würfeln und speichern
+        const initial = getShuffledBeliebt(json);
+        setShuffledBeliebt(initial);
+        setSubCats(initial); 
+    });
+}, []);
+
+
+            useEffect(() => {
+                localStorage.setItem('imp_word_pool_v1', JSON.stringify(aiWordPool));
+            }, [aiWordPool]);
+
+            // Hilfsfunktion zum Würfeln (bleibt stabil)
+const getShuffledBeliebt = (fullData) => {
+    let list = [];
+    Object.keys(fullData).forEach(g => {
+        Object.keys(fullData[g]).forEach(s => list.push({ name: s, parent: g }));
+    });
+    return list.sort(() => 0.5 - Math.random()).slice(0, 4);
+};
+
+const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
+    if (!fullData) return;
+    setSelectedGroup(groupName);
+    
+    if (groupName === "BELIEBT") {
+        setSubCats(shuffledBeliebt); // Nutzt die gespeicherten Favoriten
+    } else if (groupName === "EIGENE") {
+        setSubCats(currentCustom.map(t => ({ name: t.name, parent: "EIGENE" })));
+    } else {
+        const list = [];
+        Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
+        setSubCats(list);
+    }
+};
+
+
+
+
+            const toggleSub = (name) => {
+                setSelectedSubs(prev => 
+                    prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
+                );
+            };
+
+            const selectAll = () => {
+                const currentNames = subCats.map(s => s.name);
+                const allCurrentSelected = currentNames.every(name => selectedSubs.includes(name));
+                if (allCurrentSelected) {
+                    setSelectedSubs(prev => prev.filter(name => !currentNames.includes(name)));
+                } else {
+                    setSelectedSubs(prev => [...new Set([...prev, ...currentNames])]);
+                }
+            };
+
+            const handleGlobalToggle = () => {
+    // Wenn aktuell irgendwelche Themen gewählt sind -> Alles löschen
+    if (selectedSubs.length > 0) {
+        setSelectedSubs([]);
+    } 
+    // Wenn gar nichts gewählt ist -> Jedes Thema aus jeder Kategorie markieren
+    else {
+        let allNames = [];
+        
+        // JSON-Kategorien durchlaufen
+        Object.keys(data).forEach(group => {
+            Object.keys(data[group]).forEach(sub => {
+                allNames.push(sub);
+            });
+        });
+        
+        // Eigene KI-Themen hinzufügen
+        customTopics.forEach(t => {
+            allNames.push(t.name);
+        });
+
+        setSelectedSubs([...new Set(allNames)]);
+    }
+};
+
+
+            const addCustomTopic = () => {
+                const name = prompt("Gib ein Thema für die KI ein:");
+                if(name && name.trim() !== "") {
+                    const newList = [...customTopics, { name: name.trim() }];
+                    setCustomTopics(newList);
+                    localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
+                    const newSubList = newList.map(t => ({ name: t.name, parent: "EIGENE" }));
+                    setSubCats(newSubList);
+                    setSelectedSubs([name.trim()]);
+                }
+            };
+
+            const startGame = async () => {
+    if(selectedSubs.length === 0) return alert("Mindestens ein Thema wählen!");
+
+    setLoading(true);
+    setVisualProgress(50);
+    const randomSub = selectedSubs[Math.floor(Math.random() * selectedSubs.length)];
+    let word = "", hint = "", chaos = "";
+    let indices = [];
+
+    try {
+        const rng = Math.random();
+        if (rng < 0.01) chaos = "ALL";
+        else if (rng < 0.02) chaos = "NONE";
+
+        const isCustomTopic = customTopics.some(t => t.name === randomSub);
+
+        if (isCustomTopic) {
+            if(!apiKey) {
+                setLoading(false);
+                return alert("API Key fehlt!");
+            }
+            
+            if (aiWordPool[randomSub] && aiWordPool[randomSub].length > 0) {
+                const nextPair = aiWordPool[randomSub][0];
+                word = nextPair.word;
+                hint = nextPair.hint;
+                setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
+            } else {
+                const promptText = `Du bist ein Spiel-Master. Thema: "${randomSub}". Generiere 10 verschiedene, spezifische Wort-Paare. Format: Wort|Hinweis (jeweils 1 Wort). Trenne die Paare mit Komma. Beispiel: Apfel|Obst, Auto|Motor. Antworte NUR mit der Liste.`;
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+                });
+                const d = await res.json();
+                const raw = d.candidates[0].content.parts[0].text.trim().replace(/```/g, "");
+                const pairs = raw.split(',').map(p => {
+                    const [w, h] = p.split('|');
+                    return { word: w.trim(), hint: h ? h.trim() : "Aktion" };
+                });
+                word = pairs[0].word;
+                hint = pairs[0].hint;
+                setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
+            }
+        } else {
+            // FIX: Suche global in allen Kategorien von 'data'
+            let foundData = null;
+            for (let groupKey in data) {
+                if (data[groupKey] && data[groupKey][randomSub]) {
+                    foundData = data[groupKey][randomSub];
+                    break;
+                }
+            }
+
+            if (foundData && foundData.pairs && foundData.pairs.length > 0) {
+                const randomPair = foundData.pairs[Math.floor(Math.random() * foundData.pairs.length)];
+                word = randomPair[0];
+                hint = randomPair[1];
+            }
+        }
+
+        if (!word) {
+            throw new Error("Wort konnte nicht geladen werden. Thema: " + randomSub);
+        }
+
+        if (chaos === "ALL") {
+            indices = players.map((_, i) => i);
+        } else if (chaos === "NONE") {
+            indices = [];
+        } else {
+            const count = Math.min(imposterCount, players.length - 1);
+            while(indices.length < count) {
+                let r = Math.floor(Math.random() * players.length);
+                if(!indices.includes(r)) indices.push(r);
+            }
+        }
+
+        const newStats = { ...stats };
+        indices.forEach(idx => { newStats[players[idx]] = (newStats[players[idx]] || 0) + 1; });
+        setStats(newStats);
+        setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos });
+        setTimeLeft(timerMinutes * 60);
+        setVisualProgress(100);
+        setTimeout(() => { setGameState('reveal'); setLoading(false); }, 400);
+    } catch (e) { 
+        console.error(e);
+        alert("Fehler: " + e.message); 
+        setLoading(false); 
+    }
+};
+
+
+            const formatTime = (s) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2, '0')}`;
+
+            if (!data) return <div className="h-screen flex items-center justify-center font-black">Lade...</div>;
+
+            return (
+                <div className="main-container">
+                    <h1 className="text-4xl font-black italic mb-4 border-b-8 border-red-600 tracking-tighter shrink-0 uppercase">Imposter.ai</h1>
+
+                    <div className="game-card bg-white p-5 neo-box space-y-4">
+                        {loading ? (
+                             <div className="flex flex-col items-center justify-center p-10 space-y-4">
+                                <div className="font-black text-xl italic uppercase">Generiere...</div>
+                                <div className="w-full border-4 border-black h-8 bg-white"><div className="progress-fill" style={{width: `${visualProgress}%`}}></div></div>
+                            </div>
+                        ) : gameState === 'setup' ? (
+                            <>
+                                <div className="grid grid-cols-3 gap-2 shrink-0">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase opacity-60">Verräter:</label>
+                                        <select value={imposterCount} onChange={e => setImposterCount(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
+                                            {Array.from({length: players.length - 1}, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase opacity-60">Hinweis:</label>
+                                        <button onClick={() => setShowHint(!showHint)} className={`w-full p-2 border-2 border-black font-bold text-[10px] uppercase transition-colors ${showHint ? 'bg-green-400' : 'bg-red-400'}`}>
+                                            {showHint ? 'AN' : 'AUS'}
+                                        </button>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase opacity-60">Zeitlimit:</label>
+                                        <select value={timerMinutes} onChange={e => setTimerMinutes(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
+                                            {[0,1,2,3,5,10].map(m => <option key={m} value={m}>{m === 0 ? "AUS" : `${m}min`}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 pt-2 shrink-0">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-black text-[10px] uppercase underline">Mitspieler:</span>
+                                        <button onClick={() => players.length < 10 && setPlayers([...players, `Spieler ${players.length+1}`])} className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black uppercase">+ Add</button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-1 max-h-24 overflow-y-auto border border-black p-1 bg-gray-50">
+                                        {players.map((p, i) => (
+                                            <div key={i} className="flex border border-black bg-white">
+                                                <input value={p} onChange={e => {let n=[...players]; n[i]=e.target.value; setPlayers(n);}} className="w-full p-1 text-[10px] font-bold outline-none uppercase" />
+                                                <span className="text-[9px] font-black bg-yellow-400 px-1 border-l border-black flex items-center">🕵️{stats[p] || 0}</span>
+                                                <button onClick={() => players.length > 3 && setPlayers(players.filter((_, idx) => idx !== i))} className="bg-red-500 text-white px-1 font-black">×</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2 shrink-0">
+                                    {groups.map(g => {
+                                        const hasSelection = data && data[g] && Object.keys(data[g]).some(s => selectedSubs.includes(s));
+                                        const isCustomSelection = g === "EIGENE" && customTopics.some(t => selectedSubs.includes(t.name));
+                                        return (
+                                            <button key={g} onClick={() => updateView(g)} className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection || isCustomSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}>
+                                                {g} {(hasSelection || isCustomSelection) && "●"}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="sticky top-0 z-10 flex border-b-4 border-black bg-white shrink-0">
+                                    <button onClick={selectAll} className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase hover:bg-yellow-500 border-r-4 border-black transition-all active:bg-yellow-600">
+                                        {subCats.length > 0 && subCats.every(s => selectedSubs.includes(s.name)) ? "× Abwählen" : "✓ Alle (Gruppe)"}
+                                    </button>
+                                   <button 
+    onClick={handleGlobalToggle} 
+    className={`w-1/3 p-3 font-black text-[10px] uppercase transition-all border-black ${
+        selectedSubs.length > 0 
+        ? 'bg-red-500 text-white hover:bg-red-600' 
+        : 'bg-blue-500 text-white hover:bg-blue-600'
+    }`}
+>
+    {selectedSubs.length > 0 ? `Reset (${selectedSubs.length})` : "Alle (Global)"}
+</button>
+
+                                </div>
+
+                              <div className="scroll-container hide-scrollbar my-2">
+    {selectedGroup === "EIGENE" && (
+        <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100">+ NEUES KI-THEMA</button>
+    )}
+    
+    {subCats.map((s) => {
+        const isSelected = selectedSubs.includes(s.name);
+        return (
+            <div key={s.name} className="flex flex-col"> 
+                {/* Wir verzichten auf das Flex-Row div, damit Buttons direkt untereinander stehen können */}
+                <button 
+                    type="button" 
+                    onClick={() => toggleSub(s.name)} 
+                    className={`category-item font-black text-sm uppercase ${isSelected ? 'selected' : ''}`}
+                >
+                    <span>{isSelected ? "✓ " : ""}{s.name}</span>
+                    
+                    {/* Der Löschen-Button nur bei EIGENE, absolut positioniert oder als kleiner Text-Link */}
+                    {selectedGroup === "EIGENE" && (
+                        <span 
+                            onClick={(e) => { e.stopPropagation(); triggerDelete(e, s.name); }}
+                            className="ml-4 text-[10px] bg-red-600 px-2 py-1 text-white border border-white"
+                        >
+                            LÖSCHEN
+                        </span>
+                    )}
+                </button>
+            </div>
+        );
+    })}
+</div>
+
+
+
+
+
+                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box shrink-0 active:bg-red-700 uppercase">
+                                    {selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Thema wählen'}
+                                </button>
+
+                                <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10 shrink-0" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
+                            </>                                                 ) : (
+                            <div className="p-4 text-center">
+                                {gameState === 'reveal' && (
+                                    <div className="space-y-6 py-4 flex flex-col items-center">
+                                        <h2 className="text-2xl font-black uppercase italic border-b-4 border-black px-4">
+                                            {players[gameData.currentPlayer]}
+                                        </h2>
+                                        
+                                        <div onClick={() => setGameData({...gameData, showingWord: true})} 
+                                             className={`w-full h-64 flex flex-col items-center justify-center border-4 border-black p-6 
+                                             ${gameData.showingWord 
+                                                ? (gameData.imposterIndices.includes(gameData.currentPlayer) ? 'bg-black text-white' : 'bg-red-600 text-white') 
+                                                : 'bg-gray-100 animate-pulse'}`}>
+                                            
+                                            {gameData.showingWord ? (
+                                                gameData.imposterIndices.includes(gameData.currentPlayer) ? (
+                                                    <div className="text-center">
+                                                        <div className="text-red-500 font-black text-xl mb-1 uppercase tracking-widest">Du bist der</div>
+                                                        <div className="text-6xl font-black uppercase italic">Imposter</div>
+                                                        {showHint && <div className="mt-6 p-3 border-2 border-white text-sm font-bold uppercase tracking-tight">Tipp: {gameData.hint}</div>}
+                                                    </div>
+                                                ) : (
+                                                    <span className={`${getFontSize(gameData.word)} font-black uppercase tracking-tighter text-center break-words w-full px-2`}>
+                                                        {gameData.word}
+                                                    </span>
+                                                )
+                                            ) : (
+                                                <span className="text-2xl font-black italic underline uppercase text-black">Karte aufdecken</span>
+                                            )}
+                                        </div>
+
+                                        {gameData.showingWord && (
+                                            <button onClick={() => {
+                                                if(gameData.currentPlayer + 1 < players.length) {
+                                                    setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
+                                                } else {
+                                                    setGameState('play');
+                                                }
+                                            }} className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase">
+                                                Verstanden
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
+                                {gameState === 'play' && (
+                                    <div className={`py-12 flex flex-col items-center space-y-8 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'timer-warn' : ''}`}>
+                                        {timerMinutes > 0 && <div className="text-6xl font-black px-6 py-2 border-4 border-black neo-box shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">{formatTime(timeLeft)}</div>}
+                                        <h2 className="text-6xl font-black text-red-600 italic animate-bounce uppercase">Diskussion!</h2>
+                                        <button onClick={() => setGameState('finish')} className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase">Auflösen</button>
+                                    </div>
+                                )}
+
+                                {gameState === 'finish' && (
+                                    <div className="py-10 flex flex-col items-center space-y-6 text-center">
+                                        <h2 className="text-2xl font-black uppercase underline decoration-4">
+                                            {gameData.chaosMode === "ALL" ? "PARANOIA! Alle Imposter!" : 
+                                             gameData.chaosMode === "NONE" ? "FEHLALARM! Niemand!" : "Die Verräter:"}
+                                        </h2>
+                                        {gameData.imposterIndices.length > 0 ? gameData.imposterIndices.map(idx => (
+                                            <div key={idx} className="text-4xl font-black text-red-600 italic uppercase tracking-tighter">{players[idx]}</div>
+                                        )) : <div className="text-4xl font-black text-green-600 italic uppercase">Niemand</div>}
+                                        <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase mt-4">Das Wort: {gameData.word}</div>
+                                        <button onClick={() => {
+                                            const fresh = getShuffledBeliebt(data);
+                                            setShuffledBeliebt(fresh);
+                                            setSubCats(fresh);
+                                            setSelectedGroup("BELIEBT");
+                                            setGameState('setup');
+                                        }} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase">
+                                            Nächste Runde
+                                        </button>
+                                                                        </div>
+                                )}
+                            </div>
+                        )}
+                    </div> {/* Ende game-card */}
+
+                    {deleteConfirm && (
+                        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6">
+                            <div className="bg-white border-4 border-black p-6 neo-box w-full max-w-xs text-center space-y-4">
+                                <h3 className="font-black text-xl uppercase italic text-black">Löschen?</h3>
+                                <p className="font-bold text-sm uppercase text-black">"{deleteConfirm}" entfernen?</p>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-3 border-2 border-black font-black text-xs uppercase text-black">Nein</button>
+                                    <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white border-2 border-black font-black text-xs uppercase">Ja</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div> // Ende main-container
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
