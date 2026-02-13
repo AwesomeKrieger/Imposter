@@ -15,86 +15,79 @@
     <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-        --bg-body: #ffffff;
-        --bg-card: #ffffff;
-        --bg-input: #ffffff;
-        --bg-scroll: #fafafa;
-        --text-main: #000000;
-        --border-main: #000000; /* Schwarz im Light Mode */
-        --item-bg: #ffffff;
-        --item-selected: #222222;
-        --item-selected-text: #ffffff;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --bg-body: #000000;   /* Komplett schwarzer Hintergrund */
-            --bg-card: #000000;   /* Karte ebenfalls schwarz */
-            --bg-input: #111111;
-            --bg-scroll: #050505;
-            --text-main: #ffffff; /* Weißer Text */
-            --border-main: #ffffff; /* Weißer Rand */
-            --item-bg: #000000;
-            --item-selected: #ffffff;
-            --item-selected-text: #000000;
-        }
+        /* Standardmäßig auf Dark-Modus getrimmt */
+        --bg-body: #000000;
+        --bg-card: #000000;
+        --bg-input: #111111;
+        --bg-scroll: #000000;
+        --text-main: #ffffff;
+        --border-main: #ffffff; /* Weißer Rand überall */
+        --item-bg: #000000;
+        --item-selected: #ffffff;
+        --item-selected-text: #000000;
     }
 
     html, body { 
         background-color: var(--bg-body); 
         color: var(--text-main); 
-        font-family: -apple-system, sans-serif; 
         margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; 
     }
 
     .main-container { height: 100dvh; display: flex; flex-direction: column; padding: 1rem; box-sizing: border-box; }
 
     .game-card { 
-        width: 100%; max-width: 400px; margin: 0 auto;
-        display: flex; flex-direction: column; height: 100%; overflow: hidden; 
         background-color: var(--bg-card);
         border: 4px solid var(--border-main);
-        box-shadow: 6px 6px 0px 0px var(--border-main);
+        display: flex; flex-direction: column; height: 100%; overflow: hidden; 
+        box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.1);
     }
 
-    /* Buttons mit Rundum-Rand */
+    /* Rundum-Rand für Buttons */
     .neo-button {
         border: 3px solid var(--border-main) !important;
+        background-color: #000000;
+        color: #ffffff;
         font-weight: 900;
         text-transform: uppercase;
         font-size: 10px;
         transition: all 0.1s;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--text-main); /* Textfarbe folgt dem Modus */
-        background-color: var(--bg-card);
     }
-    .neo-button:active { transform: translate(2px, 2px); }
+    .neo-button:active { transform: scale(0.98); }
 
+    /* Die Themen-Liste mit weißen Rändern */
     .category-item {
-        padding: 15px;
+        padding: 18px;
         background: var(--item-bg);
         color: var(--text-main);
-        border: none;
-        border-bottom: 4px solid var(--border-main);
+        border: 2px solid var(--border-main); /* Rand um jedes Thema */
+        margin-bottom: 4px; /* Abstand zwischen den Kacheln */
         cursor: pointer; width: 100%; text-align: left;
+        font-weight: 900;
+        text-transform: uppercase;
     }
-    .category-item.selected { background: var(--item-selected); color: var(--item-selected-text); }
+    .category-item.selected {
+        background: var(--item-selected);
+        color: var(--item-selected-text);
+    }
 
     .scroll-container { 
         flex: 1; overflow-y: auto !important; 
-        border: 4px solid var(--border-main); 
+        padding: 8px; /* Platz für die Ränder der Items */
         background: var(--bg-scroll); 
         display: flex; flex-direction: column;
     }
 
+    /* Inputs (Spielernamen etc.) */
     input, select {
-        background-color: var(--bg-input) !important;
-        color: var(--text-main) !important;
-        border: 3px solid var(--border-main) !important;
+        background-color: #111111 !important;
+        color: #ffffff !important;
+        border: 2px solid var(--border-main) !important;
+        text-transform: uppercase;
     }
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
 </style>
+
 
 
 
