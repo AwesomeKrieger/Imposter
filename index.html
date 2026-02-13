@@ -15,24 +15,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
 <style>
     :root {
-        /* HELLER MODUS (Standard) */
         --bg-main: #ffffff;
-        --bg-card: #ffffff;
         --text-color: #000000;
         --border-color: #000000;
-        --item-selected-bg: #000000;
-        --item-selected-text: #ffffff;
+        --shadow-color: #000000;
     }
 
-    /* DARK MODE (Geräte-Einstellung) */
     @media (prefers-color-scheme: dark) {
         :root {
-            --bg-main: #000000;      /* Der Bereich beim Pfeil wird schwarz */
-            --bg-card: #000000;      /* Die Karte wird schwarz */
-            --text-color: #ffffff;   /* Text wird weiß */
-            --border-color: #ffffff; /* Ränder werden weiß */
-            --item-selected-bg: #ffffff;
-            --item-selected-text: #000000;
+            --bg-main: #000000;
+            --text-color: #ffffff;
+            --border-color: #ffffff;
+            --shadow-color: #ffffff; /* Weißer Schatten-Effekt im Dark Mode */
         }
     }
 
@@ -40,74 +34,79 @@
         background-color: var(--bg-main) !important; 
         color: var(--text-color); 
         margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; 
-        transition: background-color 0.3s ease;
     }
 
     .main-container { 
-        height: 100dvh; 
-        display: flex; 
-        flex-direction: column; 
-        padding: 1rem; 
-        box-sizing: border-box;
-        background-color: var(--bg-main); /* Hier wird die Farbe am Gerät angepasst */
+        height: 100dvh; display: flex; flex-direction: column; padding: 15px; 
+        box-sizing: border-box; background-color: var(--bg-main); 
     }
 
+    /* Die Überschrift steht frei OBEN */
+    .header-title {
+        font-size: 2.25rem;
+        font-weight: 900;
+        font-style: italic;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+        color: var(--text-color);
+        border-bottom: 8px solid #dc2626; /* Der rote Balken */
+        width: fit-content;
+    }
+
+    /* Der Rahmen um ALLES UNTER der Überschrift mit dem dicken Schatten */
     .game-card { 
-        background-color: var(--bg-card);
+        background-color: var(--bg-main);
         border: 4px solid var(--border-color) !important;
         display: flex; flex-direction: column; height: 100%; overflow: hidden; 
-        box-shadow: 6px 6px 0px 0px var(--border-color);
+        /* Der markante Schatten-Rand-Effekt */
+        box-shadow: 8px 8px 0px 0px var(--shadow-color);
     }
 
     /* Themen-Kacheln über die volle Länge */
     .category-item {
         margin: 5px 0;
         padding: 15px;
-        background: var(--bg-card);
+        background: var(--bg-main);
         color: var(--text-color);
         border: 3px solid var(--border-color) !important;
         cursor: pointer;
         text-align: left;
         font-weight: 900;
         text-transform: uppercase;
-        width: 100%; /* Volle Breite */
+        width: 100%;
         display: block;
         box-sizing: border-box;
     }
 
     .category-item.selected {
-        background: var(--item-selected-bg) !important;
-        color: var(--item-selected-text) !important;
+        background: var(--text-color) !important;
+        color: var(--bg-main) !important;
     }
 
     .scroll-container { 
-        flex: 1; 
-        overflow-y: auto !important; 
-        background: var(--bg-card); 
-        padding: 8px;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch; /* Kinder auf volle Breite strecken */
+        flex: 1; overflow-y: auto !important; 
+        background: var(--bg-main); padding: 10px;
+        display: flex; flex-direction: column; align-items: stretch;
         border-top: 4px solid var(--border-color);
     }
 
-    /* Buttons oben */
     .neo-button {
         border: 3px solid var(--border-color) !important;
-        background-color: var(--bg-card);
+        background-color: var(--bg-main);
         color: var(--text-color);
         font-weight: 900;
         text-transform: uppercase;
     }
 
     input, select {
-        background-color: var(--bg-card) !important;
+        background-color: var(--bg-main) !important;
         color: var(--text-color) !important;
         border: 2px solid var(--border-color) !important;
     }
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
 </style>
+
 
 
 
