@@ -14,14 +14,13 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    <style>
     :root {
         --bg-body: #ffffff;
         --bg-card: #ffffff;
         --bg-input: #ffffff;
         --bg-scroll: #fafafa;
         --text-main: #000000;
-        --border-main: #000000;
+        --border-main: #000000; /* Rand Schwarz im Light Mode */
         --item-bg: #ffffff;
         --item-selected: #222222;
         --item-selected-text: #ffffff;
@@ -35,7 +34,7 @@
             --bg-input: #222222;
             --bg-scroll: #0f0f0f;
             --text-main: #ffffff;
-            --border-main: #000000;
+            --border-main: #ffffff; /* Rand Weiß im Dark Mode */
             --item-bg: #1a1a1a;
             --item-selected: #000000;
             --item-selected-text: #ef4444;
@@ -57,9 +56,10 @@
         display: flex; flex-direction: column; height: 100%; overflow: hidden; 
         background-color: var(--bg-card);
         border: 4px solid var(--border-main);
+        /* Schatten passt sich ebenfalls der Randfarbe an */
+        box-shadow: 6px 6px 0px 0px var(--border-main);
     }
 
-    /* Der neue Button-Stil mit Rand überall */
     .neo-button {
         border: 3px solid var(--border-main) !important;
         font-weight: 900;
@@ -67,6 +67,8 @@
         font-size: 10px;
         transition: all 0.1s;
         display: flex; align-items: center; justify-content: center;
+        background-color: var(--bg-card);
+        color: var(--text-main);
     }
     .neo-button:active { transform: translate(2px, 2px); }
 
@@ -95,9 +97,9 @@
     }
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
-
-
+    .progress-fill { height: 100%; background: #ef4444; transition: width 0.4s ease-out; width: 0%; }
 </style>
+
 
 
 </head>
