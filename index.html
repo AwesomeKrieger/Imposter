@@ -367,9 +367,10 @@ Antworte NUR mit der Liste.`;
                                     {subCats.map(s => (
                                         <button key={s.name} onClick={() => toggleSub(s.name)} className={`w-full p-4 border-b-2 border-black font-black text-left text-sm uppercase transition-colors ${selectedSubs.includes(s.name) ? 'bg-black text-white' : 'bg-white'}`}>
                                             {selectedSubs.includes(s.name) ? "✓ " : ""}{s.name}
-</div>
+
                                         </button>
                                     ))}
+                                </div>
                                 </div>
 
                                 <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box active:bg-red-700 uppercase">
