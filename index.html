@@ -39,6 +39,34 @@
         height: 100%; 
         overflow: hidden; 
     }
+    /* Grundzustand der Kategorien */
+.category-item {
+  padding: 15px;
+  margin: 5px 0;
+  background: #222; /* Dunkler Hintergrund für Arcade-Look */
+  border: 2px solid transparent; /* Platzhalter für die Linie */
+  border-bottom: 1px solid #444; /* Dezente Trennung im Ruhezustand */
+  color: #aaa;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border-radius: 8px; /* Abgerundete Ecken für den Modern-Look */
+}
+
+/* Wenn das Thema ausgewählt wurde */
+.category-item.selected {
+  border: 2px solid #ffffff; /* Die weiße Abgrenzung */
+  color: #ffffff;
+  background: #333;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); /* Sanfter Glüheffekt */
+  transform: scale(1.02); /* Minimales Hervorheben */
+}
+
+/* Hover-Effekt (optional) */
+.category-item:hover {
+  background: #2a2a2a;
+  border-bottom: 1px solid #888;
+}
+
 
     .scroll-container { 
         flex: 1; 
