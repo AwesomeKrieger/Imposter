@@ -399,9 +399,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                                 </button>
 
                                 <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10 shrink-0" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
-                            </>
-                                             
-                                                    ) : (
+                            </>                                                 ) : (
                             <div className="p-4 text-center">
                                 {gameState === 'reveal' && (
                                     <div className="space-y-6 py-4 flex flex-col items-center">
