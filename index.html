@@ -14,80 +14,103 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    html, body { 
-        background-color: #ffffff; color: #000; 
-        font-family: -apple-system, sans-serif; 
-        margin: 0; padding: 0;
-        height: 100%; width: 100%;
-        overflow: hidden; 
-    }
+    :root {
+    --bg-main: #ffffff;
+    --bg-card: #ffffff;
+    --text-color: #000000;
+    --border-color: #000000;
+    --scroll-bg: #fafafa;
+    --item-bg: #ffffff;
+    --item-selected: #222222;
+    --item-selected-text: #ffffff;
+    --item-border-inner: #3d3d3d;
+}
 
-    .main-container { 
-        height: 100dvh; 
-        display: flex; 
-        flex-direction: column; 
-        padding: 1rem; 
-        box-sizing: border-box;
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-main: #121212;
+        --bg-card: #1a1a1a;
+        --text-color: #ffffff;
+        --border-color: #000000; /* Rahmen bleiben für den Comic-Stil oft schwarz */
+        --scroll-bg: #111111;
+        --item-bg: #1a1a1a;
+        --item-selected: #000000;
+        --item-selected-text: #ef4444; /* Rot als Highlight im Darkmode */
+        --item-border-inner: #333333;
     }
+}
 
-    .game-card { 
-        width: 100%; 
-        max-width: 400px; 
-        margin: 0 auto;
-        display: flex; 
-        flex-direction: column; 
-        height: 100%; 
-        overflow: hidden; 
-    }
-/* Grundzustand: Schwarze Trennlinie unten */
+html, body { 
+    background-color: var(--bg-main); color: var(--text-color); 
+    font-family: -apple-system, sans-serif; 
+    margin: 0; padding: 0;
+    height: 100%; width: 100%;
+    overflow: hidden; 
+}
+
+.main-container { height: 100dvh; display: flex; flex-direction: column; padding: 1rem; box-sizing: border-box; }
+
+.game-card { 
+    width: 100%; max-width: 400px; margin: 0 auto;
+    display: flex; flex-direction: column; height: 100%; overflow: hidden; 
+    background-color: var(--bg-card);
+}
+
+/* Gruppen-Buttons mit Rundum-Rand */
+.group-tab {
+    padding: 8px 12px;
+    border: 3px solid var(--border-color);
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 10px;
+    background: var(--item-bg);
+    color: var(--text-color);
+    transition: all 0.1s;
+    white-space: nowrap;
+}
+
+.group-tab.active {
+    background: #ef4444; /* Knallrot bei aktiv */
+    color: white;
+    box-shadow: 3px 3px 0px 0px var(--border-color);
+    transform: translate(-2px, -2px);
+}
+
 .category-item {
-  padding: 15px;
-  background: #ffffff;
-  color: #000;
-  border: none;
-  /* Die Trennung ist immer in der schwarzen Farbe der Boxen (#222) */
-  border-bottom: 4px solid #222; 
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  transition: background 0.1s;
+    padding: 15px;
+    background: var(--item-bg);
+    color: var(--text-color);
+    border: none;
+    border-bottom: 4px solid var(--border-color); 
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
 }
 
-/* Wenn ausgewählt: Hintergrund wird schwarz/dunkel */
 .category-item.selected {
-  background: #222; 
-  color: #ffffff;
-  /* Rand unten bleibt schwarz */
-  border-bottom: 4px solid #222; 
+    background: var(--item-selected); 
+    color: var(--item-selected-text);
+    border-bottom: 4px solid var(--border-color); 
 }
 
-/* Spezialfall: Leichter Unterschied zwischen zwei schwarzen Feldern */
 .category-item.selected + .category-item.selected {
-  /* Ein sehr dunkles Grau für den minimalen Unterschied */
-  border-top: 4px solid #3d3d3d; 
-  /* Überlappung für exakte 4px Stärke */
-  margin-top: -4px; 
-  border-bottom: 4px solid #222;
+    border-top: 4px solid var(--item-border-inner); 
+    margin-top: -4px; 
+    border-bottom: 4px solid var(--border-color);
 }
 
-/* Letztes Element */
-.category-item:last-child {
-  border-bottom: none;
-}
+.category-item:last-child { border-bottom: none; }
 
 .scroll-container { 
-    flex: 1; 
-    overflow-y: auto !important; 
-    border: 4px solid black; 
-    background: #fafafa; 
-    display: flex;
-    flex-direction: column;
+    flex: 1; overflow-y: auto !important; 
+    border: 4px solid var(--border-color); 
+    background: var(--scroll-bg); 
+    display: flex; flex-direction: column;
 }
 
-
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .neo-box { border: 4px solid #000; box-shadow: 6px 6px 0px 0px #000; }
-    .progress-fill { height: 100%; background: #ef4444; transition: width 0.4s ease-out; width: 0%; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.neo-box { border: 4px solid #000; box-shadow: 6px 6px 0px 0px #000; }
+.progress-fill { height: 100%; background: #ef4444; transition: width 0.4s ease-out; width: 0%; }
 </style>
 
 
