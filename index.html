@@ -39,36 +39,39 @@
         height: 100%; 
         overflow: hidden; 
     }
-/* Grundzustand: Rand in Box-Grau */
+/* Grundzustand: Jedes Element hat einen 4px Rand in der Farbe des Hintergrunds */
 .category-item {
   padding: 15px;
   background: #ffffff;
   color: #000;
   border: none;
-  /* Standard-Trennlinie in hellem Grau (wie der Box-Hintergrund) */
-  border-bottom: 4px solid #ffffff; 
+  /* Die Trennung ist IMMER die Hintergrundfarbe des Containers */
+  border-bottom: 4px solid #fafafa; 
   cursor: pointer;
   width: 100%;
   text-align: left;
   transition: background 0.1s;
 }
 
-/* Wenn ausgewählt: Hintergrund dunkel */
+/* Wenn ausgewählt: Hintergrund wird dunkel */
 .category-item.selected {
-  background: #222;
+  background: #222; 
   color: #ffffff;
-  /* Unten bleibt es erstmal grau zum nächsten weißen Feld */
+  /* Auch hier bleibt der Rand unten erst einmal in Hintergrundfarbe */
   border-bottom: 4px solid #fafafa; 
 }
 
-/* Der Trick für die dicke weiße Linie zwischen zwei Schwarzen Feldern */
+/* SPEZIALFALL: Wenn zwei ausgewählte (dunkle) Boxen direkt untereinander liegen */
 .category-item.selected + .category-item.selected {
-  border-top: 4px solid #ffffff;
-  margin-top: -4px; /* Zieht sie zusammen für exakt 4px Stärke */
+  /* Jetzt wird die Trennung sichtbar: ein helleres Grau */
+  border-top: 4px solid #bbbbbb; 
+  /* Wir rücken das Element hoch, damit es exakt auf der Linie des Vorgängers liegt */
+  margin-top: -4px; 
+  /* Der Abschluss nach unten bleibt wieder in Hintergrundfarbe */
   border-bottom: 4px solid #fafafa;
 }
 
-/* Letztes Element braucht keinen extra Rand unten */
+/* Das allerletzte Element braucht keinen Rand unten */
 .category-item:last-child {
   border-bottom: none;
 }
@@ -77,10 +80,11 @@
     flex: 1; 
     overflow-y: auto !important; 
     border: 4px solid black; 
-    background: #fafafa; 
+    background: #fafafa; /* Die Basis-Farbe für alle Trennlinien */
     display: flex;
     flex-direction: column;
 }
+
 
 
 
