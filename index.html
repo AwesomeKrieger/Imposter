@@ -172,23 +172,22 @@ const confirmDelete = () => {
 
 
             useEffect(() => {
-                let interval;
-                if (gameState === 'play' && timeLeft > 0) {
-                    interval = setInterval(() => setTimeLeft(prev => Math.max(0, prev - 1)), 1000);
-                }
-                return () => clearInterval(interval);
-            }, [gameState, timeLeft]);
-
-           useEffect(() => {
-    fetch(GITHUB_TOPICS_URL).then(res => res.json()).then(json => {
-        setData(json);
-        setGroups(["BELIEBT", "EIGENE", ...Object.keys(json)]);
-        // Hier einmalig würfeln und speichern
-        const initial = getShuffledBeliebt(json);
-        setShuffledBeliebt(initial);
-        setSubCats(initial); 
-    });
+    fetch(GITHUB_TOPICS_URL)
+        .then(res => res.json())
+        .then(json => {
+            setData(json);
+            setGroups(["BELIEBT", "EIGENE", ...Object.keys(json)]);
+            
+            // Initialisiert die "Beliebt"-Liste mit dem aktuellen 3h-Slot
+            const initial = getShuffledBeliebt(json);
+            setShuffledBeliebt(initial);
+            
+            // Setzt die Ansicht standardmäßig auf diese gewürfelten Themen
+            setSubCats(initial); 
+        })
+        .catch(err => console.error("Fehler beim Laden der Themen:", err));
 }, []);
+
 
 
             useEffect(() => {
@@ -196,13 +195,37 @@ const confirmDelete = () => {
             }, [aiWordPool]);
 
             // Hilfsfunktion zum Würfeln (bleibt stabil)
+// Hilfsfunktion zum stabilen Würfeln (ändert sich alle 3 Stunden)
 const getShuffledBeliebt = (fullData) => {
+    if (!fullData) return [];
     let list = [];
     Object.keys(fullData).forEach(g => {
         Object.keys(fullData[g]).forEach(s => list.push({ name: s, parent: g }));
     });
-    return list.sort(() => 0.5 - Math.random()).slice(0, 5);
+
+    // Erzeugt einen Zeit-String, der für 3 Stunden gleich bleibt (z.B. "2026-02-13-Slot6")
+    const now = new Date();
+    const datePart = now.toISOString().split('T')[0];
+    const timeSlot = Math.floor(now.getHours() / 3); 
+    const seedString = datePart + "-slot" + timeSlot;
+
+    // Einfache Seeded-Random Funktion (Pseudo-Zufall)
+    const seededRandom = (str) => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0;
+        }
+        // Normalisiert den Hash auf einen Wert zwischen 0 und 1
+        return Math.abs(Math.sin(hash));
+    };
+
+    // Wir sortieren die Liste basierend auf dem Seed + dem Namen des Themas
+    return list
+        .sort((a, b) => seededRandom(seedString + a.name) - seededRandom(seedString + b.name))
+        .slice(0, 6); // Zeigt 5 beliebte Themen
 };
+
 
 const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
     if (!fullData) return;
