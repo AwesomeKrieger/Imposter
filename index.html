@@ -164,7 +164,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
     }
 };
 
-};
+
 
 
             const toggleSub = (name) => {
@@ -365,7 +365,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
     )}
     {subCats.map(s => (
         <div key={s.name} className="flex border-b-2 border-black">
-            <button onClick={() => toggleSub(s.name)} className={`flex-1 p-4 font-black text-left text-sm uppercase ${selectedSubs.includes(s.name) ? 'bg-black text-white' : 'bg-white'}`}>
+            <button type="button" onClick={() => toggleSub(s.name)} className={`flex-1 p-4 font-black text-left text-sm uppercase ${selectedSubs.includes(s.name) ? 'bg-black text-white' : 'bg-white'}`}>
                 {selectedSubs.includes(s.name) ? "✓ " : ""}{s.name}
             </button>
             {selectedGroup === "EIGENE" && (
