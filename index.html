@@ -222,8 +222,8 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
 
     try {
         const rng = Math.random();
-        if (rng < 0.05) chaos = "ALL";
-        else if (rng < 0.10) chaos = "NONE";
+        if (rng < 0.01) chaos = "ALL";
+        else if (rng < 0.02) chaos = "NONE";
 
         const isCustomTopic = customTopics.some(t => t.name === randomSub);
 
