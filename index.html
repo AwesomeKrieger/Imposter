@@ -15,18 +15,24 @@
     <script src="https://cdn.tailwindcss.com"></script>
 <style>
     :root {
+        /* HELLER MODUS (Standard) */
         --bg-main: #ffffff;
+        --bg-card: #ffffff;
         --text-color: #000000;
         --border-color: #000000;
-        --shadow-color: #000000;
+        --item-selected-bg: #000000;
+        --item-selected-text: #ffffff;
     }
 
+    /* DARK MODE (Geräte-Einstellung) */
     @media (prefers-color-scheme: dark) {
         :root {
-            --bg-main: #000000;
-            --text-color: #ffffff;
-            --border-color: #ffffff;
-            --shadow-color: #ffffff; /* Weißer Schatten-Effekt im Dark Mode */
+            --bg-main: #000000;      /* Der Bereich beim Pfeil wird schwarz */
+            --bg-card: #000000;      /* Die Karte wird schwarz */
+            --text-color: #ffffff;   /* Text wird weiß */
+            --border-color: #ffffff; /* Ränder werden weiß */
+            --item-selected-bg: #ffffff;
+            --item-selected-text: #000000;
         }
     }
 
@@ -34,79 +40,74 @@
         background-color: var(--bg-main) !important; 
         color: var(--text-color); 
         margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; 
+        transition: background-color 0.3s ease;
     }
 
     .main-container { 
-        height: 100dvh; display: flex; flex-direction: column; padding: 15px; 
-        box-sizing: border-box; background-color: var(--bg-main); 
+        height: 100dvh; 
+        display: flex; 
+        flex-direction: column; 
+        padding: 1rem; 
+        box-sizing: border-box;
+        background-color: var(--bg-main); /* Hier wird die Farbe am Gerät angepasst */
     }
 
-    /* Die Überschrift steht frei OBEN */
-    .header-title {
-        font-size: 2.25rem;
-        font-weight: 900;
-        font-style: italic;
-        text-transform: uppercase;
-        margin-bottom: 15px;
-        color: var(--text-color);
-        border-bottom: 8px solid #dc2626; /* Der rote Balken */
-        width: fit-content;
-    }
-
-    /* Der Rahmen um ALLES UNTER der Überschrift mit dem dicken Schatten */
     .game-card { 
-        background-color: var(--bg-main);
+        background-color: var(--bg-card);
         border: 4px solid var(--border-color) !important;
         display: flex; flex-direction: column; height: 100%; overflow: hidden; 
-        /* Der markante Schatten-Rand-Effekt */
-        box-shadow: 8px 8px 0px 0px var(--shadow-color);
+        box-shadow: 6px 6px 0px 0px var(--border-color);
     }
 
     /* Themen-Kacheln über die volle Länge */
     .category-item {
         margin: 5px 0;
         padding: 15px;
-        background: var(--bg-main);
+        background: var(--bg-card);
         color: var(--text-color);
         border: 3px solid var(--border-color) !important;
         cursor: pointer;
         text-align: left;
         font-weight: 900;
         text-transform: uppercase;
-        width: 100%;
+        width: 100%; /* Volle Breite */
         display: block;
         box-sizing: border-box;
     }
 
     .category-item.selected {
-        background: var(--text-color) !important;
-        color: var(--bg-main) !important;
+        background: var(--item-selected-bg) !important;
+        color: var(--item-selected-text) !important;
     }
 
     .scroll-container { 
-        flex: 1; overflow-y: auto !important; 
-        background: var(--bg-main); padding: 10px;
-        display: flex; flex-direction: column; align-items: stretch;
+        flex: 1; 
+        overflow-y: auto !important; 
+        background: var(--bg-card); 
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch; /* Kinder auf volle Breite strecken */
         border-top: 4px solid var(--border-color);
     }
 
+    /* Buttons oben */
     .neo-button {
         border: 3px solid var(--border-color) !important;
-        background-color: var(--bg-main);
+        background-color: var(--bg-card);
         color: var(--text-color);
         font-weight: 900;
         text-transform: uppercase;
     }
 
     input, select {
-        background-color: var(--bg-main) !important;
+        background-color: var(--bg-card) !important;
         color: var(--text-color) !important;
         border: 2px solid var(--border-color) !important;
     }
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
 </style>
-
 
 
 
@@ -471,19 +472,28 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                                 </div>
 
                                 <div className="sticky top-0 z-10 flex border-b-4 border-black bg-white shrink-0">
-                                    <button onClick={selectAll} className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase hover:bg-yellow-500 border-r-4 border-black transition-all active:bg-yellow-600">
+                                    <button 
+    onClick={selectAll} 
+    className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase transition-all active:bg-yellow-600 !text-black"
+    style={{ border: '4px solid var(--border-color)' }}
+>
+    {subCats.length > 0 && subCats.every(s => selectedSubs.includes(s.name)) ? "× Abwählen" : "✓ Alle (Gruppe)"}
+</button>
+
                                         {subCats.length > 0 && subCats.every(s => selectedSubs.includes(s.name)) ? "× Abwählen" : "✓ Alle (Gruppe)"}
                                     </button>
-                                   <button 
+                                  <button 
     onClick={handleGlobalToggle} 
-    className={`w-1/3 p-3 font-black text-[10px] uppercase transition-all border-black ${
+    className={`w-1/3 p-3 font-black text-[10px] uppercase transition-all ${
         selectedSubs.length > 0 
-        ? 'bg-red-500 text-white hover:bg-red-600' 
-        : 'bg-blue-500 text-white hover:bg-blue-600'
+        ? 'bg-red-500 text-white' 
+        : 'bg-blue-500 text-white'
     }`}
+    style={{ border: '4px solid var(--border-color)' }}
 >
     {selectedSubs.length > 0 ? `Reset (${selectedSubs.length})` : "Alle (Global)"}
 </button>
+
 
                                 </div>
 
