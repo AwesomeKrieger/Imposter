@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+wer<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -104,6 +104,16 @@ const triggerDelete = (e, name) => {
     e.stopPropagation();
     setDeleteConfirm(name);
 };
+const getFontSize = (text) => {
+    if (!text) return 'text-5xl';
+    const len = text.length;
+    if (len > 15) return 'text-xl';
+    if (len > 12) return 'text-2xl';
+    if (len > 9) return 'text-3xl';
+    if (len > 6) return 'text-4xl';
+    return 'text-5xl';
+};
+
 
 
 const confirmDelete = () => {
@@ -405,9 +415,15 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                                                         <div className="text-6xl font-black uppercase italic">Imposter</div>
                                                         {showHint && <div className="mt-6 p-3 border-2 border-white text-sm font-bold uppercase">Tipp: {gameData.hint}</div>}
                                                     </div>
-                                                ) : <span className="text-5xl font-black uppercase tracking-tighter text-center">{gameData.word}</span>
-                                            ) : <span className="text-2xl font-black italic underline uppercase text-black">Karte aufdecken</span>}
-                                        </div>
+                                                ) : <span className={`${getFontSize(gameData.word)} font-black uppercase tracking-tighter text-center break-words w-full px-2`}>
+        {gameData.word}
+    </span>
+
+                                           <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase mt-4 break-all">
+    Das Wort: <span className="block text-xl">{gameData.word}</span>
+</div>
+
+                                        
                                         {gameData.showingWord && (
                                             <button onClick={() => {
                                                 if(gameData.currentPlayer + 1 < players.length) setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
