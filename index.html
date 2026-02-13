@@ -225,11 +225,9 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         if (rng < 0.05) chaos = "ALL";
         else if (rng < 0.10) chaos = "NONE";
 
-        // Prüfen ob das Thema aus EIGENE kommt
         const isCustomTopic = customTopics.some(t => t.name === randomSub);
 
         if (isCustomTopic) {
-            // API Key Check
             if(!apiKey) {
                 setLoading(false);
                 return alert("API Key fehlt!");
@@ -257,16 +255,24 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                 setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
             }
         } else {
-            // Für normale Kategorien aus JSON laden
-            const parentGroup = subCats.find(s => s.name === randomSub)?.parent;
-            if (parentGroup && data[parentGroup] && data[parentGroup][randomSub]) {
-                const topicData = data[parentGroup][randomSub];
-                if (topicData.pairs && Array.isArray(topicData.pairs) && topicData.pairs.length > 0) {
-                    const randomPair = topicData.pairs[Math.floor(Math.random() * topicData.pairs.length)];
-                    word = randomPair[0];
-                    hint = randomPair[1];
+            // FIX: Suche global in allen Kategorien von 'data'
+            let foundData = null;
+            for (let groupKey in data) {
+                if (data[groupKey] && data[groupKey][randomSub]) {
+                    foundData = data[groupKey][randomSub];
+                    break;
                 }
             }
+
+            if (foundData && foundData.pairs && foundData.pairs.length > 0) {
+                const randomPair = foundData.pairs[Math.floor(Math.random() * foundData.pairs.length)];
+                word = randomPair[0];
+                hint = randomPair[1];
+            }
+        }
+
+        if (!word) {
+            throw new Error("Wort konnte nicht geladen werden. Thema: " + randomSub);
         }
 
         if (chaos === "ALL") {
@@ -294,6 +300,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         setLoading(false); 
     }
 };
+
 
             const formatTime = (s) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2, '0')}`;
 
