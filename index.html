@@ -135,20 +135,33 @@ const confirmDelete = () => {
                 localStorage.setItem('imp_word_pool_v1', JSON.stringify(aiWordPool));
             }, [aiWordPool]);
 
-            const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
+            // Hilfsfunktion zum Würfeln (bleibt stabil)
+const getShuffledBeliebt = (fullData) => {
+    let list = [];
+    Object.keys(fullData).forEach(g => {
+        Object.keys(fullData[g]).forEach(s => list.push({ name: s, parent: g }));
+    });
+    return list.sort(() => 0.5 - Math.random()).slice(0, 4);
+};
+
+const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
     if (!fullData) return;
     setSelectedGroup(groupName);
-    let list = [];
+    
     if (groupName === "BELIEBT") {
-        Object.keys(fullData).forEach(g => Object.keys(fullData[g]).forEach(s => list.push({ name: s, parent: g })));
-        list = list.sort(() => 0.5 - Math.random()).slice(0, 4);
+        // Falls wir schon Favoriten haben, ändere nichts (kein neues Würfeln)
+        if (subCats.length > 0 && selectedGroup === "BELIEBT") return;
+        // Nur wenn die Liste leer ist (beim Start), einmalig füllen
+        if (subCats.length === 0) setSubCats(getShuffledBeliebt(fullData));
     } else if (groupName === "EIGENE") {
-        list = currentCustom.map(t => ({ name: t.name, parent: "EIGENE" }));
+        setSubCats(currentCustom.map(t => ({ name: t.name, parent: "EIGENE" })));
     } else {
+        const list = [];
         Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
+        setSubCats(list);
     }
-    setSubCats(list);
 };
+
 
             const toggleSub = (name) => {
                 setSelectedSubs(prev => 
