@@ -15,7 +15,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 <style>
     :root {
-        /* HELLER MODUS (Standard) */
+        /* HELLER MODUS */
         --bg-main: #ffffff;
         --bg-card: #ffffff;
         --text-color: #000000;
@@ -24,13 +24,13 @@
         --item-selected-text: #ffffff;
     }
 
-    /* DARK MODE (Geräte-Einstellung) */
+    /* DARK MODE */
     @media (prefers-color-scheme: dark) {
         :root {
-            --bg-main: #000000;      /* Der Bereich beim Pfeil wird schwarz */
-            --bg-card: #000000;      /* Die Karte wird schwarz */
-            --text-color: #ffffff;   /* Text wird weiß */
-            --border-color: #ffffff; /* Ränder werden weiß */
+            --bg-main: #000000;
+            --bg-card: #000000;
+            --text-color: #ffffff;
+            --border-color: #ffffff;
             --item-selected-bg: #ffffff;
             --item-selected-text: #000000;
         }
@@ -49,7 +49,7 @@
         flex-direction: column; 
         padding: 1rem; 
         box-sizing: border-box;
-        background-color: var(--bg-main); /* Hier wird die Farbe am Gerät angepasst */
+        background-color: var(--bg-main);
     }
 
     .game-card { 
@@ -59,52 +59,36 @@
         box-shadow: 6px 6px 0px 0px var(--border-color);
     }
 
-    /* Themen-Kacheln über die volle Länge */
-  .scroll-container { 
-    flex: 1; 
-    overflow-y: auto !important; 
-    background: var(--bg-card); 
-    padding: 10px !important; /* Bringt den Abstand zur Außenwand zurück */
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    border-top: 4px solid var(--border-color);
-}
+    .scroll-container { 
+        flex: 1; 
+        overflow-y: auto !important; 
+        background: var(--bg-card); 
+        padding: 10px !important; /* Erzeugt den Abstand zur Wand */
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        border-top: 4px solid var(--border-color);
+    }
 
-.category-item {
-    margin: 6px 0 !important; /* Abstand zwischen den Kacheln */
-    padding: 16px; 
-    background: var(--bg-card);
-    color: var(--text-color);
-    border: 3px solid var(--border-color) !important; /* Rundum-Rand für jede Kachel */
-    cursor: pointer;
-    text-align: left;
-    font-weight: 900;
-    text-transform: uppercase;
-    width: 100% !important;
-    display: block;
-    box-sizing: border-box;
-    
-   
-}
-
-    border-bottom: 4px solid var(--border-color) !important; 
-    cursor: pointer;
-    text-align: left;
-    font-weight: 900;
-    text-transform: uppercase;
-    width: 100% !important;
-    display: block;
-    box-sizing: border-box;
-}
-
-    /* Buttons oben */
-    .neo-button {
-        border: 3px solid var(--border-color) !important;
-        background-color: var(--bg-card);
+    .category-item {
+        margin: 6px 0 !important; 
+        padding: 16px; 
+        background: var(--bg-card);
         color: var(--text-color);
+        border: 3px solid var(--border-color) !important; /* Rundum-Rand für Kasten-Look */
+        cursor: pointer;
+        text-align: left;
         font-weight: 900;
         text-transform: uppercase;
+        width: 100% !important;
+        display: block;
+        box-sizing: border-box;
+        box-shadow: 4px 4px 0px 0px var(--border-color); /* Der Kasten-Schatten */
+    }
+
+    .category-item.selected {
+        background: var(--item-selected-bg) !important;
+        color: var(--item-selected-text) !important;
     }
 
     input, select {
@@ -115,13 +99,6 @@
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
 </style>
-
-
-
-
-
-
-
 
 
 </head>
@@ -480,7 +457,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
 
                                 <div className="sticky top-0 z-10 flex border-b-4 border-black bg-white shrink-0">
                                     <div className="sticky top-0 z-10 flex shrink-0 bg-transparent" style={{ gap: '0px' }}>
-    <div className="sticky top-0 z-10 flex shrink-0 bg-transparent p-3 gap-3">
+<div className="sticky top-0 z-10 flex shrink-0 bg-transparent p-3 gap-3 border-b-4 border-black dark:border-white">
     <button 
         onClick={selectAll} 
         className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase transition-all active:bg-yellow-600 !text-black"
@@ -505,6 +482,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         {selectedSubs.length > 0 ? `Reset (${selectedSubs.length})` : "Global"}
     </button>
 </div>
+
 
 
 
