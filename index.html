@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <title>IMPOSTER.AI | PRO</title>
+    <title>IMPOSTER</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -50,7 +50,7 @@
         background: #fafafa; 
         /* Erlaubt vertikales Wischen */
         touch-action: pan-y; 
-        max-height: 45vh; 
+        
     }
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -123,6 +123,10 @@
                     updateView("BELIEBT", json, customTopics);
                 });
             }, []);
+            useEffect(() => {
+    localStorage.setItem('imp_word_pool_v1', JSON.stringify(aiWordPool));
+}, [aiWordPool]);
+
 
             const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
                 if (!fullData) return;
