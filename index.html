@@ -80,6 +80,7 @@
             const [selectedSubs, setSelectedSubs] = useState([]);
             
             const [gameState, setGameState] = useState('setup'); 
+            const [shuffledBeliebt, setShuffledBeliebt] = useState([]);
             const [players, setPlayers] = useState(['Spieler 1', 'Spieler 2', 'Spieler 3']);
             const [imposterCount, setImposterCount] = useState(1);
             const [showHint, setShowHint] = useState(false);
@@ -123,13 +124,17 @@ const confirmDelete = () => {
                 return () => clearInterval(interval);
             }, [gameState, timeLeft]);
 
-            useEffect(() => {
-                fetch(GITHUB_TOPICS_URL).then(res => res.json()).then(json => {
-                    setData(json);
-                    setGroups(["BELIEBT", "EIGENE", ...Object.keys(json)]);
-                    updateView("BELIEBT", json, customTopics);
-                });
-            }, []);
+           useEffect(() => {
+    fetch(GITHUB_TOPICS_URL).then(res => res.json()).then(json => {
+        setData(json);
+        setGroups(["BELIEBT", "EIGENE", ...Object.keys(json)]);
+        // Hier einmalig würfeln und speichern
+        const initial = getShuffledBeliebt(json);
+        setShuffledBeliebt(initial);
+        setSubCats(initial); 
+    });
+}, []);
+
 
             useEffect(() => {
                 localStorage.setItem('imp_word_pool_v1', JSON.stringify(aiWordPool));
@@ -149,10 +154,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
     setSelectedGroup(groupName);
     
     if (groupName === "BELIEBT") {
-        // Falls wir schon Favoriten haben, ändere nichts (kein neues Würfeln)
-        if (subCats.length > 0 && selectedGroup === "BELIEBT") return;
-        // Nur wenn die Liste leer ist (beim Start), einmalig füllen
-        if (subCats.length === 0) setSubCats(getShuffledBeliebt(fullData));
+        setSubCats(shuffledBeliebt); // Nutzt die gespeicherten Favoriten
     } else if (groupName === "EIGENE") {
         setSubCats(currentCustom.map(t => ({ name: t.name, parent: "EIGENE" })));
     } else {
@@ -160,6 +162,8 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
         setSubCats(list);
     }
+};
+
 };
 
 
@@ -430,13 +434,15 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                                         )) : <div className="text-4xl font-black text-green-600 italic uppercase">Niemand</div>}
                                         <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase mt-4">Das Wort: {gameData.word}</div>
                                                                                 <button onClick={() => {
-    const freshBeliebt = getShuffledBeliebt(data);
-    setSubCats(freshBeliebt);
+    const fresh = getShuffledBeliebt(data);
+    setShuffledBeliebt(fresh); // Neue Favoriten für die neue Runde
+    setSubCats(fresh);
     setSelectedGroup("BELIEBT");
     setGameState('setup');
 }} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase">
     Nächste Runde
 </button>
+
 
                                     </div>
                                 )}
