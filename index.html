@@ -429,7 +429,15 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                                             <div key={idx} className="text-4xl font-black text-red-600 italic uppercase tracking-tighter">{players[idx]}</div>
                                         )) : <div className="text-4xl font-black text-green-600 italic uppercase">Niemand</div>}
                                         <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase mt-4">Das Wort: {gameData.word}</div>
-                                                                                <button onClick={() => setGameState('setup')} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase">Nächste Runde</button>
+                                                                                <button onClick={() => {
+    const freshBeliebt = getShuffledBeliebt(data);
+    setSubCats(freshBeliebt);
+    setSelectedGroup("BELIEBT");
+    setGameState('setup');
+}} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase">
+    Nächste Runde
+</button>
+
                                     </div>
                                 )}
                             </div>
