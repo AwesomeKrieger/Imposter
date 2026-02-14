@@ -183,10 +183,14 @@ const confirmDelete = () => {
     const newList = customTopics.filter(t => t.name !== deleteConfirm);
     setCustomTopics(newList);
     localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
-    setSelectedSubs(prev => prev.filter(n => n !== deleteConfirm));
+    
+    // HIER DIE KORREKTUR: Mit Prefix filtern
+    setSelectedSubs(prev => prev.filter(id => id !== `EIGENE:${deleteConfirm}`));
+    
     setSubCats(newList.map(t => ({ name: t.name, parent: "EIGENE" })));
     setDeleteConfirm(null);
 };
+
 
 
             useEffect(() => {
@@ -300,16 +304,21 @@ const handleGlobalToggle = () => {
 
 
             const addCustomTopic = () => {
-                const name = prompt("Gib ein Thema für die KI ein:");
-                if(name && name.trim() !== "") {
-                    const newList = [...customTopics, { name: name.trim() }];
-                    setCustomTopics(newList);
-                    localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
-                    const newSubList = newList.map(t => ({ name: t.name, parent: "EIGENE" }));
-                    setSubCats(newSubList);
-                    setSelectedSubs([name.trim()]);
-                }
-            };
+    const name = prompt("Gib ein Thema für die KI ein:");
+    if(name && name.trim() !== "") {
+        const trimmedName = name.trim();
+        const newList = [...customTopics, { name: trimmedName }];
+        setCustomTopics(newList);
+        localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
+        
+        const newSubList = newList.map(t => ({ name: t.name, parent: "EIGENE" }));
+        setSubCats(newSubList);
+        
+        // HIER DIE KORREKTUR: Prefix hinzufügen
+        setSelectedSubs(prev => [...prev, `EIGENE:${trimmedName}`]);
+    }
+};
+
 const startGame = async () => {
     let finalId = "";
 
