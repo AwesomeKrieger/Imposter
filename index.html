@@ -345,7 +345,10 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                 hint = nextPair.hint;
                 setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
             } else {
-                                                               const promptText = `Thema: "${randomSub}". Generiere 40 verschiedene Wort-Paare. Format: Wort|Hinweis. Trenne Paare mit Komma. Antworte NUR mit der Liste ohne Text davor oder danach. Beispiel: Apfel|Obst, Auto|Motor.`;
+                                                                               const promptText = `Generiere eine Liste von 40 Wort-Paaren zum Thema "${randomSub}". 
+                Format: Wort|Hinweis. Trenne Paare NUR mit Komma. 
+                Beispiel: Apfel|Obst, Auto|Motor. 
+                Antworte NUR mit der Liste, kein Text davor!`;
                 
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
@@ -354,43 +357,43 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "llama-3.1-8b-instant", // Das aktuell verfügbare Modell
+                        model: "llama-3.1-8b-instant",
                         messages: [{ role: "user", content: promptText }],
-                        temperature: 0.7
+                        temperature: 0.8
                     })
                 });
 
                 const d = await res.json();
+                if (d.error) { alert(`Fehler: ${d.error.message}`); return; }
 
-                // Zeigt dir sofort an, falls der Key oder das Modell nicht stimmt
-                if (d.error) {
-                    alert(`Groq-Fehler (${d.error.code || 'Fehler'}): ${d.error.message}`);
-                    return;
+                // Säuberung: Entfernt eventuelle Einleitungen der KI
+                let raw = d.choices[0].message.content.trim();
+                if (raw.includes(':')) {
+                    // Falls die KI schreibt "Hier sind die Wörter: ...", nimm nur was danach kommt
+                    raw = raw.split(':').pop().trim();
                 }
 
-                if (!d.choices || !d.choices[0]) {
-                    alert("Keine Daten von Groq erhalten. Überprüfe die Konsole.");
-                    return;
-                }
-
-                const raw = d.choices[0].message.content.trim().replace(/```/g, "");
-                
                 const pairs = raw.split(',').map(p => {
                     const parts = p.split('|');
-                    return { 
-                        word: parts[0] ? parts[0].trim() : "", 
-                        hint: parts[1] ? parts[1].trim() : "Aktion" 
-                    };
-                }).filter(p => p.word.length > 1);
+                    const w = parts[0] ? parts[0].trim() : "";
+                    const h = parts[1] ? parts[1].trim() : "Aktion";
+                    
+                    // Filtert aus, falls das Wort identisch mit der Kategorie ist
+                    if (w.toLowerCase() === randomSub.toLowerCase() || w.length < 2) {
+                        return null;
+                    }
+                    return { word: w, hint: h };
+                }).filter(p => p !== null);
 
                 if (pairs.length > 0) {
                     word = pairs[0].word;
                     hint = pairs[0].hint;
                     setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
                 } else {
-                    alert("KI hat geantwortet, aber das Format (Wort|Hinweis) war falsch.");
+                    alert("Die KI hat keine gültigen Paare geliefert. Versuchs nochmal!");
                 }
             }
+
 
 
 
