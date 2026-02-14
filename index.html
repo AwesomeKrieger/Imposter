@@ -281,6 +281,18 @@ const getShuffledBeliebt = (fullData) => {
         .sort((a, b) => seededRandom(seedString + a.name) - seededRandom(seedString + b.name))
         .slice(0, 6); // Zeigt 5 beliebte Themen
 };
+useEffect(() => {
+    let timer;
+    if (gameState === 'play' && timeLeft > 0) {
+        timer = setInterval(() => {
+            setTimeLeft(prev => prev - 1);
+        }, 1000);
+    } else if (timeLeft === 0 && timerMinutes > 0) {
+        // Optional: Sound oder Vibration wenn Zeit abgelaufen
+    }
+    return () => clearInterval(timer);
+}, [gameState, timeLeft, timerMinutes]);
+
 
 
 const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
@@ -736,12 +748,12 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                     </div>
                                 )}
 
-                                {gameState === 'play' && (
-    <div className={`py-8 flex flex-col items-center space-y-6 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'timer-warn' : ''}`}>
+                               {gameState === 'play' && (
+    <div className={`py-8 flex flex-col items-center space-y-6 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'animate-pulse' : ''}`}>
         
-        {/* Timer Anzeige */}
+        {/* Timer Anzeige - nur wenn Minuten > 0 */}
         {timerMinutes > 0 && (
-            <div className="text-6xl font-black px-6 py-2 border-4 border-black neo-box shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target">
+            <div className={`text-6xl font-black px-6 py-2 border-4 border-black neo-box shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target ${timeLeft < 10 ? 'text-red-600 border-red-600' : ''}`}>
                 {formatTime(timeLeft)}
             </div>
         )}
@@ -759,7 +771,17 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
             <h2 className="text-6xl font-black text-red-600 italic animate-bounce uppercase tracking-tighter">
                 Diskussion!
             </h2>
-            <p className="font-bold text-[10px] uppercase opacity-50">Entlarvt den Verräter, bevor die Zeit abläuft.</p>
+            {/* Untertext erscheint NUR wenn ein Timer läuft */}
+            {timerMinutes > 0 && timeLeft > 0 && (
+                <p className="font-bold text-[10px] uppercase opacity-50">
+                    Entlarvt den Verräter, bevor die Zeit abläuft.
+                </p>
+            )}
+            {timerMinutes > 0 && timeLeft === 0 && (
+                <p className="font-black text-sm uppercase text-red-600">
+                    Zeit abgelaufen! Jetzt abstimmen!
+                </p>
+            )}
         </div>
 
         {/* Button zum Beenden */}
@@ -771,6 +793,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
         </button>
     </div>
 )}
+
 
 
                                {gameState === 'finish' && (
