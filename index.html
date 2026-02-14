@@ -420,12 +420,13 @@ const startGame = async () => {
                
 
                                                                                                // Der Prompt ist jetzt extrem strikt
-                const promptText = `Erstelle 40 bekannte Wort-Paare für das Spiel Tabu zum Thema "${randomSub}".
-Regel: Wähle Begriffe, die JEDER kennt, die aber EINDEUTIG zum Thema passen. 
-Keine nischigen Insider, keine zu schweren Fachwörter, keine unpassenden Begriffe.
+                const promptText = `Erstelle 40 bekannte Wort-Paare für "${randomSub}".
+Regel 1: Wähle Begriffe, die jeder kennt, aber eindeutig zum Thema passen.
+Regel 2: Das Wort "${randomSub}" darf NIEMALS im Paar vorkommen.
+Regel 3: Der Hinweis darf nicht das Wort selbst sein (auch kein Plural, keine Verkleinerung oder Wortzusammensetzung).
 Format: Wort|Hinweis, Wort|Hinweis.
-Beispiel für 'Gaming': Controller|Hardware, Level|Abschnitt, Highscore|Rekord.
-Antworte NUR in diesem Format ohne Einleitung!`;
+Beispiel: Wenn Thema 'Auto' ist, nicht 'Autoreifen|Rad' (da 'Auto' enthalten ist), sondern 'Reifen|Gummi'.
+Antworte NUR in diesem Format!`;
                 
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
