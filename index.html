@@ -177,6 +177,7 @@
             const [selectedSubs, setSelectedSubs] = useState([]);
             
             const [gameState, setGameState] = useState('setup'); 
+            const [showBeginner, setShowBeginner] = useState(true);
             const [shuffledBeliebt, setShuffledBeliebt] = useState([]);
             const [players, setPlayers] = useState(['Spieler 1', 'Spieler 2', 'Spieler 3']);
             const [imposterCount, setImposterCount] = useState(1);
@@ -258,6 +259,17 @@ const getShuffledBeliebt = (fullData) => {
     Object.keys(fullData).forEach(g => {
         Object.keys(fullData[g]).forEach(s => list.push({ name: s, parent: g }));
     });
+    
+useEffect(() => {
+    if (gameState === 'play') {
+        setShowBeginner(true); // Anzeige einschalten
+        const timer = setTimeout(() => {
+            setShowBeginner(false); // Nach 5 Sek. ausschalten
+        }, 5000);
+        return () => clearTimeout(timer);
+    }
+}, [gameState]);
+    
 
     // Erzeugt einen Zeit-String, der für 3 Stunden gleich bleibt (z.B. "2026-02-13-Slot6")
     const now = new Date();
@@ -748,51 +760,50 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                     </div>
                                 )}
 
-                               {gameState === 'play' && (
+                             {gameState === 'play' && (
     <div className={`py-8 flex flex-col items-center space-y-6 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'animate-pulse' : ''}`}>
         
-        {/* Timer Anzeige - nur wenn Minuten > 0 */}
+        {/* Timer Anzeige */}
         {timerMinutes > 0 && (
             <div className={`text-6xl font-black px-6 py-2 border-4 border-black neo-box shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target ${timeLeft < 10 ? 'text-red-600 border-red-600' : ''}`}>
                 {formatTime(timeLeft)}
             </div>
         )}
 
-        {/* Startspieler / Beginner Anzeige */}
-        <div className="w-full bg-yellow-300 border-4 border-black p-5 neo-box glass-target">
-            <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">Die Runde eröffnet:</p>
-            <h3 className="text-3xl font-black uppercase italic flex items-center gap-3">
-                <span className="animate-pulse">🎤</span> {players[gameData.startingPlayer]}
-            </h3>
+        {/* Startspieler Anzeige - Verschwindet nach 5 Sekunden mit Animation */}
+        <div className={`w-full transition-all duration-500 overflow-hidden ${showBeginner ? 'max-h-40 opacity-100 mb-4' : 'max-h-0 opacity-0 mb-0'}`}>
+            <div className="bg-yellow-300 border-4 border-black p-5 neo-box glass-target">
+                <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">Die Runde eröffnet:</p>
+                <h3 className="text-3xl font-black uppercase italic flex items-center gap-3 text-black">
+            
+            {players[gameData.startingPlayer]}
+                </h3>
+            </div>
         </div>
 
-        {/* Haupt-Titel */}
+        {/* Titel & Info */}
         <div className="text-center space-y-2 py-4">
             <h2 className="text-6xl font-black text-red-600 italic animate-bounce uppercase tracking-tighter">
                 Diskussion!
             </h2>
-            {/* Untertext erscheint NUR wenn ein Timer läuft */}
-            {timerMinutes > 0 && timeLeft > 0 && (
-                <p className="font-bold text-[10px] uppercase opacity-50">
-                    Entlarvt den Verräter, bevor die Zeit abläuft.
-                </p>
-            )}
-            {timerMinutes > 0 && timeLeft === 0 && (
-                <p className="font-black text-sm uppercase text-red-600">
-                    Zeit abgelaufen! Jetzt abstimmen!
-                </p>
-            )}
+            <div className="font-bold text-[10px] uppercase opacity-50">
+                <span>Entlarvt den Verräter</span>
+                {timerMinutes > 0 && timeLeft > 0 && <span>, bevor die Zeit abläuft</span>}
+                <span>.</span>
+            </div>
         </div>
 
-        {/* Button zum Beenden */}
-        <button 
-            onClick={() => setGameState('finish')} 
-            className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase active:scale-95 transition-transform"
-        >
-            Auflösen
-        </button>
+       {/* Button zum Beenden mit Schatten */}
+<button 
+    onClick={() => setGameState('finish')} 
+    className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase active:scale-95 active:shadow-none transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target"
+>
+    Auflösen
+</button>
+
     </div>
 )}
+
 
 
 
