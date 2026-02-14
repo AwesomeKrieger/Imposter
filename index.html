@@ -715,15 +715,10 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
     </div>
 </div>
 
+<button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box shrink-0 active:bg-red-700 uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target">
+    {selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Zufälliges Thema'}
+</button>
 
-
-
-
-
-
-                                <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box shrink-0 active:bg-red-700 uppercase">
-                                    {selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Zufälliges Thema'}
-                                </button>
 
                                 <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10 shrink-0" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
                             </>                                                 ) : (
@@ -764,7 +759,8 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                                 } else {
                                                     setGameState('play');
                                                 }
-                                            }} className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase">
+                                            }} className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
+">
                                                 Verstanden
                                             </button>
                                         )}
