@@ -313,30 +313,29 @@ const handleGlobalToggle = () => {
 const startGame = async () => {
     let finalId = "";
 
-    // 1. Wenn nichts ausgewählt ist -> Wähle ein absolut zufälliges Thema
     if (selectedSubs.length === 0) {
+        // Sammle ALLE verfügbaren Themen-IDs
         const allPossibleIds = [];
         
-        // Alle Standard-Themen sammeln
         Object.keys(data).forEach(group => {
-            if (group !== "BELIEBT") { // Dubletten vermeiden
+            if (group !== "BELIEBT") { 
                 Object.keys(data[group]).forEach(sub => {
-                    allIds.push(`${group}:${sub}`);
+                    allPossibleIds.push(`${group}:${sub}`);
                 });
             }
         });
         
-        // Eigene Themen sammeln
-        customTopics.forEach(t => allIds.push(`EIGENE:${t.name}`));
+        customTopics.forEach(t => allPossibleIds.push(`EIGENE:${t.name}`));
 
-        // Zufall aus der Gesamtliste
-        finalId = allIds[Math.floor(Math.random() * allIds.length)];
+        // Wähle eine absolut zufällige ID aus der Gesamtliste
+        finalId = allPossibleIds[Math.floor(Math.random() * allPossibleIds.length)];
     } else {
-        // 2. Normaler Modus: Zufall aus deiner Auswahl
+        // Wähle aus deiner Auswahl
         finalId = selectedSubs[Math.floor(Math.random() * selectedSubs.length)];
     }
 
-    // Trennung von Kategorie und Name
+    if (!finalId) return alert("Keine Themen verfügbar!");
+
     const [parentGroup, randomSub] = finalId.split(':');
 
     setLoading(true);
@@ -344,6 +343,8 @@ const startGame = async () => {
     
     let word = "", hint = "", chaos = "";
     let indices = [];
+    
+
 
     try {
         
@@ -525,14 +526,32 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
 
                                 <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2 shrink-0">
                                     {groups.map(g => {
-                                        const hasSelection = data && data[g] && Object.keys(data[g]).some(s => selectedSubs.includes(s));
-                                        const isCustomSelection = g === "EIGENE" && customTopics.some(t => selectedSubs.includes(t.name));
-                                        return (
-                                            <button key={g} onClick={() => updateView(g)} className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection || isCustomSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}>
-                                                {g} {(hasSelection || isCustomSelection) && "●"}
-                                            </button>
-                                        );
-                                    })}
+    let hasSelection = false;
+    let countInGroup = 0;
+
+    if (g === "BELIEBT") {
+        // Prüft, welche der aktuell angezeigten Favoriten-Themen ausgewählt sind
+        const beliebtIds = shuffledBeliebt.map(s => `${s.parent}:${s.name}`);
+        countInGroup = selectedSubs.filter(id => beliebtIds.includes(id)).length;
+        hasSelection = countInGroup > 0;
+    } else {
+        // Prüft alle anderen Gruppen (SPORT, EIGENE, etc.)
+        hasSelection = selectedSubs.some(id => id.startsWith(`${g}:`));
+        countInGroup = selectedSubs.filter(id => id.startsWith(`${g}:`)).length;
+    }
+
+    return (
+        <button 
+            key={g} 
+            onClick={() => updateView(g)} 
+            className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all 
+                ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}
+        >
+            {g} {hasSelection && `(${countInGroup})`}
+        </button>
+    );
+})}
+
                                 </div>
 
                                 <div className="topics-block-container mx-0 my-2">
