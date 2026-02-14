@@ -345,7 +345,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                 hint = nextPair.hint;
                 setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
             } else {
-                               const promptText = `Thema: "${randomSub}". Generiere 40 verschiedene Wort-Paare. Format: Wort|Hinweis. Trenne Paare mit Komma. Antworte NUR mit der Liste ohne Text davor oder danach. Beispiel: Apfel|Obst, Auto|Motor.`;
+                                               const promptText = `Thema: "${randomSub}". Generiere 40 verschiedene Wort-Paare. Format: Wort|Hinweis. Trenne Paare mit Komma. Antworte NUR mit der Liste ohne Text davor oder danach. Beispiel: Apfel|Obst, Auto|Motor.`;
                 
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
@@ -361,6 +361,18 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                 });
 
                 const d = await res.json();
+
+                // Zeigt Fehlermeldungen von Groq direkt als Alert an
+                if (d.error) {
+                    alert(`Groq-Fehler: ${d.error.message}`);
+                    return; // Stoppt die Funktion
+                }
+
+                if (!d.choices || d.choices.length === 0) {
+                    alert("Keine Antwort von der KI erhalten. Prüfe deinen Key.");
+                    return;
+                }
+
                 const raw = d.choices[0].message.content.trim().replace(/```/g, "");
                 
                 const pairs = raw.split(',').map(p => {
@@ -369,16 +381,17 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                         word: parts[0] ? parts[0].trim() : "", 
                         hint: parts[1] ? parts[1].trim() : "Aktion" 
                     };
-                }).filter(p => p.word.length > 0);
+                }).filter(p => p.word.length > 1);
 
                 if (pairs.length > 0) {
                     word = pairs[0].word;
                     hint = pairs[0].hint;
                     setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
                 } else {
-                    throw new Error("Keine gültigen Wörter generiert.");
+                    alert("KI-Formatfehler: Konnte keine Wort-Paare extrahieren.");
                 }
             }
+
 
         } else {
             // FIX: Suche global in allen Kategorien von 'data'
