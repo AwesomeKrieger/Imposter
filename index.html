@@ -484,13 +484,14 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         </button>
 
         <button 
-            onClick={handleGlobalToggle} 
-            className={`w-1/3 p-3 font-black text-[10px] uppercase transition-colors ${
-                selectedSubs.length > 0 ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
-            }`}
-        >
-            {selectedSubs.length > 0 ? "Reset" : "Global"}
-        </button>
+    onClick={handleGlobalToggle} 
+    className={`w-1/3 p-3 font-black text-[10px] uppercase transition-colors ${
+        selectedSubs.length > 0 ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+    }`}
+>
+    {selectedSubs.length > 0 ? `Reset (${selectedSubs.length})` : "Global"}
+</button>
+
     </div>
 
     {/* Themenliste direkt darunter im selben Gehäuse */}
