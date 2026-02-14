@@ -512,6 +512,8 @@ Antworte NUR in diesem Format!`;
         const newStats = { ...stats };
         indices.forEach(idx => { newStats[players[idx]] = (newStats[players[idx]] || 0) + 1; });
         setStats(newStats);
+        const randomStarter = Math.floor(Math.random() * players.length);
+
         // Ändere diese Zeile in deinem Skript:
 setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos, topic: randomSub, startingPlayer: randomStarter });
         setTimeLeft(timerMinutes * 60);
