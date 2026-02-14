@@ -345,10 +345,11 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                 hint = nextPair.hint;
                 setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
             } else {
-                                                                               const promptText = `Generiere eine Liste von 40 Wort-Paaren zum Thema "${randomSub}". 
-                Format: Wort|Hinweis. Trenne Paare NUR mit Komma. 
-                Beispiel: Apfel|Obst, Auto|Motor. 
-                Antworte NUR mit der Liste, kein Text davor!`;
+                                                                                               // Der Prompt ist jetzt extrem strikt
+                const promptText = `Generiere 40 unterschiedliche Wort-Paare für das Spiel Tabu zum Thema "${randomSub}".
+                Regel: Antworte NUR im Format Wort|Hinweis, Wort|Hinweis.
+                Keine Einleitung, keine Nummerierung, kein Thema wiederholen.
+                Beispiel: Apfel|Obst, Baum|Blatt.`;
                 
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
@@ -358,30 +359,33 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                     },
                     body: JSON.stringify({
                         model: "llama-3.1-8b-instant",
-                        messages: [{ role: "user", content: promptText }],
-                        temperature: 0.8
+                        messages: [
+                            { role: "system", content: "Du bist eine Wort-Generator-Maschine. Du gibst nur Wort-Listen aus." },
+                            { role: "user", content: promptText }
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 2000 // Genug Platz für 40 Wörter
                     })
                 });
 
                 const d = await res.json();
-                if (d.error) { alert(`Fehler: ${d.error.message}`); return; }
+                if (d.error) { alert(`Groq-Fehler: ${d.error.message}`); return; }
 
-                // Säuberung: Entfernt eventuelle Einleitungen der KI
                 let raw = d.choices[0].message.content.trim();
-                if (raw.includes(':')) {
-                    // Falls die KI schreibt "Hier sind die Wörter: ...", nimm nur was danach kommt
-                    raw = raw.split(':').pop().trim();
-                }
+                
+                // Wir säubern die Antwort von Zeilenumbrüchen und seltsamen Zeichen
+                raw = raw.replace(/\n/g, ", ").replace(/\d+\./g, "");
 
                 const pairs = raw.split(',').map(p => {
                     const parts = p.split('|');
-                    const w = parts[0] ? parts[0].trim() : "";
-                    const h = parts[1] ? parts[1].trim() : "Aktion";
+                    if (parts.length < 2) return null;
                     
-                    // Filtert aus, falls das Wort identisch mit der Kategorie ist
-                    if (w.toLowerCase() === randomSub.toLowerCase() || w.length < 2) {
-                        return null;
-                    }
+                    const w = parts[0].trim();
+                    const h = parts[1].trim();
+
+                    // Verhindert, dass das Kategoriewort selbst als Wort gewählt wird
+                    if (w.toLowerCase() === randomSub.toLowerCase() || w.length < 2) return null;
+                    
                     return { word: w, hint: h };
                 }).filter(p => p !== null);
 
@@ -390,11 +394,9 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                     hint = pairs[0].hint;
                     setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
                 } else {
-                    alert("Die KI hat keine gültigen Paare geliefert. Versuchs nochmal!");
+                    alert("Die KI hat kein gültiges Listen-Format geliefert. Antwort war: " + raw.substring(0, 50));
                 }
             }
-
-
 
 
         } else {
