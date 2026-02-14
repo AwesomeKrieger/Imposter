@@ -116,12 +116,7 @@
     }
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
-/* GLASSMORPHISM LOOK */
-.glass-mode {
-    --bg-main: #0f172a; /* Dunkleres Blau/Schwarz für Tiefe */
-    background: radial-gradient(circle at top, #1e293b, #000000) !important;
-}
-
+//* GLASSMORPHISM LOOK MIT ABGERUNDETEN ECKEN */
 .glass-mode .game-card, 
 .glass-mode .topics-block-container {
     background: rgba(255, 255, 255, 0.05) !important;
@@ -129,25 +124,30 @@
     -webkit-backdrop-filter: blur(12px) saturate(160%);
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8) !important;
+    
+    /* ABGERUNDETE ECKEN */
+    border-radius: 24px !important;
 }
 
-.glass-mode .neo-box {
-    box-shadow: none !important; /* Entfernt die harten Retro-Schatten */
+/* Verhindert, dass die inneren Elemente die Rundung überlagern */
+.glass-mode .scroll-container {
+    border-radius: 0 0 20px 20px !important;
 }
 
-.glass-mode .category-item {
-    background: transparent !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+.glass-mode .neo-box { 
+    box-shadow: none !important; 
 }
 
-.glass-mode .category-item.selected {
-    background: rgba(255, 255, 255, 0.2) !important;
-    color: #fff !important;
+.glass-mode .category-item { 
+    background: transparent !important; 
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important; 
 }
 
-.glass-mode button:not(.category-item) {
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+.glass-mode .category-item.selected { 
+    background: rgba(255, 255, 255, 0.2) !important; 
+    color: #fff !important; 
 }
+
 
 </style>
 
