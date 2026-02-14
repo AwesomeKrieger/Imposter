@@ -345,21 +345,41 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                 hint = nextPair.hint;
                 setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
             } else {
-                const promptText = `Du bist ein Spiel-Master. Thema: "${randomSub}". Generiere 10 verschiedene, spezifische Wort-Paare. Format: Wort|Hinweis (jeweils 1 Wort). Trenne die Paare mit Komma. Beispiel: Apfel|Obst, Auto|Motor. Antworte NUR mit der Liste.`;
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+                               const promptText = `Thema: "${randomSub}". Generiere 40 verschiedene Wort-Paare. Format: Wort|Hinweis. Trenne Paare mit Komma. Antworte NUR mit der Liste ohne Text davor oder danach. Beispiel: Apfel|Obst, Auto|Motor.`;
+                
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "llama3-8b-8192",
+                        messages: [{ role: "user", content: promptText }],
+                        temperature: 0.7
+                    })
                 });
+
                 const d = await res.json();
-                const raw = d.candidates[0].content.parts[0].text.trim().replace(/```/g, "");
+                const raw = d.choices[0].message.content.trim().replace(/```/g, "");
+                
                 const pairs = raw.split(',').map(p => {
-                    const [w, h] = p.split('|');
-                    return { word: w.trim(), hint: h ? h.trim() : "Aktion" };
-                });
-                word = pairs[0].word;
-                hint = pairs[0].hint;
-                setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
+                    const parts = p.split('|');
+                    return { 
+                        word: parts[0] ? parts[0].trim() : "", 
+                        hint: parts[1] ? parts[1].trim() : "Aktion" 
+                    };
+                }).filter(p => p.word.length > 0);
+
+                if (pairs.length > 0) {
+                    word = pairs[0].word;
+                    hint = pairs[0].hint;
+                    setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
+                } else {
+                    throw new Error("Keine gültigen Wörter generiert.");
+                }
             }
+
         } else {
             // FIX: Suche global in allen Kategorien von 'data'
             let foundData = null;
