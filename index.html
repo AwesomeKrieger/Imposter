@@ -158,16 +158,7 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const [isGlass, setIsGlass] = useState(() => {
-    return localStorage.getItem('imp_glass') === 'true';
-});
-
-const toggleStyle = () => {
-    const next = !isGlass;
-    setIsGlass(next);
-    localStorage.setItem('imp_glass', next);
-};
-
+       
 
         const GITHUB_TOPICS_URL = "https://raw.githubusercontent.com/AwesomeKrieger/Imposter/main/topics.json";
         const AI_MODEL = "gemini-2.5-flash-lite"; 
@@ -343,6 +334,14 @@ const handleGlobalToggle = () => {
         setSelectedSubs(allIds);
     }
 };
+const [isGlass, setIsGlass] = useState(() => localStorage.getItem('imp_glass') === 'true');
+
+const toggleStyle = () => {
+    const next = !isGlass;
+    setIsGlass(next);
+    localStorage.setItem('imp_glass', next);
+};
+
 
 
 
@@ -528,16 +527,17 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
             if (!data) return <div className="h-screen flex items-center justify-center font-black">Lade...</div>;
 
             return (
-                <div className="main-container">
-                   <div className="flex justify-between items-center mb-4 border-b-8 border-red-600">
-    <h1 className="text-4xl font-black italic tracking-tighter uppercase">Imposter.ai</h1>
-    <button 
-        onClick={toggleStyle}
-        className="text-[10px] font-black border-2 border-current px-2 py-1 uppercase"
-    >
-        {isGlass ? 'Retro' : 'Glass'}
-    </button>
-</div>
+               <div className={`main-container ${isGlass ? 'glass-mode' : ''}`}>
+    <div className="flex justify-between items-center mb-4 border-b-8 border-red-600">
+        <h1 className="text-4xl font-black italic tracking-tighter uppercase">Imposter.ai</h1>
+        <button 
+            onClick={toggleStyle}
+            className="text-[10px] font-black border-2 border-current px-2 py-1 uppercase mb-1"
+        >
+            {isGlass ? 'Retro' : 'Glass'}
+        </button>
+    </div>
+
 
 
                     <div className="game-card bg-white p-5 neo-box space-y-4">
