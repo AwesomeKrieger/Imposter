@@ -263,46 +263,40 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
 
 
 
-            const toggleSub = (name) => {
-                setSelectedSubs(prev => 
-                    prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
-                );
-            };
+            const toggleSub = (name, parent) => {
+    const id = `${parent}:${name}`; 
+    setSelectedSubs(prev => 
+        prev.includes(id) ? prev.filter(n => n !== id) : [...prev, id]
+    );
+};
 
-            const selectAll = () => {
-                const currentNames = subCats.map(s => s.name);
-                const allCurrentSelected = currentNames.every(name => selectedSubs.includes(name));
-                if (allCurrentSelected) {
-                    setSelectedSubs(prev => prev.filter(name => !currentNames.includes(name)));
-                } else {
-                    setSelectedSubs(prev => [...new Set([...prev, ...currentNames])]);
-                }
-            };
-
-            const handleGlobalToggle = () => {
-    // Wenn aktuell irgendwelche Themen gewählt sind -> Alles löschen
-    if (selectedSubs.length > 0) {
-        setSelectedSubs([]);
-    } 
-    // Wenn gar nichts gewählt ist -> Jedes Thema aus jeder Kategorie markieren
-    else {
-        let allNames = [];
-        
-        // JSON-Kategorien durchlaufen
-        Object.keys(data).forEach(group => {
-            Object.keys(data[group]).forEach(sub => {
-                allNames.push(sub);
-            });
-        });
-        
-        // Eigene KI-Themen hinzufügen
-        customTopics.forEach(t => {
-            allNames.push(t.name);
-        });
-
-        setSelectedSubs([...new Set(allNames)]);
+const selectAll = () => {
+    const currentIds = subCats.map(s => `${s.parent}:${s.name}`);
+    const allCurrentSelected = currentIds.every(id => selectedSubs.includes(id));
+    if (allCurrentSelected) {
+        setSelectedSubs(prev => prev.filter(id => !currentIds.includes(id)));
+    } else {
+        setSelectedSubs(prev => [...new Set([...prev, ...currentIds])]);
     }
 };
+
+const handleGlobalToggle = () => {
+    if (selectedSubs.length > 0) {
+        setSelectedSubs([]);
+    } else {
+        let allIds = [];
+        Object.keys(data).forEach(group => {
+            if (group !== "BELIEBT") { // Beliebt überspringen, da es nur Kopien sind
+                Object.keys(data[group]).forEach(sub => {
+                    allIds.push(`${group}:${sub}`);
+                });
+            }
+        });
+        customTopics.forEach(t => allIds.push(`EIGENE:${t.name}`));
+        setSelectedSubs(allIds);
+    }
+};
+
 
 
             const addCustomTopic = () => {
@@ -323,11 +317,12 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
     setLoading(true);
     setVisualProgress(50);
     
-    // Wählt zufällig EIN Thema aus deiner gesamten Liste der ausgewählten Themen
-    const randomIndex = Math.floor(Math.random() * selectedSubs.length);
-    const randomSub = selectedSubs[randomIndex];
+    // 1. Wählt zufällig eine ID aus (z.B. "EIGENE:Sport" oder "HOBBYS:Sport")
+    const randomId = selectedSubs[Math.floor(Math.random() * selectedSubs.length)];
     
-    // Wir speichern das gewählte Thema in gameData, damit es am Ende angezeigt werden kann
+    // 2. Trennt die ID wieder in die echte Kategorie und das Thema
+    const [parentGroup, randomSub] = randomId.split(':');
+    
     let word = "", hint = "", chaos = "";
     let indices = [];
 
@@ -336,9 +331,8 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         if (rng < 0.01) chaos = "ALL";
         else if (rng < 0.02) chaos = "NONE";
 
-        const isCustomTopic = customTopics.some(t => t.name === randomSub);
-
-        if (isCustomTopic) {
+        // 3. Nutzt jetzt 'parentGroup', um zu entscheiden: KI oder Liste?
+        if (parentGroup === "EIGENE") {
             if(!apiKey) {
                 setLoading(false);
                 return alert("API Key fehlt!");
@@ -350,6 +344,8 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                 hint = nextPair.hint;
                 setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
             } else {
+               
+
                                                                                                // Der Prompt ist jetzt extrem strikt
                 const promptText = `Generiere 40 unterschiedliche Wort-Paare für das Spiel Tabu zum Thema "${randomSub}".
                 Regel: Antworte NUR im Format Wort|Hinweis, Wort|Hinweis.
@@ -551,28 +547,30 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
         )}
         
         {subCats.map((s) => {
-            const isSelected = selectedSubs.includes(s.name);
-            return (
-                <button 
-                    key={s.name}
-                    type="button"
-                    onClick={() => toggleSub(s.name)} 
-                    className={`category-item ${isSelected ? 'selected' : ''}`}
-                >
-                    <div className="flex justify-between items-center w-full">
-                        <span>{isSelected ? "✓ " : ""}{s.name}</span>
-                        {selectedGroup === "EIGENE" && (
-                            <span 
-                                onClick={(e) => { e.stopPropagation(); triggerDelete(e, s.name); }} 
-                                className="text-[10px] bg-red-600 px-2 py-1 text-white border-2 border-white font-black"
-                            >
-                                LÖSCHEN
-                            </span>
-                        )}
-                    </div>
-                </button>
-            );
-        })}
+    const currentId = `${s.parent}:${s.name}`; // Nutzt jetzt den echten Ursprung
+    const isSelected = selectedSubs.includes(currentId);
+    return (
+        <button 
+            key={currentId}
+            type="button"
+            onClick={() => toggleSub(s.name, s.parent)} 
+            className={`category-item ${isSelected ? 'selected' : ''}`}
+        >
+            <div className="flex justify-between items-center w-full">
+                <span>{isSelected ? "✓ " : ""}{s.name}</span>
+                {selectedGroup === "EIGENE" && (
+                    <span 
+                        onClick={(e) => { e.stopPropagation(); triggerDelete(e, s.name); }} 
+                        className="text-[10px] bg-red-600 px-2 py-1 text-white border-2 border-white font-black"
+                    >
+                        LÖSCHEN
+                    </span>
+                )}
+            </div>
+        </button>
+    );
+})}
+
     </div>
 </div>
 
