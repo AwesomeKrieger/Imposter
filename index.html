@@ -440,7 +440,8 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         const newStats = { ...stats };
         indices.forEach(idx => { newStats[players[idx]] = (newStats[players[idx]] || 0) + 1; });
         setStats(newStats);
-        setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos });
+        // Ändere diese Zeile in deinem Skript:
+setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos, topic: randomSub });
         setTimeLeft(timerMinutes * 60);
         setVisualProgress(100);
         setTimeout(() => { setGameState('reveal'); setLoading(false); }, 400);
@@ -651,7 +652,7 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         
         {/* HIER DIE ÄNDERUNG: Zeigt das Thema UND das Wort an */}
         <div className="flex flex-col gap-1 mt-4">
-            <div className="text-[10px] font-black uppercase opacity-50">Kategorie: {selectedSubs.find(s => aiWordPool[s]) || "Zufall"}</div>
+            <div className="text-[10px] font-black uppercase opacity-50">Kategorie: {gameData.topic}</div>
             <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase">Das Wort: {gameData.word}</div>
         </div>
 
