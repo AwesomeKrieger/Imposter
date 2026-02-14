@@ -59,37 +59,55 @@
         box-shadow: 6px 6px 0px 0px var(--border-color);
     }
 
-    .scroll-container { 
-        flex: 1; 
-        overflow-y: auto !important; 
-        background: var(--bg-card); 
-        padding: 10px !important; /* Erzeugt den Abstand zur Wand */
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        border-top: 4px solid var(--border-color);
-    }
+   .topics-block-container {
+    margin: 10px 0;
+    border: 4px solid var(--border-color);
+    background: var(--bg-card);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 6px 6px 0px 0px var(--border-color);
+}
 
-    .category-item {
-        margin: 6px 0 !important; 
-        padding: 16px; 
-        background: var(--bg-card);
-        color: var(--text-color);
-        border: 3px solid var(--border-color) !important; /* Rundum-Rand für Kasten-Look */
-        cursor: pointer;
-        text-align: left;
-        font-weight: 900;
-        text-transform: uppercase;
-        width: 100% !important;
-        display: block;
-        box-sizing: border-box;
-        box-shadow: 4px 4px 0px 0px var(--border-color); /* Der Kasten-Schatten */
-    }
+.scroll-container { 
+    flex: 1;
+    max-height: 280px; /* Begrenzt die Höhe des Kastens */
+    overflow-y: auto !important; 
+    background: var(--bg-card); 
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+}
 
-    .category-item.selected {
-        background: var(--item-selected-bg) !important;
-        color: var(--item-selected-text) !important;
-    }
+.category-item {
+    margin: 0 !important;
+    padding: 16px; 
+    background: var(--bg-card);
+    color: var(--text-color);
+    border: none !important;
+    /* Standardmäßig eine dunkle Linie oben zur Trennung */
+    border-top: 2px solid var(--border-color) !important; 
+    cursor: pointer;
+    text-align: left;
+    font-weight: 900;
+    text-transform: uppercase;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+/* WICHTIG: Wenn ausgewählt -> Schwarz mit HELLEM Rand */
+.category-item.selected {
+    background-color: var(--item-selected-bg) !important;
+    color: var(--item-selected-text) !important;
+    /* Erzeugt die helle Trennung zwischen zwei schwarzen Blöcken */
+    border-top: 2px solid rgba(255, 255, 255, 0.3) !important; 
+}
+
+/* Verhindert eine weiße Linie beim allerersten Element im Kasten */
+.category-item:first-child {
+    border-top: none !important;
+}
+
 
     input, select {
         background-color: var(--bg-card) !important;
@@ -455,71 +473,63 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                                     })}
                                 </div>
 
-                                <div className="sticky top-0 z-10 flex border-b-4 border-black bg-white shrink-0">
-                                    <div className="sticky top-0 z-10 flex shrink-0 bg-transparent" style={{ gap: '0px' }}>
-<div className="sticky top-0 z-10 flex shrink-0 bg-transparent p-3 gap-3 border-b-4 border-black dark:border-white">
-    <button 
-        onClick={selectAll} 
-        className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase transition-all active:bg-yellow-600 !text-black"
-        style={{ 
-            border: '4px solid var(--border-color)',
-            boxShadow: '4px 4px 0px 0px var(--border-color)'
-        }}
-    >
-        {subCats.length > 0 && subCats.every(s => selectedSubs.includes(s.name)) ? "× Abwählen" : "✓ Alle (Gruppe)"}
-    </button>
+                                <div className="topics-block-container mx-0 my-2">
+    {/* Buttons bündig oben im Kasten */}
+    <div className="flex shrink-0 bg-transparent border-b-4 border-black dark:border-white">
+        <button 
+            onClick={selectAll} 
+            className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase !text-black border-r-4 border-black dark:border-white active:bg-yellow-500 transition-colors"
+        >
+            {subCats.length > 0 && subCats.every(s => selectedSubs.includes(s.name)) ? "× Abwählen" : "✓ Gruppe"}
+        </button>
 
-    <button 
-        onClick={handleGlobalToggle} 
-        className={`w-1/3 p-3 font-black text-[10px] uppercase transition-all ${
-            selectedSubs.length > 0 ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
-        }`}
-        style={{ 
-            border: '4px solid var(--border-color)',
-            boxShadow: '4px 4px 0px 0px var(--border-color)'
-        }}
-    >
-        {selectedSubs.length > 0 ? `Reset (${selectedSubs.length})` : "Global"}
-    </button>
-</div>
+        <button 
+            onClick={handleGlobalToggle} 
+            className={`w-1/3 p-3 font-black text-[10px] uppercase transition-colors ${
+                selectedSubs.length > 0 ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+            }`}
+        >
+            {selectedSubs.length > 0 ? "Reset" : "Global"}
+        </button>
+    </div>
 
-
-
-
-
-
-                                </div>
-
-                             <div className="scroll-container hide-scrollbar my-2">
-    {selectedGroup === "EIGENE" && (
-        <button onClick={addCustomTopic} className="w-full p-4 border-b-4 border-dashed border-black font-black text-sm uppercase bg-yellow-100 shrink-0">+ NEUES KI-THEMA</button>
-    )}
-    
-    {subCats.map((s) => {
-        const isSelected = selectedSubs.includes(s.name);
-        return (
+    {/* Themenliste direkt darunter im selben Gehäuse */}
+    <div className="scroll-container hide-scrollbar" style={{ maxHeight: '300px' }}>
+        {selectedGroup === "EIGENE" && (
             <button 
-                key={s.name}
-                type="button" 
-                onClick={() => toggleSub(s.name)} 
-                className={`category-item font-black text-sm uppercase shrink-0 ${isSelected ? 'selected' : ''}`}
+                onClick={addCustomTopic} 
+                className="w-full p-4 border-b-4 border-dashed border-black dark:border-white font-black text-sm uppercase bg-yellow-100 !text-black shrink-0"
             >
-                <div className="flex justify-between items-center w-full">
-                    <span>{isSelected ? "✓ " : ""}{s.name}</span>
-                    
-                    {selectedGroup === "EIGENE" && (
-                        <span 
-                            onClick={(e) => { e.stopPropagation(); triggerDelete(e, s.name); }}
-                            className="ml-4 text-[10px] bg-red-600 px-2 py-1 text-white border-2 border-white"
-                        >
-                            LÖSCHEN
-                        </span>
-                    )}
-                </div>
+                + NEUES KI-THEMA
             </button>
-        );
-    })}
+        )}
+        
+        {subCats.map((s) => {
+            const isSelected = selectedSubs.includes(s.name);
+            return (
+                <button 
+                    key={s.name}
+                    type="button"
+                    onClick={() => toggleSub(s.name)} 
+                    className={`category-item ${isSelected ? 'selected' : ''}`}
+                >
+                    <div className="flex justify-between items-center w-full">
+                        <span>{isSelected ? "✓ " : ""}{s.name}</span>
+                        {selectedGroup === "EIGENE" && (
+                            <span 
+                                onClick={(e) => { e.stopPropagation(); triggerDelete(e, s.name); }} 
+                                className="text-[10px] bg-red-600 px-2 py-1 text-white border-2 border-white font-black"
+                            >
+                                LÖSCHEN
+                            </span>
+                        )}
+                    </div>
+                </button>
+            );
+        })}
+    </div>
 </div>
+
 
 
 
