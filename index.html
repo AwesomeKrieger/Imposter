@@ -420,10 +420,12 @@ const startGame = async () => {
                
 
                                                                                                // Der Prompt ist jetzt extrem strikt
-                const promptText = `Generiere 40 unterschiedliche Wort-Paare für das Spiel Tabu zum Thema "${randomSub}".
-                Regel: Antworte NUR im Format Wort|Hinweis, Wort|Hinweis.
-                Keine Einleitung, keine Nummerierung, kein Thema wiederholen.
-                Beispiel: Apfel|Obst, Baum|Blatt.`;
+                const promptText = `Erstelle 40 bekannte Wort-Paare für das Spiel Tabu zum Thema "${randomSub}".
+Regel: Wähle Begriffe, die JEDER kennt, die aber EINDEUTIG zum Thema passen. 
+Keine nischigen Insider, keine zu schweren Fachwörter, keine unpassenden Begriffe.
+Format: Wort|Hinweis, Wort|Hinweis.
+Beispiel für 'Gaming': Controller|Hardware, Level|Abschnitt, Highscore|Rekord.
+Antworte NUR in diesem Format ohne Einleitung!`;
                 
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
