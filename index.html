@@ -322,7 +322,12 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
 
     setLoading(true);
     setVisualProgress(50);
-    const randomSub = selectedSubs[Math.floor(Math.random() * selectedSubs.length)];
+    
+    // Wählt zufällig EIN Thema aus deiner gesamten Liste der ausgewählten Themen
+    const randomIndex = Math.floor(Math.random() * selectedSubs.length);
+    const randomSub = selectedSubs[randomIndex];
+    
+    // Wir speichern das gewählte Thema in gameData, damit es am Ende angezeigt werden kann
     let word = "", hint = "", chaos = "";
     let indices = [];
 
@@ -634,27 +639,34 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
                                     </div>
                                 )}
 
-                                {gameState === 'finish' && (
-                                    <div className="py-10 flex flex-col items-center space-y-6 text-center">
-                                        <h2 className="text-2xl font-black uppercase underline decoration-4">
-                                            {gameData.chaosMode === "ALL" ? "PARANOIA! Alle Imposter!" : 
-                                             gameData.chaosMode === "NONE" ? "FEHLALARM! Niemand!" : "Die Verräter:"}
-                                        </h2>
-                                        {gameData.imposterIndices.length > 0 ? gameData.imposterIndices.map(idx => (
-                                            <div key={idx} className="text-4xl font-black text-red-600 italic uppercase tracking-tighter">{players[idx]}</div>
-                                        )) : <div className="text-4xl font-black text-green-600 italic uppercase">Niemand</div>}
-                                        <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase mt-4">Das Wort: {gameData.word}</div>
-                                        <button onClick={() => {
-                                            const fresh = getShuffledBeliebt(data);
-                                            setShuffledBeliebt(fresh);
-                                            setSubCats(fresh);
-                                            setSelectedGroup("BELIEBT");
-                                            setGameState('setup');
-                                        }} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase">
-                                            Nächste Runde
-                                        </button>
-                                                                        </div>
-                                )}
+                               {gameState === 'finish' && (
+    <div className="py-10 flex flex-col items-center space-y-6 text-center">
+        <h2 className="text-2xl font-black uppercase underline decoration-4">
+            {gameData.chaosMode === "ALL" ? "PARANOIA! Alle Imposter!" : 
+             gameData.chaosMode === "NONE" ? "FEHLALARM! Niemand!" : "Die Verräter:"}
+        </h2>
+        {gameData.imposterIndices.length > 0 ? gameData.imposterIndices.map(idx => (
+            <div key={idx} className="text-4xl font-black text-red-600 italic uppercase tracking-tighter">{players[idx]}</div>
+        )) : <div className="text-4xl font-black text-green-600 italic uppercase">Niemand</div>}
+        
+        {/* HIER DIE ÄNDERUNG: Zeigt das Thema UND das Wort an */}
+        <div className="flex flex-col gap-1 mt-4">
+            <div className="text-[10px] font-black uppercase opacity-50">Kategorie: {selectedSubs.find(s => aiWordPool[s]) || "Zufall"}</div>
+            <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase">Das Wort: {gameData.word}</div>
+        </div>
+
+        <button onClick={() => {
+            const fresh = getShuffledBeliebt(data);
+            setShuffledBeliebt(fresh);
+            setSubCats(fresh);
+            setSelectedGroup("BELIEBT");
+            setGameState('setup');
+        }} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase">
+            Nächste Runde
+        </button>
+    </div>
+)}
+
                             </div>
                         )}
                     </div> {/* Ende game-card */}
