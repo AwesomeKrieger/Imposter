@@ -513,7 +513,7 @@ Antworte NUR in diesem Format!`;
         indices.forEach(idx => { newStats[players[idx]] = (newStats[players[idx]] || 0) + 1; });
         setStats(newStats);
         // Ändere diese Zeile in deinem Skript:
-setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos, topic: randomSub });
+setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos, topic: randomSub, startingPlayer: randomStarter });
         setTimeLeft(timerMinutes * 60);
         setVisualProgress(100);
         setTimeout(() => { setGameState('reveal'); setLoading(false); }, 400);
@@ -735,12 +735,41 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                 )}
 
                                 {gameState === 'play' && (
-                                    <div className={`py-12 flex flex-col items-center space-y-8 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'timer-warn' : ''}`}>
-                                        {timerMinutes > 0 && <div className="text-6xl font-black px-6 py-2 border-4 border-black neo-box shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">{formatTime(timeLeft)}</div>}
-                                        <h2 className="text-6xl font-black text-red-600 italic animate-bounce uppercase">Diskussion!</h2>
-                                        <button onClick={() => setGameState('finish')} className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase">Auflösen</button>
-                                    </div>
-                                )}
+    <div className={`py-8 flex flex-col items-center space-y-6 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'timer-warn' : ''}`}>
+        
+        {/* Timer Anzeige */}
+        {timerMinutes > 0 && (
+            <div className="text-6xl font-black px-6 py-2 border-4 border-black neo-box shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target">
+                {formatTime(timeLeft)}
+            </div>
+        )}
+
+        {/* Startspieler / Beginner Anzeige */}
+        <div className="w-full bg-yellow-300 border-4 border-black p-5 neo-box glass-target">
+            <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">Die Runde eröffnet:</p>
+            <h3 className="text-3xl font-black uppercase italic flex items-center gap-3">
+                <span className="animate-pulse">🎤</span> {players[gameData.startingPlayer]}
+            </h3>
+        </div>
+
+        {/* Haupt-Titel */}
+        <div className="text-center space-y-2 py-4">
+            <h2 className="text-6xl font-black text-red-600 italic animate-bounce uppercase tracking-tighter">
+                Diskussion!
+            </h2>
+            <p className="font-bold text-[10px] uppercase opacity-50">Entlarvt den Verräter, bevor die Zeit abläuft.</p>
+        </div>
+
+        {/* Button zum Beenden */}
+        <button 
+            onClick={() => setGameState('finish')} 
+            className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase active:scale-95 transition-transform"
+        >
+            Auflösen
+        </button>
+    </div>
+)}
+
 
                                {gameState === 'finish' && (
     <div className="py-10 flex flex-col items-center space-y-6 text-center">
