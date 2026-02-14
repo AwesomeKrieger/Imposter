@@ -310,23 +310,44 @@ const handleGlobalToggle = () => {
                     setSelectedSubs([name.trim()]);
                 }
             };
+const startGame = async () => {
+    let finalId = "";
 
-            const startGame = async () => {
-    if(selectedSubs.length === 0) return alert("Mindestens ein Thema wählen!");
+    // 1. Wenn nichts ausgewählt ist -> Wähle ein absolut zufälliges Thema
+    if (selectedSubs.length === 0) {
+        const allPossibleIds = [];
+        
+        // Alle Standard-Themen sammeln
+        Object.keys(data).forEach(group => {
+            if (group !== "BELIEBT") { // Dubletten vermeiden
+                Object.keys(data[group]).forEach(sub => {
+                    allIds.push(`${group}:${sub}`);
+                });
+            }
+        });
+        
+        // Eigene Themen sammeln
+        customTopics.forEach(t => allIds.push(`EIGENE:${t.name}`));
+
+        // Zufall aus der Gesamtliste
+        finalId = allIds[Math.floor(Math.random() * allIds.length)];
+    } else {
+        // 2. Normaler Modus: Zufall aus deiner Auswahl
+        finalId = selectedSubs[Math.floor(Math.random() * selectedSubs.length)];
+    }
+
+    // Trennung von Kategorie und Name
+    const [parentGroup, randomSub] = finalId.split(':');
 
     setLoading(true);
     setVisualProgress(50);
-    
-    // 1. Wählt zufällig eine ID aus (z.B. "EIGENE:Sport" oder "HOBBYS:Sport")
-    const randomId = selectedSubs[Math.floor(Math.random() * selectedSubs.length)];
-    
-    // 2. Trennt die ID wieder in die echte Kategorie und das Thema
-    const [parentGroup, randomSub] = randomId.split(':');
     
     let word = "", hint = "", chaos = "";
     let indices = [];
 
     try {
+        
+ 
         const rng = Math.random();
         if (rng < 0.01) chaos = "ALL";
         else if (rng < 0.02) chaos = "NONE";
@@ -581,7 +602,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
 
 
                                 <button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box shrink-0 active:bg-red-700 uppercase">
-                                    {selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Thema wählen'}
+                                    {selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Zufälliges Thema'}
                                 </button>
 
                                 <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10 shrink-0" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
