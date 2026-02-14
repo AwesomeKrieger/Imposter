@@ -116,6 +116,39 @@
     }
 
     .hide-scrollbar::-webkit-scrollbar { display: none; }
+/* GLASSMORPHISM LOOK */
+.glass-mode {
+    --bg-main: #0f172a; /* Dunkleres Blau/Schwarz für Tiefe */
+    background: radial-gradient(circle at top, #1e293b, #000000) !important;
+}
+
+.glass-mode .game-card, 
+.glass-mode .topics-block-container {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8) !important;
+}
+
+.glass-mode .neo-box {
+    box-shadow: none !important; /* Entfernt die harten Retro-Schatten */
+}
+
+.glass-mode .category-item {
+    background: transparent !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.glass-mode .category-item.selected {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+}
+
+.glass-mode button:not(.category-item) {
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
 </style>
 
 
@@ -125,6 +158,16 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
+        const [isGlass, setIsGlass] = useState(() => {
+    return localStorage.getItem('imp_glass') === 'true';
+});
+
+const toggleStyle = () => {
+    const next = !isGlass;
+    setIsGlass(next);
+    localStorage.setItem('imp_glass', next);
+};
+
 
         const GITHUB_TOPICS_URL = "https://raw.githubusercontent.com/AwesomeKrieger/Imposter/main/topics.json";
         const AI_MODEL = "gemini-2.5-flash-lite"; 
@@ -486,7 +529,16 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
 
             return (
                 <div className="main-container">
-                    <h1 className="text-4xl font-black italic mb-4 border-b-8 border-red-600 tracking-tighter shrink-0 uppercase">Imposter.ai</h1>
+                   <div className="flex justify-between items-center mb-4 border-b-8 border-red-600">
+    <h1 className="text-4xl font-black italic tracking-tighter uppercase">Imposter.ai</h1>
+    <button 
+        onClick={toggleStyle}
+        className="text-[10px] font-black border-2 border-current px-2 py-1 uppercase"
+    >
+        {isGlass ? 'Retro' : 'Glass'}
+    </button>
+</div>
+
 
                     <div className="game-card bg-white p-5 neo-box space-y-4">
                         {loading ? (
