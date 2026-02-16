@@ -456,7 +456,8 @@ const startGame = async () => {
 
                                                                                                // Der Prompt ist jetzt extrem strikt
                 // Optimierter, minimalistischer Prompt
-                const promptText = `Thema: "${randomSub}". Erstelle 40 Paare. Verbotenes Wort: "${randomSub}".`;
+                                // Minimaler User-Prompt
+                const promptText = `Thema: "${randomSub}". Erstelle 40 Paare. Verbot: "${randomSub}".`;
                 
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
@@ -469,15 +470,16 @@ const startGame = async () => {
                         messages: [
                             { 
                                 role: "system", 
-                                content: `Du bist ein Wort-Generator. Regeln: 
-                                1. Ausgabe NUR im Format: Wort|Hinweis, Wort|Hinweis. 
-                                2. KEIN Einleitungstext, KEIN Gelaber. 
-                                3. Nur deutsche Einzelwörter. 
-                                4. Das Thema "${randomSub}" darf nicht vorkommen (auch nicht in Teilwörtern).` 
+                                content: `Du bist ein Wort-Generator. 
+                                Regeln:
+                                1. Format: Wort|Hinweis (Beispiel: "Zitrone|Sauer", "Ozean|Blau").
+                                2. Der Hinweis muss eine Eigenschaft oder ein Kontext sein, kein Synonym.
+                                3. KEIN Einleitungstext. 
+                                4. Das Wort "${randomSub}" ist in der gesamten Antwort STRENG VERBOTEN.` 
                             },
                             { role: "user", content: promptText }
                         ],
-                        temperature: 0.3,
+                        temperature: 0.2, 
                         max_tokens: 800
                     })
                 });
@@ -486,8 +488,6 @@ const startGame = async () => {
                 if (d.error) { alert(`Groq-Fehler: ${d.error.message}`); return; }
 
                 let raw = d.choices[0].message.content.trim();
-                
-                // Säuberung der Antwort
                 raw = raw.replace(/\n/g, ", ").replace(/\d+\./g, "");
 
                 const pairs = raw.split(',').map(p => {
@@ -496,13 +496,17 @@ const startGame = async () => {
                     
                     const w = parts[0].trim();
                     const h = parts[1].trim();
-
-                    // STRENGER FILTER
                     const forbidden = randomSub.toLowerCase();
                     
-                    // Validierung: Wortlänge und Ausschluss des verbotenen Themas (auch in Teilwörtern)
+                    // Filter 1: Mindestlänge
                     if (w.length < 2) return null;
+                    
+                    // Filter 2: Verbotenes Thema ausschließen
                     if (w.toLowerCase().includes(forbidden) || h.toLowerCase().includes(forbidden)) return null;
+                    
+                    // Filter 3: Ähnlichkeits-Schutz (verhindert Synonyme/doppelte Wörter)
+                    // Löscht Paare, bei denen das Wort im Hinweis vorkommt oder umgekehrt
+                    if (w.toLowerCase().includes(h.toLowerCase()) || h.toLowerCase().includes(w.toLowerCase())) return null;
                     
                     return { word: w, hint: h };
                 }).filter(p => p !== null);
@@ -512,7 +516,7 @@ const startGame = async () => {
                     hint = pairs[0].hint;
                     setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
                 } else {
-                    alert("Die KI hat kein gültiges Listen-Format geliefert. Antwort war: " + raw.substring(0, 50));
+                    alert("Formatfehler der KI oder alle Paare gefiltert. Antwort war: " + raw.substring(0, 50));
                 }
             }
         } else {
