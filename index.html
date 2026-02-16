@@ -455,13 +455,8 @@ const startGame = async () => {
                
 
                                                                                                // Der Prompt ist jetzt extrem strikt
-                const promptText = `Erstelle 40 bekannte Wort-Paare für "${randomSub}".
-Regel 1: Wähle Begriffe, die jeder kennt, aber eindeutig zum Thema passen.
-Regel 2: Das Wort "${randomSub}" darf NIEMALS im Paar vorkommen.
-Regel 3: Der Hinweis darf nicht das Wort selbst sein (auch kein Plural, keine Verkleinerung oder Wortzusammensetzung).
-Format: Wort|Hinweis, Wort|Hinweis.
-Beispiel: Wenn Thema 'Auto' ist, nicht 'Autoreifen|Rad' (da 'Auto' enthalten ist), sondern 'Reifen|Gummi'.
-Antworte NUR in diesem Format!`;
+                // Optimierter, minimalistischer Prompt
+                const promptText = `Thema: "${randomSub}". Erstelle 40 Paare. Verbotenes Wort: "${randomSub}".`;
                 
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: 'POST',
@@ -472,11 +467,18 @@ Antworte NUR in diesem Format!`;
                     body: JSON.stringify({
                         model: "llama-3.1-8b-instant",
                         messages: [
-                            { role: "system", content: "Du bist eine Wort-Generator-Maschine. Du gibst nur Wort-Listen aus." },
+                            { 
+                                role: "system", 
+                                content: `Du bist ein Wort-Generator. Regeln: 
+                                1. Ausgabe NUR im Format: Wort|Hinweis, Wort|Hinweis. 
+                                2. KEIN Einleitungstext, KEIN Gelaber. 
+                                3. Nur deutsche Einzelwörter. 
+                                4. Das Thema "${randomSub}" darf nicht vorkommen (auch nicht in Teilwörtern).` 
+                            },
                             { role: "user", content: promptText }
                         ],
-                        temperature: 0.8,
-                        max_tokens: 2000 // Genug Platz für 40 Wörter
+                        temperature: 0.3,
+                        max_tokens: 800
                     })
                 });
 
@@ -485,7 +487,7 @@ Antworte NUR in diesem Format!`;
 
                 let raw = d.choices[0].message.content.trim();
                 
-                // Wir säubern die Antwort von Zeilenumbrüchen und seltsamen Zeichen
+                // Säuberung der Antwort
                 raw = raw.replace(/\n/g, ", ").replace(/\d+\./g, "");
 
                 const pairs = raw.split(',').map(p => {
@@ -495,8 +497,12 @@ Antworte NUR in diesem Format!`;
                     const w = parts[0].trim();
                     const h = parts[1].trim();
 
-                    // Verhindert, dass das Kategoriewort selbst als Wort gewählt wird
-                    if (w.toLowerCase() === randomSub.toLowerCase() || w.length < 2) return null;
+                    // STRENGER FILTER
+                    const forbidden = randomSub.toLowerCase();
+                    
+                    // Validierung: Wortlänge und Ausschluss des verbotenen Themas (auch in Teilwörtern)
+                    if (w.length < 2) return null;
+                    if (w.toLowerCase().includes(forbidden) || h.toLowerCase().includes(forbidden)) return null;
                     
                     return { word: w, hint: h };
                 }).filter(p => p !== null);
@@ -509,10 +515,8 @@ Antworte NUR in diesem Format!`;
                     alert("Die KI hat kein gültiges Listen-Format geliefert. Antwort war: " + raw.substring(0, 50));
                 }
             }
-
-
         } else {
-            // FIX: Suche global in allen Kategorien von 'data'
+            // Suche global in allen Kategorien von 'data'
             let foundData = null;
             for (let groupKey in data) {
                 if (data[groupKey] && data[groupKey][randomSub]) {
@@ -543,6 +547,7 @@ Antworte NUR in diesem Format!`;
                 if(!indices.includes(r)) indices.push(r);
             }
         }
+
 
         const newStats = { ...stats };
         indices.forEach(idx => { newStats[players[idx]] = (newStats[players[idx]] || 0) + 1; });
