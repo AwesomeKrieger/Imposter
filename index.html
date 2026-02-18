@@ -413,6 +413,31 @@ const toggleStyle = () => {
 
 const startGame = async () => {
     let finalId = "";
+    // 1. Absolute Obergrenze: Hälfte der Spieler
+const limit = Math.floor(players.length / 2);
+const maxPossible = Math.min(imposterCount, limit);
+
+// 2. Pool für gewichteten Zufall (Höhere Zahlen sind wahrscheinlicher)
+const weightPool = [];
+for (let i = 1; i <= maxPossible; i++) {
+    for (let j = 0; j < (i * 3); j++) { // Faktor 3 für stärkere Gewichtung der hohen Zahl
+        weightPool.push(i);
+    }
+}
+
+// 3. Tatsächliche Anzahl für diese Runde würfeln
+const rolledCount = weightPool.length > 0 
+    ? weightPool[Math.floor(Math.random() * weightPool.length)] 
+    : 1;
+
+// 4. Indizes zufällig zuweisen
+let tempIndices = [];
+while(tempIndices.length < rolledCount) {
+    let r = Math.floor(Math.random() * players.length);
+    if(!tempIndices.includes(r)) tempIndices.push(r);
+}
+indices = tempIndices;
+
 
     if (selectedSubs.length === 0) {
         // Sammle ALLE verfügbaren Themen-IDs
@@ -614,11 +639,19 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                             <>
                                 <div className="grid grid-cols-3 gap-2 shrink-0">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase opacity-60">Verräter:</label>
-                                        <select value={imposterCount} onChange={e => setImposterCount(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
-                                            {Array.from({length: players.length - 1}, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
-                                        </select>
-                                    </div>
+    <label className="text-[10px] font-black uppercase opacity-60">Verräter :</label>
+    <select 
+        value={imposterCount} 
+        onChange={e => setImposterCount(parseInt(e.target.value))} 
+        className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none"
+    >
+        {/* Erzeugt Optionen bis maximal zur Hälfte der Spieleranzahl */}
+        {Array.from({length: Math.floor(players.length / 2)}, (_, i) => i + 1).map(n => (
+            <option key={n} value={n}>{n}</option>
+        ))}
+    </select>
+</div>
+
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black uppercase opacity-60">Hinweis:</label>
                                         <button onClick={() => setShowHint(!showHint)} className={`w-full p-2 border-2 border-black font-bold text-[10px] uppercase transition-colors ${showHint ? 'bg-green-400' : 'bg-red-400'}`}>
