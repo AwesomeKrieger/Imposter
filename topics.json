@@ -1,5 +1,5 @@
 {
-  "Gaming": {
+  "2Gaming": {
     "Fortnite": {
       "examples": ["V-Bucks", "Tilted", "Bus", "Skin"],
       "pairs": [
@@ -284,7 +284,7 @@
     }
 
   },
-  "Lifestyle": {
+  "4Lifestyle": {
     "Jugendwörter": {
       "examples": ["Rizz", "Aura", "Sigma", "Wild"],
       "pairs": [
@@ -777,7 +777,7 @@
       ]
     }
   },
-  "UNTERHALTUNG": {
+  "3UNTERHALTUNG": {
   "Streaming & TV": {
     "pairs": [
       ["Netflix", "Fernbedienung"],
@@ -1321,7 +1321,7 @@
       ]
     }
   },
-      "ERWACHSENE" : {
+      "5ERWACHSENE" : {
       "Dating & Beziehung": {
       "pairs": [
         ["Tinder", "Wischmopp"],
@@ -1627,7 +1627,7 @@
       ]
     }
   },
-  "ALLGEMEINES": {
+  "1ALLGEMEINES": {
   "Rund um die Welt": {
     "pairs": [
       ["Eiffelturm", "Antenne"],
