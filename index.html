@@ -94,6 +94,20 @@
     width: 100% !important;
     box-sizing: border-box;
 }
+/* Verhindert das Markieren von Text und Elementen */
+html, body, #root {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none;      /* IE 10+ */
+    user-select: none;          /* Standard */
+    -webkit-touch-callout: none; /* Verhindert das Kontextmenü auf iOS */
+}
+
+/* Erlaubt das Auswählen nur in Input-Feldern (wichtig für deinen API-Key!) */
+input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
 
 /* WICHTIG: Wenn ausgewählt -> Schwarz mit HELLEM Rand */
 .category-item.selected {
