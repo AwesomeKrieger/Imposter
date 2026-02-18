@@ -671,12 +671,15 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                 <div className="topics-block-container mx-0 my-2">
     {/* Buttons bündig oben im Kasten */}
     <div className="flex shrink-0 bg-transparent border-b-4 border-black dark:border-white">
-        <button 
-            onClick={selectAll} 
-            className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase !text-black border-r-4 border-black dark:border-white active:bg-yellow-500 transition-colors"
-        >
-            {subCats.length > 0 && subCats.every(s => selectedSubs.includes(s.name)) ? "× Abwählen" : "✓ Gruppe"}
-        </button>
+       <button 
+    onClick={selectAll} 
+    className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase !text-black border-r-4 border-black dark:border-white active:bg-yellow-500 transition-colors"
+>
+    {subCats.length > 0 && subCats.every(s => selectedSubs.includes(`${s.parent}:${s.name}`)) 
+        ? "× Abwählen" 
+        : "✓ Gruppe"}
+</button>
+
 
         <button 
     onClick={handleGlobalToggle} 
