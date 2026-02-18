@@ -258,7 +258,10 @@ const confirmDelete = () => {
         .then(res => res.json())
         .then(json => {
             setData(json);
-            setGroups(["BELIEBT", "EIGENE", ...Object.keys(json)]);
+                       
+            const sortedJsonGroups = Object.keys(json).sort();
+            setGroups(["BELIEBT", "EIGENE", ...sortedJsonGroups]);
+
             
             // Initialisiert die "Beliebt"-Liste mit dem aktuellen 3h-Slot
             const initial = getShuffledBeliebt(json);
@@ -635,34 +638,35 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                 </div>
 
                                 <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2 shrink-0">
-                                    {groups.map(g => {
-    let hasSelection = false;
-    let countInGroup = 0;
+    {groups.map(g => {
+        let hasSelection = false;
+        let countInGroup = 0;
 
-    if (g === "BELIEBT") {
-        // Prüft, welche der aktuell angezeigten Favoriten-Themen ausgewählt sind
-        const beliebtIds = shuffledBeliebt.map(s => `${s.parent}:${s.name}`);
-        countInGroup = selectedSubs.filter(id => beliebtIds.includes(id)).length;
-        hasSelection = countInGroup > 0;
-    } else {
-        // Prüft alle anderen Gruppen (SPORT, EIGENE, etc.)
-        hasSelection = selectedSubs.some(id => id.startsWith(`${g}:`));
-        countInGroup = selectedSubs.filter(id => id.startsWith(`${g}:`)).length;
-    }
+        if (g === "BELIEBT") {
+            const beliebtIds = shuffledBeliebt.map(s => `${s.parent}:${s.name}`);
+            countInGroup = selectedSubs.filter(id => beliebtIds.includes(id)).length;
+            hasSelection = countInGroup > 0;
+        } else {
+            hasSelection = selectedSubs.some(id => id.startsWith(`${g}:`));
+            countInGroup = selectedSubs.filter(id => id.startsWith(`${g}:`)).length;
+        }
 
-    return (
-        <button 
-            key={g} 
-            onClick={() => updateView(g)} 
-            className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all 
-                ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}
-        >
-            {g} {hasSelection && `(${countInGroup})`}
-        </button>
-    );
-})}
+        // KONSTANTE zum Trimmen der Zahlen am Anfang
+        const displayName = g.replace(/^[\d.]+\s*/, "");
 
-                                </div>
+        return (
+            <button 
+                key={g} 
+                onClick={() => updateView(g)} 
+                className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all 
+                    ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}
+            >
+                {displayName} {hasSelection && `(${countInGroup})`}
+            </button>
+        );
+    })}
+</div>
+
 
                                 <div className="topics-block-container mx-0 my-2">
     {/* Buttons bündig oben im Kasten */}
