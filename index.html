@@ -259,19 +259,17 @@ const confirmDelete = () => {
         .then(json => {
             setData(json);
                        
+            // KORREKTUR: Großes "O" bei Object und .sort() für die Reihenfolge
             const sortedJsonGroups = Object.keys(json).sort();
             setGroups(["BELIEBT", "EIGENE", ...sortedJsonGroups]);
 
-            
-            // Initialisiert die "Beliebt"-Liste mit dem aktuellen 3h-Slot
             const initial = getShuffledBeliebt(json);
             setShuffledBeliebt(initial);
-            
-            // Setzt die Ansicht standardmäßig auf diese gewürfelten Themen
             setSubCats(initial); 
         })
         .catch(err => console.error("Fehler beim Laden der Themen:", err));
 }, []);
+
 
 
 
