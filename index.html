@@ -186,7 +186,7 @@ input, textarea {
             });
 
             const [groups, setGroups] = useState([]);
-            const [selectedGroup, setSelectedGroup] = useState("BELIEBT");
+            const [selectedGroup, setSelectedGroup] = useState("🔥BELIEBT");
             const [subCats, setSubCats] = useState([]);
             const [selectedSubs, setSelectedSubs] = useState([]);
             
@@ -259,9 +259,9 @@ const confirmDelete = () => {
     localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
     
     // HIER DIE KORREKTUR: Mit Prefix filtern
-    setSelectedSubs(prev => prev.filter(id => id !== `EIGENE:${deleteConfirm}`));
+    setSelectedSubs(prev => prev.filter(id => id !== `✏️EIGENE:${deleteConfirm}`));
     
-    setSubCats(newList.map(t => ({ name: t.name, parent: "EIGENE" })));
+    setSubCats(newList.map(t => ({ name: t.name, parent: "✏️EIGENE" })));
     setDeleteConfirm(null);
 };
 
@@ -337,10 +337,10 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
     if (!fullData) return;
     setSelectedGroup(groupName);
     
-    if (groupName === "BELIEBT") {
+    if (groupName === "🔥BELIEBT") {
         setSubCats(shuffledBeliebt); // Nutzt die gespeicherten Favoriten
-    } else if (groupName === "EIGENE") {
-        setSubCats(currentCustom.map(t => ({ name: t.name, parent: "EIGENE" })));
+    } else if (groupName === "✏️EIGENE") {
+        setSubCats(currentCustom.map(t => ({ name: t.name, parent: "✏️EIGENE" })));
     } else {
         const list = [];
         Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
@@ -374,13 +374,13 @@ const handleGlobalToggle = () => {
     } else {
         let allIds = [];
         Object.keys(data).forEach(group => {
-            if (group !== "BELIEBT") { // Beliebt überspringen, da es nur Kopien sind
+            if (group !== "🔥BELIEBT") { // Beliebt überspringen, da es nur Kopien sind
                 Object.keys(data[group]).forEach(sub => {
                     allIds.push(`${group}:${sub}`);
                 });
             }
         });
-        customTopics.forEach(t => allIds.push(`EIGENE:${t.name}`));
+        customTopics.forEach(t => allIds.push(`✏️EIGENE:${t.name}`));
         setSelectedSubs(allIds);
     }
 };
@@ -403,11 +403,11 @@ const toggleStyle = () => {
         setCustomTopics(newList);
         localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
         
-        const newSubList = newList.map(t => ({ name: t.name, parent: "EIGENE" }));
+        const newSubList = newList.map(t => ({ name: t.name, parent: "✏️EIGENE" }));
         setSubCats(newSubList);
         
         // HIER DIE KORREKTUR: Prefix hinzufügen
-        setSelectedSubs(prev => [...prev, `EIGENE:${trimmedName}`]);
+        setSelectedSubs(prev => [...prev, `✏️EIGENE:${trimmedName}`]);
     }
 };
 
@@ -444,14 +444,14 @@ indices = tempIndices;
         const allPossibleIds = [];
         
         Object.keys(data).forEach(group => {
-            if (group !== "BELIEBT") { 
+            if (group !== "🔥BELIEBT") { 
                 Object.keys(data[group]).forEach(sub => {
                     allPossibleIds.push(`${group}:${sub}`);
                 });
             }
         });
         
-        customTopics.forEach(t => allPossibleIds.push(`EIGENE:${t.name}`));
+        customTopics.forEach(t => allPossibleIds.push(`✏️EIGENE:${t.name}`));
 
         // Wähle eine absolut zufällige ID aus der Gesamtliste
         finalId = allPossibleIds[Math.floor(Math.random() * allPossibleIds.length)];
@@ -480,7 +480,7 @@ indices = tempIndices;
         else if (rng < 0.02) chaos = "NONE";
 
         // 3. Nutzt jetzt 'parentGroup', um zu entscheiden: KI oder Liste?
-        if (parentGroup === "EIGENE") {
+        if (parentGroup === "✏️EIGENE") {
             if(!apiKey) {
                 setLoading(false);
                 return alert("API Key fehlt!");
@@ -687,7 +687,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
         let hasSelection = false;
         let countInGroup = 0;
 
-        if (g === "BELIEBT") {
+        if (g === "🔥BELIEBT") {
             const beliebtIds = shuffledBeliebt.map(s => `${s.parent}:${s.name}`);
             countInGroup = selectedSubs.filter(id => beliebtIds.includes(id)).length;
             hasSelection = countInGroup > 0;
@@ -741,7 +741,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
 
     {/* Themenliste direkt darunter im selben Gehäuse */}
     <div className="scroll-container hide-scrollbar" style={{ maxHeight: '300px' }}>
-        {selectedGroup === "EIGENE" && (
+        {selectedGroup === "✏️EIGENE" && (
             <button 
                 onClick={addCustomTopic} 
                 className="w-full p-4 border-b-4 border-dashed border-black dark:border-white font-black text-sm uppercase bg-yellow-100 !text-black shrink-0"
@@ -762,7 +762,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
         >
             <div className="flex justify-between items-center w-full">
                 <span>{isSelected ? "✓ " : ""}{s.name}</span>
-                {selectedGroup === "EIGENE" && (
+                {selectedGroup === "✏️EIGENE" && (
                     <span 
                         onClick={(e) => { e.stopPropagation(); triggerDelete(e, s.name); }} 
                         className="text-[10px] bg-red-600 px-2 py-1 text-white border-2 border-white font-black"
@@ -897,7 +897,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
             const fresh = getShuffledBeliebt(data);
             setShuffledBeliebt(fresh);
             setSubCats(fresh);
-            setSelectedGroup("BELIEBT");
+            setSelectedGroup("🔥BELIEBT");
             setGameState('setup');
         }} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase">
             Nächste Runde
