@@ -1,5 +1,5 @@
 {
-  "2Gaming": {
+  "🎮2Gaming": {
     "Fortnite": {
       "examples": ["V-Bucks", "Tilted", "Bus", "Skin"],
       "pairs": [
@@ -284,7 +284,7 @@
     }
 
   },
-  "4Lifestyle": {
+  "🏀4Lifestyle": {
     "Jugendwörter": {
       "examples": ["Rizz", "Aura", "Sigma", "Wild"],
       "pairs": [
@@ -693,7 +693,7 @@
 
 
   },
-  "Sport": {
+  "⚽️Sport": {
     "Fussball": {
       "examples": ["Rasen", "Taktik", "Kurve", "Leidenschaft"],
       "pairs": [
@@ -777,7 +777,7 @@
       ]
     }
   },
-  "3UNTERHALTUNG": {
+  "📺3UNTERHALTUNG": {
   "Streaming & TV": {
     "pairs": [
       ["Netflix", "Fernbedienung"],
@@ -1321,7 +1321,7 @@
       ]
     }
   },
-      "5ERWACHSENE" : {
+      "5🫦ERWACHSENE" : {
       "Dating & Beziehung": {
       "pairs": [
         ["Tinder", "Wischmopp"],
@@ -1627,7 +1627,7 @@
       ]
     }
   },
-  "1ALLGEMEINES": {
+  "🌍1ALLGEMEINES": {
   "Rund um die Welt": {
     "pairs": [
       ["Eiffelturm", "Antenne"],
