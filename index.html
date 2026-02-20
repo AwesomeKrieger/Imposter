@@ -275,7 +275,7 @@ const confirmDelete = () => {
                        
             // KORREKTUR: Großes "O" bei Object und .sort() für die Reihenfolge
             const sortedJsonGroups = Object.keys(json).sort();
-            setGroups(["BELIEBT", "EIGENE", ...sortedJsonGroups]);
+            setGroups(["🔥BELIEBT", "✏️EIGENE", ...sortedJsonGroups]);
 
             const initial = getShuffledBeliebt(json);
             setShuffledBeliebt(initial);
