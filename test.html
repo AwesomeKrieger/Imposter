@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/AwesomeKrieger/Imposter/refs/heads/main/AppIcon%7Eios-marketing.png">      
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/AwesomeKrieger/Imposter/refs/heads/main/AppIcon%7Eios-marketing.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>IMPOSTER</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+<style>
+/* ============================================================
+   APPLE LIQUID GLASS — AUTO SYSTEM DETECTION
+   LIGHT: pure white bg | DARK: pure black bg
+   ============================================================ */
+
+/* ---------- LIGHT MODE VARIABLES ---------- */
+:root {
+    --bg: #ffffff;
+    --gc:    rgba(255,255,255,0.75);
+    --gc2:   rgba(255,255,255,0.55);
+    --gb:    rgba(255,255,255,0.92);
+    --gborder: rgba(0,0,0,0.12);
+    --gborder-top: rgba(255,255,255,1);
+    --gtext:  #000000;
+    --gtext2: rgba(0,0,0,0.45);
+    --gsep:   rgba(0,0,0,0.07);
+    --gsel:   rgba(0,0,0,0.08);
+    --gsel-text: #000000;
+    --gshadow: rgba(0,0,0,0.14);
+    --gshadow2: rgba(0,0,0,0.07);
+    --gred:   rgba(220,38,52,0.88);
+    --gred-border: rgba(255,100,110,0.5);
+
+    /* keep retro vars for fallback */
+    --bg-main: #ffffff;
+    --bg-card: #ffffff;
+    --text-color: #000000;
+    --border-color: #000000;
+    --item-selected-bg: #000000;
+    --item-selected-text: #ffffff;
+}
+
+/* ---------- DARK MODE VARIABLES ---------- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000000;
+        --gc:    rgba(28,28,30,0.78);
+        --gc2:   rgba(20,20,22,0.65);
+        --gb:    rgba(35,35,38,0.92);
+        --gborder: rgba(255,255,255,0.14);
+        --gborder-top: rgba(255,255,255,0.28);
+        --gtext:  #ffffff;
+        --gtext2: rgba(255,255,255,0.42);
+        --gsep:   rgba(255,255,255,0.07);
+        --gsel:   rgba(255,255,255,0.13);
+        --gsel-text: #ffffff;
+        --gshadow: rgba(0,0,0,0.55);
+        --gshadow2: rgba(0,0,0,0.3);
+        --gred:   rgba(220,38,52,0.82);
+        --gred-border: rgba(255,90,100,0.4);
+
+        --bg-main: #000000;
+        --bg-card: #000000;
+        --text-color: #ffffff;
+        --border-color: #ffffff;
+        --item-selected-bg: #ffffff;
+        --item-selected-text: #000000;
+    }
+}
+
+/* ---------- RESET ---------- */
+html, body, #root {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+input, textarea { -webkit-user-select: text; user-select: text; }
+
+html, body {
+    margin: 0; padding: 0;
+    height: 100%; width: 100%;
+    overflow: hidden;
+    background: var(--bg) !important;
+    color: var(--gtext);
+}
+
+/* ---------- LAYOUT ---------- */
+.main-container {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    box-sizing: border-box;
+    background: transparent;
+}
+
+/* ---------- GAME CARD ---------- */
+.game-card {
+    background: var(--gc) !important;
+    backdrop-filter: blur(48px) saturate(200%);
+    -webkit-backdrop-filter: blur(48px) saturate(200%);
+    border: 1px solid var(--gborder) !important;
+    border-top: 1px solid var(--gborder-top) !important;
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.8) inset,
+        0 24px 64px var(--gshadow),
+        0 6px 20px var(--gshadow2) !important;
+    border-radius: 28px !important;
+    display: flex; flex-direction: column;
+    height: 100%; overflow: hidden;
+    color: var(--gtext) !important;
+}
+
+/* ---------- TOPICS BLOCK ---------- */
+.topics-block-container {
+    margin: 10px 0;
+    background: var(--gc2) !important;
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border: 1px solid var(--gborder) !important;
+    border-top: 1px solid var(--gborder-top) !important;
+    box-shadow: 0 8px 28px var(--gshadow), 0 2px 8px var(--gshadow2) !important;
+    border-radius: 20px !important;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+
+/* ---------- SCROLL CONTAINER ---------- */
+.scroll-container {
+    flex: 1;
+    max-height: 280px;
+    overflow-y: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: flex; flex-direction: column;
+    border-radius: 0 0 18px 18px !important;
+}
+
+/* ---------- CATEGORY ITEMS ---------- */
+.category-item {
+    margin: 0 !important;
+    padding: 16px;
+    background: transparent !important;
+    color: var(--gtext) !important;
+    border: none !important;
+    border-top: 1px solid var(--gsep) !important;
+    cursor: pointer;
+    text-align: left;
+    font-weight: 900;
+    text-transform: uppercase;
+    width: 100% !important;
+    box-sizing: border-box;
+    transition: background 0.12s ease;
+}
+.category-item:first-child { border-top: none !important; }
+.category-item.selected {
+    background: var(--gsel) !important;
+    color: var(--gsel-text) !important;
+    border-top: 1px solid var(--gsep) !important;
+}
+
+/* ---------- INPUTS & SELECTS ---------- */
+input, select {
+    background: var(--gc2) !important;
+    color: var(--gtext) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 10px !important;
+    backdrop-filter: blur(16px);
+}
+input::placeholder { color: var(--gtext2) !important; }
+
+/* ---------- SCROLLBAR HIDE ---------- */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ---------- NEO-BOX RESET ---------- */
+.neo-box {
+    box-shadow: 0 4px 16px var(--gshadow), 0 1px 4px var(--gshadow2) !important;
+    border-radius: 16px !important;
+}
+
+/* ---------- ALL BUTTONS BASE ---------- */
+button {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: transform 0.16s cubic-bezier(0.34,1.4,0.64,1), box-shadow 0.16s ease;
+}
+button:active { transform: scale(0.96) !important; }
+
+/* START / main red button */
+button.bg-red-600 {
+    background: var(--gred) !important;
+    border: 1px solid var(--gred-border) !important;
+    border-top: 1px solid rgba(255,160,160,0.6) !important;
+    color: #fff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 6px 22px rgba(220,38,52,0.38), 0 1px 0 rgba(255,255,255,0.25) inset !important;
+}
+
+/* Auflösen / black button */
+button.bg-black {
+    background: var(--gc) !important;
+    border: 1px solid var(--gborder) !important;
+    border-top: 1px solid var(--gborder-top) !important;
+    color: var(--gtext) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 16px var(--gshadow) !important;
+}
+
+/* Verstanden */
+button.bg-black.text-white {
+    background: var(--gc) !important;
+    color: var(--gtext) !important;
+}
+
+/* green hint on/add player */
+button.bg-green-400, button.bg-green-500 {
+    background: rgba(34,170,80,0.75) !important;
+    border: 1px solid rgba(80,220,120,0.45) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(34,170,80,0.3) !important;
+}
+
+/* red hint off */
+button.bg-red-400 {
+    background: rgba(210,45,55,0.72) !important;
+    border: 1px solid rgba(255,110,120,0.4) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+}
+
+/* reset red */
+button.bg-red-500 {
+    background: rgba(210,45,55,0.72) !important;
+    border: 1px solid rgba(255,110,120,0.4) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+}
+
+/* global blue */
+button.bg-blue-500 {
+    background: rgba(50,100,230,0.68) !important;
+    border: 1px solid rgba(120,160,255,0.4) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+}
+
+/* yellow gruppe */
+button.bg-yellow-400 {
+    background: rgba(200,160,0,0.65) !important;
+    border: none !important;
+    border-right: 1px solid var(--gsep) !important;
+    color: var(--gtext) !important;
+}
+
+/* yellow-100 AI custom */
+button.bg-yellow-100 {
+    background: rgba(200,160,0,0.18) !important;
+    border-bottom: 1px solid var(--gsep) !important;
+    color: var(--gtext) !important;
+}
+
+/* ---------- GROUP TABS ROW ---------- */
+.flex.gap-2.overflow-x-auto button {
+    border-radius: 10px !important;
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    color: var(--gtext) !important;
+    box-shadow: none !important;
+}
+.flex.gap-2.overflow-x-auto button.bg-red-600 {
+    background: var(--gred) !important;
+    border: 1px solid var(--gred-border) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(220,38,52,0.3) !important;
+}
+.flex.gap-2.overflow-x-auto button.bg-yellow-300 {
+    background: rgba(200,160,0,0.4) !important;
+    border: 1px solid rgba(220,180,0,0.4) !important;
+    color: var(--gtext) !important;
+}
+
+/* ---------- TOPICS BLOCK TOP BAR ---------- */
+.topics-block-container .flex.shrink-0,
+.topics-block-container .border-b-4 {
+    border-bottom: 1px solid var(--gsep) !important;
+    background: transparent !important;
+}
+
+/* ---------- PLAYERS GRID ---------- */
+.grid.grid-cols-2 {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 10px !important;
+}
+.grid.grid-cols-2 .flex.border {
+    background: transparent !important;
+    border: 1px solid var(--gsep) !important;
+    border-radius: 6px !important;
+}
+.grid.grid-cols-2 span.bg-yellow-400 {
+    background: rgba(200,160,0,0.5) !important;
+    color: var(--gtext) !important;
+    border-left: 1px solid var(--gsep) !important;
+}
+
+/* ---------- HEADER ---------- */
+.flex.justify-between.items-center.mb-4 {
+    border-bottom: 1px solid var(--gsep) !important;
+}
+h1 { color: var(--gtext) !important; }
+label { color: var(--gtext2) !important; }
+.opacity-50, .opacity-60 { color: var(--gtext2) !important; opacity: 1 !important; }
+
+/* ---------- CARD REVEAL (h-64) ---------- */
+.w-full.h-64 {
+    border: 1px solid var(--gborder) !important;
+    border-top: 1px solid var(--gborder-top) !important;
+    border-radius: 20px !important;
+    backdrop-filter: blur(24px);
+    box-shadow: 0 8px 32px var(--gshadow) !important;
+    overflow: hidden;
+}
+
+/* Imposter black card */
+.bg-black.text-white {
+    background: rgba(10,10,12,0.88) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6) !important;
+    border-radius: 20px !important;
+}
+@media (prefers-color-scheme: dark) {
+    .bg-black.text-white {
+        background: rgba(10,10,12,0.92) !important;
+        border: 1px solid rgba(255,255,255,0.18) !important;
+    }
+}
+
+/* Word red card */
+.bg-red-600.text-white {
+    background: rgba(210,35,48,0.88) !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(255,120,130,0.4) !important;
+}
+
+/* Tap prompt */
+.bg-gray-100.animate-pulse, .bg-gray-100 {
+    background: var(--gc2) !important;
+    border-radius: 20px !important;
+    color: var(--gtext) !important;
+}
+
+/* ---------- BEGINNER BOX ---------- */
+.bg-yellow-300.border-4 {
+    background: rgba(200,160,0,0.28) !important;
+    border: 1px solid rgba(220,180,0,0.35) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(16px);
+    color: var(--gtext) !important;
+}
+
+/* ---------- TIMER ---------- */
+.text-6xl.font-black.px-6 {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(20px);
+    color: var(--gtext) !important;
+    box-shadow: 0 4px 20px var(--gshadow) !important;
+}
+
+/* ---------- FINISH SCREEN ---------- */
+.bg-gray-100.p-4 {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 10px !important;
+    color: var(--gtext) !important;
+}
+
+/* ---------- PROGRESS BAR ---------- */
+.border-4.border-black.h-8 {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 8px !important;
+    overflow: hidden;
+}
+
+/* ---------- DELETE BADGE ---------- */
+span.bg-red-600 {
+    background: rgba(210,38,52,0.75) !important;
+    border: 1px solid rgba(255,110,120,0.4) !important;
+    border-radius: 6px !important;
+}
+
+/* ---------- CONFIRM DIALOG ---------- */
+.fixed.inset-0 > div {
+    background: var(--gb) !important;
+    backdrop-filter: blur(48px) !important;
+    -webkit-backdrop-filter: blur(48px) !important;
+    border: 1px solid var(--gborder) !important;
+    border-top: 1px solid var(--gborder-top) !important;
+    border-radius: 24px !important;
+    color: var(--gtext) !important;
+    box-shadow: 0 24px 64px var(--gshadow) !important;
+}
+.fixed.inset-0 p,
+.fixed.inset-0 h3 { color: var(--gtext) !important; }
+.fixed.inset-0 button {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 10px !important;
+    color: var(--gtext) !important;
+    box-shadow: none !important;
+}
+.fixed.inset-0 button.bg-red-600 {
+    background: rgba(210,38,52,0.82) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,110,120,0.4) !important;
+}
+
+/* ---------- HINT BOX ---------- */
+.border-2.border-white {
+    border: 1px solid var(--gborder) !important;
+    border-radius: 10px !important;
+    background: var(--gc2);
+}
+
+/* ---------- HEADER SEPARATOR ---------- */
+.border-b-8.border-red-600 {
+    border-bottom: 2px solid rgba(220,38,52,0.45) !important;
+}
+
+/* ---------- TOGGLE BUTTON ---------- */
+.style-toggle-btn {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.18s ease;
+}
+
+/* ---------- RETRO MODE OVERRIDES ---------- */
+/* When .retro-mode is on body, override everything back to brutal neo-brutalism */
+body.retro-mode {
+    background: var(--bg-main) !important;
+}
+body.retro-mode .main-container {
+    background: var(--bg-main) !important;
+}
+body.retro-mode .game-card {
+    background: var(--bg-card) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 4px solid var(--border-color) !important;
+    border-top: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0px 0px var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+body.retro-mode .topics-block-container {
+    background: var(--bg-card) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 4px solid var(--border-color) !important;
+    border-top: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0px 0px var(--border-color) !important;
+}
+body.retro-mode .scroll-container {
+    background: var(--bg-card) !important;
+    border-radius: 0 !important;
+}
+body.retro-mode .category-item {
+    background: var(--bg-card) !important;
+    color: var(--text-color) !important;
+    border-top: 2px solid var(--border-color) !important;
+}
+body.retro-mode .category-item:first-child { border-top: none !important; }
+body.retro-mode .category-item.selected {
+    background: var(--item-selected-bg) !important;
+    color: var(--item-selected-text) !important;
+    border-top: 2px solid rgba(255,255,255,0.3) !important;
+}
+body.retro-mode .neo-box {
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0px 0px var(--border-color) !important;
+}
+body.retro-mode button {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-radius: 0 !important;
+}
+body.retro-mode button.bg-red-600 {
+    background: #dc2626 !important;
+    border: 2px solid var(--border-color) !important;
+    border-top: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: 4px 4px 0px 0px var(--border-color) !important;
+    color: white !important;
+}
+body.retro-mode button.bg-black {
+    background: #000000 !important;
+    border: 2px solid var(--border-color) !important;
+    border-top: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: 4px 4px 0px 0px var(--border-color) !important;
+    color: white !important;
+}
+@media (prefers-color-scheme: dark) {
+    body.retro-mode button.bg-black {
+        background: #ffffff !important;
+        color: black !important;
+    }
+}
+body.retro-mode button.bg-green-400,
+body.retro-mode button.bg-green-500 {
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 var(--border-color) !important;
+}
+body.retro-mode button.bg-red-400,
+body.retro-mode button.bg-red-500 {
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 var(--border-color) !important;
+}
+body.retro-mode button.bg-blue-500 {
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 var(--border-color) !important;
+}
+body.retro-mode button.bg-yellow-400 {
+    background: #facc15 !important;
+    border: none !important;
+    border-right: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    color: var(--text-color) !important;
+}
+body.retro-mode .flex.gap-2.overflow-x-auto button {
+    background: var(--bg-card) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    color: var(--text-color) !important;
+    box-shadow: 3px 3px 0 var(--border-color) !important;
+}
+body.retro-mode .flex.gap-2.overflow-x-auto button.bg-red-600 {
+    background: #dc2626 !important;
+    color: white !important;
+}
+body.retro-mode .flex.gap-2.overflow-x-auto button.bg-yellow-300 {
+    background: #fde047 !important;
+    color: black !important;
+}
+body.retro-mode input, body.retro-mode select {
+    background: var(--bg-card) !important;
+    color: var(--text-color) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+}
+body.retro-mode .grid.grid-cols-2 {
+    background: transparent !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+}
+body.retro-mode .grid.grid-cols-2 .flex.border {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+}
+body.retro-mode .grid.grid-cols-2 span.bg-yellow-400 {
+    background: #facc15 !important;
+    border-left: 1px solid var(--border-color) !important;
+    color: black !important;
+}
+body.retro-mode .flex.justify-between.items-center.mb-4 {
+    border-bottom: 8px solid #dc2626 !important;
+}
+body.retro-mode h1 { color: var(--text-color) !important; }
+body.retro-mode label { color: var(--text-color) !important; opacity: 0.6; }
+body.retro-mode .w-full.h-64 {
+    border: 4px solid var(--border-color) !important;
+    border-top: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+}
+body.retro-mode .bg-black.text-white {
+    background: #000000 !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+body.retro-mode .bg-red-600.text-white {
+    background: #dc2626 !important;
+    border-radius: 0 !important;
+    border: 4px solid var(--border-color) !important;
+}
+body.retro-mode .bg-gray-100.animate-pulse,
+body.retro-mode .bg-gray-100 {
+    background: #f3f4f6 !important;
+    border-radius: 0 !important;
+    color: #000 !important;
+}
+@media (prefers-color-scheme: dark) {
+    body.retro-mode .bg-gray-100 {
+        background: #111 !important;
+        color: #fff !important;
+    }
+}
+body.retro-mode .bg-yellow-300.border-4 {
+    background: #fde047 !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+    color: black !important;
+}
+body.retro-mode .text-6xl.font-black.px-6 {
+    background: transparent !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+    box-shadow: 4px 4px 0 var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+body.retro-mode .bg-gray-100.p-4 {
+    background: #f3f4f6 !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    color: var(--text-color) !important;
+}
+body.retro-mode .border-4.border-black.h-8 {
+    background: white !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+}
+body.retro-mode span.bg-red-600 {
+    background: #dc2626 !important;
+    border: 2px solid white !important;
+    border-radius: 0 !important;
+}
+body.retro-mode .fixed.inset-0 > div {
+    background: white !important;
+    backdrop-filter: none !important;
+    border: 4px solid black !important;
+    border-top: 4px solid black !important;
+    border-radius: 0 !important;
+    box-shadow: 8px 8px 0 black !important;
+}
+@media (prefers-color-scheme: dark) {
+    body.retro-mode .fixed.inset-0 > div {
+        background: black !important;
+        border: 4px solid white !important;
+        box-shadow: 8px 8px 0 white !important;
+    }
+}
+body.retro-mode .fixed.inset-0 p,
+body.retro-mode .fixed.inset-0 h3 { color: var(--text-color) !important; }
+body.retro-mode .fixed.inset-0 button {
+    background: var(--bg-card) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    color: var(--text-color) !important;
+    box-shadow: 3px 3px 0 var(--border-color) !important;
+}
+body.retro-mode .border-b-8.border-red-600 {
+    border-bottom: 8px solid #dc2626 !important;
+}
+body.retro-mode .opacity-50, body.retro-mode .opacity-60 {
+    color: var(--text-color) !important;
+    opacity: 0.5 !important;
+}
+
+/* ---------- BUTTON-GROUP for Gruppe + Reset ---------- */
+.action-btn-group {
+    display: flex;
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid var(--gborder);
+    border-top: 1px solid var(--gborder-top);
+    background: var(--gc2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 16px var(--gshadow), 0 1px 4px var(--gshadow2);
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+.action-btn-group button {
+    flex: 1;
+    padding: 10px 8px;
+    font-weight: 900;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    color: var(--gtext) !important;
+    transition: background 0.15s ease;
+    cursor: pointer;
+}
+.action-btn-group button:first-child {
+    border-right: 1px solid var(--gsep) !important;
+}
+.action-btn-group button.is-reset-active {
+    color: rgba(220,38,52,0.9) !important;
+}
+.action-btn-group button.is-global-active {
+    color: rgba(50,100,230,0.9) !important;
+}
+
+/* Retro overrides for the action-btn-group */
+body.retro-mode .action-btn-group {
+    border-radius: 0 !important;
+    border: 4px solid var(--border-color) !important;
+    border-top: 4px solid var(--border-color) !important;
+    background: var(--bg-card) !important;
+    backdrop-filter: none !important;
+    box-shadow: 4px 4px 0 var(--border-color) !important;
+}
+body.retro-mode .action-btn-group button {
+    background: var(--bg-card) !important;
+    color: var(--text-color) !important;
+}
+body.retro-mode .action-btn-group button:first-child {
+    border-right: 4px solid var(--border-color) !important;
+}
+body.retro-mode .action-btn-group button.is-reset-active {
+    background: #dc2626 !important;
+    color: white !important;
+}
+body.retro-mode .action-btn-group button.is-global-active {
+    background: #3b82f6 !important;
+    color: white !important;
+}
+
+</style>
+
+
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+       
+
+        const GITHUB_TOPICS_URL = "https://raw.githubusercontent.com/AwesomeKrieger/Imposter/main/topics.json";
+        const AI_MODEL = "gemini-2.5-flash-lite"; 
+
+
+        const App = () => {
+            const [data, setData] = useState(null);
+            const [aiWordPool, setAiWordPool] = useState(() => {
+                const saved = localStorage.getItem('imp_word_pool_v1');
+                return saved ? JSON.parse(saved) : {};
+            });
+
+            const [groups, setGroups] = useState([]);
+            const [selectedGroup, setSelectedGroup] = useState("🔥BELIEBT");
+            const [subCats, setSubCats] = useState([]);
+            const [selectedSubs, setSelectedSubs] = useState([]);
+            
+            const [gameState, setGameState] = useState('setup'); 
+            const [showBeginner, setShowBeginner] = useState(true);
+            const [shuffledBeliebt, setShuffledBeliebt] = useState([]);
+            const [players, setPlayers] = useState(['Spieler 1', 'Spieler 2', 'Spieler 3']);
+            const [imposterCount, setImposterCount] = useState(1);
+            const [showHint, setShowHint] = useState(false);
+            const [timerMinutes, setTimerMinutes] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(0);
+            const [stats, setStats] = useState({});
+
+            const [apiKey, setApiKey] = useState(() => localStorage.getItem('imp_key') || '');
+            const [customTopics, setCustomTopics] = useState(() => {
+                const saved = localStorage.getItem('imp_custom_v12');
+                return saved ? JSON.parse(saved) : [];
+            });
+            
+            const [loading, setLoading] = useState(false);
+            const [visualProgress, setVisualProgress] = useState(0);
+            const [gameData, setGameData] = useState({ word: "", hint: "", imposterIndices: [], currentPlayer: 0, showingWord: false, chaosMode: "" });
+            const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+const triggerDelete = (e, name) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeleteConfirm(name);
+};
+// Effekt für den 5-Sekunden Beginner-Kasten
+useEffect(() => {
+    if (gameState === 'play') {
+        setShowBeginner(true);
+        const timer = setTimeout(() => {
+            setShowBeginner(false);
+        }, 5000);
+        return () => clearTimeout(timer);
+    }
+}, [gameState]);
+
+// Effekt für den Countdown-Timer
+useEffect(() => {
+    let timer;
+    if (gameState === 'play' && timeLeft > 0) {
+        timer = setInterval(() => {
+            setTimeLeft(prev => {
+                const next = prev - 1;
+                // Hier kannst du die Vibration wieder einfügen:
+                if (next >= 0 && next <= 3) window.navigator.vibrate?.(100);
+                return next;
+            });
+        }, 1000);
+    }
+    return () => clearInterval(timer);
+}, [gameState, timeLeft]);
+
+const getFontSize = (text) => {
+    if (!text) return 'text-5xl';
+    const len = text.length;
+    if (len > 15) return 'text-xl';
+    if (len > 12) return 'text-2xl';
+    if (len > 9) return 'text-3xl';
+    if (len > 6) return 'text-4xl';
+    return 'text-5xl';
+};
+
+const confirmDelete = () => {
+    const newList = customTopics.filter(t => t.name !== deleteConfirm);
+    setCustomTopics(newList);
+    localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
+    
+    // HIER DIE KORREKTUR: Mit Prefix filtern
+    setSelectedSubs(prev => prev.filter(id => id !== `✏️EIGENE:${deleteConfirm}`));
+    
+    setSubCats(newList.map(t => ({ name: t.name, parent: "✏️EIGENE" })));
+    setDeleteConfirm(null);
+};
+
+
+
+            useEffect(() => {
+    fetch(GITHUB_TOPICS_URL)
+        .then(res => res.json())
+        .then(json => {
+            setData(json);
+                       
+            // KORREKTUR: Großes "O" bei Object und .sort() für die Reihenfolge
+            const sortedJsonGroups = Object.keys(json).sort();
+            setGroups(["🔥BELIEBT", "✏️EIGENE", ...sortedJsonGroups]);
+
+            const initial = getShuffledBeliebt(json);
+            setShuffledBeliebt(initial);
+            setSubCats(initial); 
+        })
+        .catch(err => console.error("Fehler beim Laden der Themen:", err));
+}, []);
+
+
+
+
+            useEffect(() => {
+                localStorage.setItem('imp_word_pool_v1', JSON.stringify(aiWordPool));
+            }, [aiWordPool]);
+
+            // Hilfsfunktion zum Würfeln (bleibt stabil)
+// Hilfsfunktion zum stabilen Würfeln (ändert sich alle 3 Stunden)
+const getShuffledBeliebt = (fullData) => {
+    if (!fullData) return [];
+    let list = [];
+    Object.keys(fullData).forEach(g => {
+        Object.keys(fullData[g]).forEach(s => list.push({ name: s, parent: g }));
+    });
+
+    const now = new Date();
+    const datePart = now.toISOString().split('T')[0];
+    const timeSlot = Math.floor(now.getHours() / 3); 
+    const seedString = datePart + "-slot" + timeSlot;
+
+    const seededRandom = (str) => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0;
+        }
+        return Math.abs(Math.sin(hash));
+    };
+
+    return list
+        .sort((a, b) => seededRandom(seedString + a.name) - seededRandom(seedString + b.name))
+        .slice(0, 6);
+};
+
+useEffect(() => {
+    let timer;
+    if (gameState === 'play' && timeLeft > 0) {
+        timer = setInterval(() => {
+            setTimeLeft(prev => prev - 1);
+        }, 1000);
+    } else if (timeLeft === 0 && timerMinutes > 0) {
+        // Optional: Sound oder Vibration wenn Zeit abgelaufen
+    }
+    return () => clearInterval(timer);
+}, [gameState, timeLeft, timerMinutes]);
+
+
+
+const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
+    if (!fullData) return;
+    setSelectedGroup(groupName);
+    
+    if (groupName === "🔥BELIEBT") {
+        setSubCats(shuffledBeliebt); // Nutzt die gespeicherten Favoriten
+    } else if (groupName === "✏️EIGENE") {
+        setSubCats(currentCustom.map(t => ({ name: t.name, parent: "✏️EIGENE" })));
+    } else {
+        const list = [];
+        Object.keys(fullData[groupName]).forEach(s => list.push({ name: s, parent: groupName }));
+        setSubCats(list);
+    }
+};
+
+
+
+
+            const toggleSub = (name, parent) => {
+    const id = `${parent}:${name}`; 
+    setSelectedSubs(prev => 
+        prev.includes(id) ? prev.filter(n => n !== id) : [...prev, id]
+    );
+};
+
+const selectAll = () => {
+    const currentIds = subCats.map(s => `${s.parent}:${s.name}`);
+    const allCurrentSelected = currentIds.every(id => selectedSubs.includes(id));
+    if (allCurrentSelected) {
+        setSelectedSubs(prev => prev.filter(id => !currentIds.includes(id)));
+    } else {
+        setSelectedSubs(prev => [...new Set([...prev, ...currentIds])]);
+    }
+};
+
+const handleGlobalToggle = () => {
+    if (selectedSubs.length > 0) {
+        setSelectedSubs([]);
+    } else {
+        let allIds = [];
+        Object.keys(data).forEach(group => {
+            if (group !== "🔥BELIEBT") { // Beliebt überspringen, da es nur Kopien sind
+                Object.keys(data[group]).forEach(sub => {
+                    allIds.push(`${group}:${sub}`);
+                });
+            }
+        });
+        customTopics.forEach(t => allIds.push(`✏️EIGENE:${t.name}`));
+        setSelectedSubs(allIds);
+    }
+};
+// no glass toggle needed — auto via prefers-color-scheme
+
+const [isRetro, setIsRetro] = React.useState(() => localStorage.getItem('imp_retro') === 'true');
+
+const toggleRetro = () => {
+    const next = !isRetro;
+    setIsRetro(next);
+    localStorage.setItem('imp_retro', next);
+    if (next) document.body.classList.add('retro-mode');
+    else document.body.classList.remove('retro-mode');
+};
+
+React.useEffect(() => {
+    if (isRetro) document.body.classList.add('retro-mode');
+    else document.body.classList.remove('retro-mode');
+}, []);
+
+
+
+
+            const addCustomTopic = () => {
+    const name = prompt("Gib ein Thema für die KI ein:");
+    if(name && name.trim() !== "") {
+        const trimmedName = name.trim();
+        const newList = [...customTopics, { name: trimmedName }];
+        setCustomTopics(newList);
+        localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
+        
+        const newSubList = newList.map(t => ({ name: t.name, parent: "✏️EIGENE" }));
+        setSubCats(newSubList);
+        
+        // HIER DIE KORREKTUR: Prefix hinzufügen
+        setSelectedSubs(prev => [...prev, `✏️EIGENE:${trimmedName}`]);
+    }
+};
+
+const startGame = async () => {
+    let finalId = "";
+    // 1. Absolute Obergrenze: Hälfte der Spieler
+const limit = Math.floor(players.length / 2);
+const maxPossible = Math.min(imposterCount, limit);
+
+// 2. Pool für gewichteten Zufall (Höhere Zahlen sind wahrscheinlicher)
+const weightPool = [];
+for (let i = 1; i <= maxPossible; i++) {
+    for (let j = 0; j < (i * 3); j++) { // Faktor 3 für stärkere Gewichtung der hohen Zahl
+        weightPool.push(i);
+    }
+}
+
+// 3. Tatsächliche Anzahl für diese Runde würfeln
+const rolledCount = weightPool.length > 0 
+    ? weightPool[Math.floor(Math.random() * weightPool.length)] 
+    : 1;
+
+// 4. Indizes zufällig zuweisen
+let tempIndices = [];
+while(tempIndices.length < rolledCount) {
+    let r = Math.floor(Math.random() * players.length);
+    if(!tempIndices.includes(r)) tempIndices.push(r);
+}
+indices = tempIndices;
+
+
+    if (selectedSubs.length === 0) {
+        // Sammle ALLE verfügbaren Themen-IDs
+        const allPossibleIds = [];
+        
+        Object.keys(data).forEach(group => {
+            if (group !== "🔥BELIEBT") { 
+                Object.keys(data[group]).forEach(sub => {
+                    allPossibleIds.push(`${group}:${sub}`);
+                });
+            }
+        });
+        
+        customTopics.forEach(t => allPossibleIds.push(`✏️EIGENE:${t.name}`));
+
+        // Wähle eine absolut zufällige ID aus der Gesamtliste
+        finalId = allPossibleIds[Math.floor(Math.random() * allPossibleIds.length)];
+    } else {
+        // Wähle aus deiner Auswahl
+        finalId = selectedSubs[Math.floor(Math.random() * selectedSubs.length)];
+    }
+
+    if (!finalId) return alert("Keine Themen verfügbar!");
+
+    const [parentGroup, randomSub] = finalId.split(':');
+
+    setLoading(true);
+    setVisualProgress(50);
+    
+    let word = "", hint = "", chaos = "";
+    let indices = [];
+    
+
+
+    try {
+        
+ 
+        const rng = Math.random();
+        if (rng < 0.01) chaos = "ALL";
+        else if (rng < 0.02) chaos = "NONE";
+
+        // 3. Nutzt jetzt 'parentGroup', um zu entscheiden: KI oder Liste?
+        if (parentGroup === "✏️EIGENE") {
+            if(!apiKey) {
+                setLoading(false);
+                return alert("API Key fehlt!");
+            }
+            
+            if (aiWordPool[randomSub] && aiWordPool[randomSub].length > 0) {
+                const nextPair = aiWordPool[randomSub][0];
+                word = nextPair.word;
+                hint = nextPair.hint;
+                setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
+            } else {
+               
+
+                                                                                               // Der Prompt ist jetzt extrem strikt
+                // Optimierter, minimalistischer Prompt
+                                // Minimaler User-Prompt
+                const promptText = `Thema: "${randomSub}". Erstelle 40 Paare. Verbot: "${randomSub}".`;
+                
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.1-8b-instant",
+                        messages: [
+                            { 
+                                role: "system", 
+                                content: `Du bist ein Wort-Generator. 
+                                Regeln:
+                                1. Format: Wort|Hinweis (Beispiel: "Zitrone|Sauer", "Ozean|Blau").
+                                2. Der Hinweis muss eine Eigenschaft oder ein Kontext sein, kein Synonym.
+                                3. KEIN Einleitungstext. 
+                                4. Das Wort "${randomSub}" ist in der gesamten Antwort STRENG VERBOTEN.` 
+                            },
+                            { role: "user", content: promptText }
+                        ],
+                        temperature: 0.2, 
+                        max_tokens: 800
+                    })
+                });
+
+                const d = await res.json();
+                if (d.error) { alert(`Groq-Fehler: ${d.error.message}`); return; }
+
+                let raw = d.choices[0].message.content.trim();
+                raw = raw.replace(/\n/g, ", ").replace(/\d+\./g, "");
+
+                const pairs = raw.split(',').map(p => {
+                    const parts = p.split('|');
+                    if (parts.length < 2) return null;
+                    
+                    const w = parts[0].trim();
+                    const h = parts[1].trim();
+                    const forbidden = randomSub.toLowerCase();
+                    
+                    // Filter 1: Mindestlänge
+                    if (w.length < 2) return null;
+                    
+                    // Filter 2: Verbotenes Thema ausschließen
+                    if (w.toLowerCase().includes(forbidden) || h.toLowerCase().includes(forbidden)) return null;
+                    
+                    // Filter 3: Ähnlichkeits-Schutz (verhindert Synonyme/doppelte Wörter)
+                    // Löscht Paare, bei denen das Wort im Hinweis vorkommt oder umgekehrt
+                    if (w.toLowerCase().includes(h.toLowerCase()) || h.toLowerCase().includes(w.toLowerCase())) return null;
+                    
+                    return { word: w, hint: h };
+                }).filter(p => p !== null);
+
+                if (pairs.length > 0) {
+                    word = pairs[0].word;
+                    hint = pairs[0].hint;
+                    setAiWordPool(prev => ({ ...prev, [randomSub]: pairs.slice(1) }));
+                } else {
+                    alert("Formatfehler der KI oder alle Paare gefiltert. Antwort war: " + raw.substring(0, 50));
+                }
+            }
+        } else {
+            // Suche global in allen Kategorien von 'data'
+            let foundData = null;
+            for (let groupKey in data) {
+                if (data[groupKey] && data[groupKey][randomSub]) {
+                    foundData = data[groupKey][randomSub];
+                    break;
+                }
+            }
+
+            if (foundData && foundData.pairs && foundData.pairs.length > 0) {
+                const randomPair = foundData.pairs[Math.floor(Math.random() * foundData.pairs.length)];
+                word = randomPair[0];
+                hint = randomPair[1];
+            }
+        }
+
+        if (!word) {
+            throw new Error("Wort konnte nicht geladen werden. Thema: " + randomSub);
+        }
+
+        if (chaos === "ALL") {
+            indices = players.map((_, i) => i);
+        } else if (chaos === "NONE") {
+            indices = [];
+        } else {
+            const count = Math.min(imposterCount, players.length - 1);
+            while(indices.length < count) {
+                let r = Math.floor(Math.random() * players.length);
+                if(!indices.includes(r)) indices.push(r);
+            }
+        }
+
+
+        const newStats = { ...stats };
+        indices.forEach(idx => { newStats[players[idx]] = (newStats[players[idx]] || 0) + 1; });
+        setStats(newStats);
+        const randomStarter = Math.floor(Math.random() * players.length);
+
+        // Ändere diese Zeile in deinem Skript:
+setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos, topic: randomSub, startingPlayer: randomStarter });
+        setTimeLeft(timerMinutes * 60);
+        setVisualProgress(100);
+        setTimeout(() => { setGameState('reveal'); setLoading(false); }, 400);
+    } catch (e) { 
+        console.error(e);
+        alert("Fehler: " + e.message); 
+        setLoading(false); 
+    }
+};
+
+
+            const formatTime = (s) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2, '0')}`;
+
+            if (!data) return <div className="h-screen flex items-center justify-center font-black">Lade...</div>;
+
+            return (
+               <div className="main-container">
+    <div className="flex justify-between items-center mb-4 border-b-8 border-red-600">
+        <h1 className="text-4xl font-black italic tracking-tighter uppercase">Imposter.ai</h1>
+        <button
+            onClick={toggleRetro}
+            className="style-toggle-btn"
+            style={{
+                background: isRetro ? 'var(--bg-card)' : 'var(--gc2)',
+                border: isRetro ? '2px solid var(--border-color)' : '1px solid var(--gborder)',
+                borderRadius: isRetro ? '0' : '8px',
+                color: 'var(--gtext)',
+                boxShadow: isRetro ? '3px 3px 0 var(--border-color)' : 'none',
+                backdropFilter: isRetro ? 'none' : 'blur(12px)',
+            }}
+        >
+            {isRetro ? '✦ Glass' : '◼ Retro'}
+        </button>
+    </div>
+
+
+
+                    <div className="game-card bg-white p-5 neo-box space-y-4">
+                        {loading ? (
+                             <div className="flex flex-col items-center justify-center p-10 space-y-4">
+                                <div className="font-black text-xl italic uppercase">Generiere...</div>
+                                <div className="w-full border-4 border-black h-8 bg-white"><div className="progress-fill" style={{width: `${visualProgress}%`}}></div></div>
+                            </div>
+                        ) : gameState === 'setup' ? (
+                            <>
+                                <div className="grid grid-cols-3 gap-2 shrink-0">
+                                    <div className="space-y-1">
+    <label className="text-[10px] font-black uppercase opacity-60">Verräter :</label>
+    <select 
+        value={imposterCount} 
+        onChange={e => setImposterCount(parseInt(e.target.value))} 
+        className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none"
+    >
+        {/* Erzeugt Optionen bis maximal zur Hälfte der Spieleranzahl */}
+        {Array.from({length: Math.floor(players.length / 2)}, (_, i) => i + 1).map(n => (
+            <option key={n} value={n}>{n}</option>
+        ))}
+    </select>
+</div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase opacity-60">Hinweis:</label>
+                                        <button onClick={() => setShowHint(!showHint)} className={`w-full p-2 border-2 border-black font-bold text-[10px] uppercase transition-colors ${showHint ? 'bg-green-400' : 'bg-red-400'}`}>
+                                            {showHint ? 'AN' : 'AUS'}
+                                        </button>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase opacity-60">Zeitlimit:</label>
+                                        <select value={timerMinutes} onChange={e => setTimerMinutes(parseInt(e.target.value))} className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none">
+                                            {[0,1,2,3,5,10].map(m => <option key={m} value={m}>{m === 0 ? "AUS" : `${m}min`}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 pt-2 shrink-0">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-black text-[10px] uppercase underline">Mitspieler:</span>
+                                        <button onClick={() => players.length < 10 && setPlayers([...players, `Spieler ${players.length+1}`])} className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black uppercase">+ Add</button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-1 max-h-24 overflow-y-auto border border-black p-1 bg-gray-50">
+                                        {players.map((p, i) => (
+                                            <div key={i} className="flex border border-black bg-white">
+                                                <input value={p} onChange={e => {let n=[...players]; n[i]=e.target.value; setPlayers(n);}} className="w-full p-1 text-[10px] font-bold outline-none uppercase" />
+                                                <span className="text-[9px] font-black bg-yellow-400 px-1 border-l border-black flex items-center">🕵️{stats[p] || 0}</span>
+                                                <button onClick={() => players.length > 3 && setPlayers(players.filter((_, idx) => idx !== i))} className="bg-red-500 text-white px-1 font-black">×</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-t-2 border-black pt-2 shrink-0">
+    {groups.map(g => {
+        let hasSelection = false;
+        let countInGroup = 0;
+
+        if (g === "🔥BELIEBT") {
+            const beliebtIds = shuffledBeliebt.map(s => `${s.parent}:${s.name}`);
+            countInGroup = selectedSubs.filter(id => beliebtIds.includes(id)).length;
+            hasSelection = countInGroup > 0;
+        } else {
+            hasSelection = selectedSubs.some(id => id.startsWith(`${g}:`));
+            countInGroup = selectedSubs.filter(id => id.startsWith(`${g}:`)).length;
+        }
+
+        // KONSTANTE zum Trimmen der Zahlen am Anfang
+        const displayName = g.replace(/^[\d.]+\s*/, "");
+
+        return (
+            <button 
+                key={g} 
+                onClick={() => updateView(g)} 
+                className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all 
+                    ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}
+            >
+                {/* KORREKTUR: Hier muss displayName stehen statt g */}
+                {displayName} {hasSelection && `(${countInGroup})`}
+            </button>
+        );
+    })}
+</div>
+
+
+
+                                <div className="action-btn-group">
+    <button 
+        onClick={selectAll}
+    >
+        {subCats.length > 0 && subCats.every(s => selectedSubs.includes(`${s.parent}:${s.name}`)) 
+            ? "× Abwählen" 
+            : "✓ Gruppe"}
+    </button>
+    <button 
+        onClick={handleGlobalToggle}
+        className={selectedSubs.length > 0 ? 'is-reset-active' : 'is-global-active'}
+    >
+        {selectedSubs.length > 0 ? `Reset (${selectedSubs.length})` : "Global"}
+    </button>
+</div>
+
+                                <div className="topics-block-container mx-0 my-2">
+    {/* Themenliste */}
+    <div className="scroll-container hide-scrollbar" style={{ maxHeight: '300px' }}>
+        {selectedGroup === "✏️EIGENE" && (
+            <button 
+                onClick={addCustomTopic} 
+                className="w-full p-4 border-b-4 border-dashed border-black dark:border-white font-black text-sm uppercase bg-yellow-100 !text-black shrink-0"
+            >
+                + NEUES KI-THEMA
+            </button>
+        )}
+        
+        {subCats.map((s) => {
+    const currentId = `${s.parent}:${s.name}`; // Nutzt jetzt den echten Ursprung
+    const isSelected = selectedSubs.includes(currentId);
+    return (
+        <button 
+            key={currentId}
+            type="button"
+            onClick={() => toggleSub(s.name, s.parent)} 
+            className={`category-item ${isSelected ? 'selected' : ''}`}
+        >
+            <div className="flex justify-between items-center w-full">
+                <span>{isSelected ? "✓ " : ""}{s.name}</span>
+                {selectedGroup === "✏️EIGENE" && (
+                    <span 
+                        onClick={(e) => { e.stopPropagation(); triggerDelete(e, s.name); }} 
+                        className="text-[10px] bg-red-600 px-2 py-1 text-white border-2 border-white font-black"
+                    >
+                        LÖSCHEN
+                    </span>
+                )}
+            </div>
+        </button>
+    );
+})}
+
+    </div>
+</div>
+
+<button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box shrink-0 active:bg-red-700 uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target">
+    {selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Zufälliges Thema'}
+</button>
+
+
+                                <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10 shrink-0" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
+                            </>                                                 ) : (
+                            <div className="p-4 text-center">
+                                {gameState === 'reveal' && (
+                                    <div className="space-y-6 py-4 flex flex-col items-center">
+                                        <h2 className="text-2xl font-black uppercase italic border-b-4 border-black px-4">
+                                            {players[gameData.currentPlayer]}
+                                        </h2>
+                                        
+                                        <div onClick={() => setGameData({...gameData, showingWord: true})} 
+                                             className={`w-full h-64 flex flex-col items-center justify-center border-4 border-black p-6 
+                                             ${gameData.showingWord 
+                                                ? (gameData.imposterIndices.includes(gameData.currentPlayer) ? 'bg-black text-white' : 'bg-red-600 text-white') 
+                                                : 'bg-gray-100 animate-pulse'}`}>
+                                            
+                                            {gameData.showingWord ? (
+                                                gameData.imposterIndices.includes(gameData.currentPlayer) ? (
+                                                    <div className="text-center">
+                                                        <div className="text-red-500 font-black text-xl mb-1 uppercase tracking-widest">Du bist der</div>
+                                                        <div className="text-6xl font-black uppercase italic">Imposter</div>
+                                                        {showHint && <div className="mt-6 p-3 border-2 border-white text-sm font-bold uppercase tracking-tight">Tipp: {gameData.hint}</div>}
+                                                    </div>
+                                                ) : (
+                                                    <span className={`${getFontSize(gameData.word)} font-black uppercase tracking-tighter text-center break-words w-full px-2`}>
+                                                        {gameData.word}
+                                                    </span>
+                                                )
+                                            ) : (
+                                                <span className="text-2xl font-black italic underline uppercase text-black">Karte aufdecken</span>
+                                            )}
+                                        </div>
+
+                                        {gameData.showingWord && (
+                                            <button onClick={() => {
+                                                if(gameData.currentPlayer + 1 < players.length) {
+                                                    setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
+                                                } else {
+                                                    setGameState('play');
+                                                }
+                                            }} className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
+">
+                                                Verstanden
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
+                             {gameState === 'play' && (
+    <div className={`py-8 flex flex-col items-center space-y-6 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'animate-pulse' : ''}`}>
+        
+        {/* Timer Anzeige */}
+        {timerMinutes > 0 && (
+            <div className={`text-6xl font-black px-6 py-2 border-4 border-black neo-box shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target ${timeLeft < 10 ? 'text-red-600 border-red-600' : ''}`}>
+                {formatTime(timeLeft)}
+            </div>
+        )}
+
+        {/* Startspieler Anzeige - Verschwindet nach 5 Sekunden mit Animation */}
+        <div className={`w-full transition-all duration-500 overflow-hidden ${showBeginner ? 'max-h-40 opacity-100 mb-4' : 'max-h-0 opacity-0 mb-0'}`}>
+            <div className="bg-yellow-300 border-4 border-black p-5 neo-box glass-target">
+                <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">Die Runde eröffnet:</p>
+                <h3 className="text-3xl font-black uppercase italic flex items-center gap-3 text-black">
+            
+            {players[gameData.startingPlayer]}
+                </h3>
+            </div>
+        </div>
+
+        {/* Titel & Info */}
+        <div className="text-center space-y-2 py-4">
+            <h2 className="text-6xl font-black text-red-600 italic animate-bounce uppercase tracking-tighter">
+                Diskussion!
+            </h2>
+            <div className="font-bold text-[10px] uppercase opacity-50">
+                <span>Entlarvt den Verräter</span>
+                {timerMinutes > 0 && timeLeft > 0 && <span>, bevor die Zeit abläuft</span>}
+                <span>.</span>
+            </div>
+        </div>
+
+       {/* Button zum Beenden mit Schatten */}
+<button 
+    onClick={() => setGameState('finish')} 
+    className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase active:scale-95 active:shadow-none transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target"
+>
+    Auflösen
+</button>
+
+    </div>
+)}
+
+
+
+
+                               {gameState === 'finish' && (
+    <div className="py-10 flex flex-col items-center space-y-6 text-center">
+        <h2 className="text-2xl font-black uppercase underline decoration-4">
+            {gameData.chaosMode === "ALL" ? "PARANOIA! Alle Imposter!" : 
+             gameData.chaosMode === "NONE" ? "FEHLALARM! Niemand!" : "Die Verräter:"}
+        </h2>
+        {gameData.imposterIndices.length > 0 ? gameData.imposterIndices.map(idx => (
+            <div key={idx} className="text-4xl font-black text-red-600 italic uppercase tracking-tighter">{players[idx]}</div>
+        )) : <div className="text-4xl font-black text-green-600 italic uppercase">Niemand</div>}
+        
+        {/* HIER DIE ÄNDERUNG: Zeigt das Thema UND das Wort an */}
+        <div className="flex flex-col gap-1 mt-4">
+            <div className="text-[10px] font-black uppercase opacity-50">Kategorie: {gameData.topic}</div>
+            <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase">Das Wort: {gameData.word}</div>
+        </div>
+
+        <button onClick={() => {
+            const fresh = getShuffledBeliebt(data);
+            setShuffledBeliebt(fresh);
+            setSubCats(fresh);
+            setSelectedGroup("🔥BELIEBT");
+            setGameState('setup');
+        }} className="w-full bg-red-600 text-white py-5 font-black text-xl neo-box uppercase">
+            Nächste Runde
+        </button>
+    </div>
+)}
+
+                            </div>
+                        )}
+                    </div> {/* Ende game-card */}
+
+                    {deleteConfirm && (
+                        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6">
+                            <div className="bg-white border-4 border-black p-6 neo-box w-full max-w-xs text-center space-y-4">
+                                <h3 className="font-black text-xl uppercase italic text-black">Löschen?</h3>
+                                <p className="font-bold text-sm uppercase text-black">"{deleteConfirm}" entfernen?</p>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-3 border-2 border-black font-black text-xs uppercase text-black">Nein</button>
+                                    <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 text-white border-2 border-black font-black text-xs uppercase">Ja</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div> // Ende main-container
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
