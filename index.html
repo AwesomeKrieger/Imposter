@@ -14,161 +14,830 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 <style>
+/* ============================================================
+   APPLE LIQUID GLASS — AUTO SYSTEM DETECTION
+   LIGHT: pure white bg | DARK: pure black bg
+   ============================================================ */
+
+/* ---------- LIGHT MODE VARIABLES ---------- */
+:root {
+    --bg: #ffffff;
+    --gc:    rgba(255,255,255,0.75);
+    --gc2:   rgba(255,255,255,0.55);
+    --gb:    rgba(255,255,255,0.92);
+    --gborder: rgba(0,0,0,0.12);
+    --gborder-top: rgba(255,255,255,1);
+    --gtext:  #000000;
+    --gtext2: rgba(0,0,0,0.45);
+    --gsep:   rgba(0,0,0,0.07);
+    --gsel:   rgba(0,0,0,0.08);
+    --gsel-text: #000000;
+    --gshadow: rgba(0,0,0,0.14);
+    --gshadow2: rgba(0,0,0,0.07);
+    --gred:    #dc2626 ;
+    --gred-border: rgba(255,100,110,0.5);
+
+    /* keep retro vars for fallback */
+    --bg-main: #ffffff;
+    --bg-card: #ffffff;
+    --text-color: #000000;
+    --border-color: #000000;
+    --item-selected-bg: #000000;
+    --item-selected-text: #ffffff;
+}
+
+/* ---------- DARK MODE VARIABLES ---------- */
+@media (prefers-color-scheme: dark) {
     :root {
-        /* HELLER MODUS */
-        --bg-main: #ffffff;
-        --bg-card: #ffffff;
-        --text-color: #000000;
-        --border-color: #000000;
-        --item-selected-bg: #000000;
-        --item-selected-text: #ffffff;
-    }
+        --bg: #000000;
+        --gc:    rgba(28,28,30,0.78);
+        --gc2:   rgba(20,20,22,0.65);
+        --gb:    rgba(35,35,38,0.92);
+        --gborder: rgba(255,255,255,0.14);
+        --gborder-top: rgba(255,255,255,0.28);
+        --gtext:  #ffffff;
+        --gtext2: rgba(255,255,255,0.42);
+        --gsep:   rgba(255,255,255,0.07);
+        --gsel:   rgba(255,255,255,0.13);
+        --gsel-text: #ffffff;
+        --gshadow: rgba(0,0,0,0.55);
+        --gshadow2: rgba(0,0,0,0.3);
+        --gred:   rgba(220,38,52,0.82);
+        --gred-border: rgba(255,90,100,0.4);
 
-    /* DARK MODE */
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --bg-main: #000000;
-            --bg-card: #000000;
-            --text-color: #ffffff;
-            --border-color: #ffffff;
-            --item-selected-bg: #ffffff;
-            --item-selected-text: #000000;
-        }
+        --bg-main: #000000;
+        --bg-card: #000000;
+        --text-color: #ffffff;
+        --border-color: #ffffff;
+        --item-selected-bg: #ffffff;
+        --item-selected-text: #000000;
     }
+}
 
-    html, body { 
-        background-color: var(--bg-main) !important; 
-        color: var(--text-color); 
-        margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; 
-        transition: background-color 0.3s ease;
-    }
+/* ---------- RESET ---------- */
+html, body, #root {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+input, textarea { -webkit-user-select: text; user-select: text; }
 
-    .main-container { 
-        height: 100dvh; 
-        display: flex; 
-        flex-direction: column; 
-        padding: 1rem; 
-        box-sizing: border-box;
-        background-color: var(--bg-main);
-    }
-
-    .game-card { 
-        background-color: var(--bg-card);
-        border: 4px solid var(--border-color) !important;
-        display: flex; flex-direction: column; height: 100%; overflow: hidden; 
-        box-shadow: 6px 6px 0px 0px var(--border-color);
-    }
-
-   .topics-block-container {
-    margin: 10px 0;
-    border: 4px solid var(--border-color);
-    background: var(--bg-card);
-    display: flex;
-    flex-direction: column;
+html, body {
+    margin: 0; padding: 0;
+    height: 100%; width: 100%;
     overflow: hidden;
-    box-shadow: 6px 6px 0px 0px var(--border-color);
+    background: var(--bg) !important;
+    color: var(--gtext);
 }
 
-.scroll-container { 
-    flex: 1;
-    max-height: 280px; /* Begrenzt die Höhe des Kastens */
-    overflow-y: auto !important; 
-    background: var(--bg-card); 
-    padding: 0 !important;
+/* ---------- LAYOUT ---------- */
+.main-container {
+    height: 100dvh;
     display: flex;
     flex-direction: column;
+    padding: 1rem;
+    box-sizing: border-box;
+    background: transparent;
 }
 
+/* ---------- GAME CARD ---------- */
+.game-card {
+    background: var(--gc) !important;
+    backdrop-filter: blur(48px) saturate(200%);
+    -webkit-backdrop-filter: blur(48px) saturate(200%);
+    border: 1px solid var(--gborder) !important;
+    border-top: 1px solid var(--gborder-top) !important;
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.8) inset,
+        0 24px 64px var(--gshadow),
+        0 6px 20px var(--gshadow2) !important;
+    border-radius: 28px !important;
+    display: flex; flex-direction: column;
+    height: 100%; overflow: hidden;
+    color: var(--gtext) !important;
+}
+
+/* ---------- TOPICS BLOCK ---------- */
+.topics-block-container {
+    margin: 10px 0;
+    background: var(--gc2) !important;
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border: 1px solid var(--gborder) !important;
+    border-top: 1px solid var(--gborder-top) !important;
+    box-shadow: 0 8px 28px var(--gshadow), 0 2px 8px var(--gshadow2) !important;
+    border-radius: 20px !important;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+
+/* ---------- SCROLL CONTAINER ---------- */
+.scroll-container {
+    flex: 1;
+    max-height: 280px;
+    overflow-y: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: flex; flex-direction: column;
+    border-radius: 0 0 18px 18px !important;
+}
+
+/* ---------- CATEGORY ITEMS ---------- */
 .category-item {
     margin: 0 !important;
-    padding: 16px; 
-    background: var(--bg-card);
-    color: var(--text-color);
+    padding: 16px;
+    background: transparent !important;
+    color: var(--gtext) !important;
     border: none !important;
-    /* Standardmäßig eine dunkle Linie oben zur Trennung */
-    border-top: 2px solid var(--border-color) !important; 
+    border-top: 1px solid var(--gsep) !important;
     cursor: pointer;
     text-align: left;
     font-weight: 900;
     text-transform: uppercase;
     width: 100% !important;
     box-sizing: border-box;
+    transition: background 0.12s ease;
 }
-/* Verhindert das Markieren von Text und Elementen */
-html, body, #root {
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none;      /* IE 10+ */
-    user-select: none;          /* Standard */
-    -webkit-touch-callout: none; /* Verhindert das Kontextmenü auf iOS */
-}
-
-/* Erlaubt das Auswählen nur in Input-Feldern (wichtig für deinen API-Key!) */
-input, textarea {
-    -webkit-user-select: text;
-    user-select: text;
-}
-
-
-/* WICHTIG: Wenn ausgewählt -> Schwarz mit HELLEM Rand */
+.category-item:first-child { border-top: none !important; }
 .category-item.selected {
-    background-color: var(--item-selected-bg) !important;
-    color: var(--item-selected-text) !important;
-    /* Erzeugt die helle Trennung zwischen zwei schwarzen Blöcken */
-    border-top: 2px solid rgba(255, 255, 255, 0.3) !important; 
+    background: var(--gsel) !important;
+    color: var(--gsel-text) !important;
+    border-top: 1px solid var(--gsep) !important;
 }
 
-/* Verhindert eine weiße Linie beim allerersten Element im Kasten */
-.category-item:first-child {
-    border-top: none !important;
+/* ---------- INPUTS & SELECTS ---------- */
+input, select {
+    background: var(--gc2) !important;
+    color: var(--gtext) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 10px !important;
+    backdrop-filter: blur(16px);
+}
+input::placeholder { color: var(--gtext2) !important; }
+
+/* ---------- SCROLLBAR HIDE ---------- */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ---------- NEO-BOX RESET ---------- */
+.neo-box {
+    box-shadow: 0 4px 16px var(--gshadow), 0 1px 4px var(--gshadow2) !important;
+    border-radius: 16px !important;
 }
 
+/* ---------- ALL BUTTONS BASE ---------- */
+button {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: transform 0.16s cubic-bezier(0.34,1.4,0.64,1), box-shadow 0.16s ease;
+}
+button:active { transform: scale(0.96) !important; }
 
-    input, select {
-        background-color: var(--bg-card) !important;
-        color: var(--text-color) !important;
-        border: 2px solid var(--border-color) !important;
+/* START / main red button */
+button.bg-red-600 {
+    background: var(--gred) !important;
+    border: 1px solid var(--gred-border) !important;
+    border-top: 1px solid rgba(255,160,160,0.6) !important;
+    color: #fff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 6px 22px rgba(220,38,52,0.38), 0 1px 0 rgba(255,255,255,0.25) inset !important;
+}
+
+/* Auflösen / black button */
+button.bg-black {
+    background: var(--gc) !important;
+    border: 1px solid var(--gborder) !important;
+    border-top: 1px solid var(--gborder-top) !important;
+    color: var(--gtext) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 16px var(--gshadow) !important;
+}
+
+/* Verstanden */
+button.bg-black.text-white {
+    background: var(--gc) !important;
+    color: var(--gtext) !important;
+}
+
+/* green hint on/add player */
+button.bg-green-400, button.bg-green-500 {
+    background: rgba(34,170,80,0.75) !important;
+    border: 1px solid rgba(80,220,120,0.45) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(34,170,80,0.3) !important;
+}
+
+/* red hint off */
+button.bg-red-400 {
+    background: rgba(210,45,55,0.72) !important;
+    border: 1px solid rgba(255,110,120,0.4) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+}
+
+/* reset red */
+button.bg-red-500 {
+    background: rgba(210,45,55,0.72) !important;
+    border: 1px solid rgba(255,110,120,0.4) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+}
+
+/* global blue */
+button.bg-blue-500 {
+    background: rgba(50,100,230,0.68) !important;
+    border: 1px solid rgba(120,160,255,0.4) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+}
+
+/* yellow gruppe */
+button.bg-yellow-400 {
+    background: rgba(200,160,0,0.65) !important;
+    border: none !important;
+    border-right: 1px solid var(--gsep) !important;
+    color: var(--gtext) !important;
+}
+
+/* yellow-100 AI custom */
+button.bg-yellow-100 {
+    background: rgba(200,160,0,0.18) !important;
+    border-bottom: 1px solid var(--gsep) !important;
+    color: var(--gtext) !important;
+}
+
+/* ---------- GROUP TABS ROW ---------- */
+.flex.gap-2.overflow-x-auto button {
+    border-radius: 10px !important;
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    color: var(--gtext) !important;
+    box-shadow: none !important;
+}
+.flex.gap-2.overflow-x-auto button.bg-red-600 {
+    background: var(--gred) !important;
+    border: 1px solid var(--gred-border) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(220,38,52,0.3) !important;
+}
+.flex.gap-2.overflow-x-auto button.bg-yellow-300 {
+    background: rgba(200,160,0,0.4) !important;
+    border: 1px solid rgba(220,180,0,0.4) !important;
+    color: var(--gtext) !important;
+}
+
+/* ---------- TOPICS BLOCK TOP BAR ---------- */
+.topics-block-container .flex.shrink-0,
+.topics-block-container .border-b-4 {
+    border-bottom: 1px solid var(--gsep) !important;
+    background: transparent !important;
+}
+
+/* ---------- PLAYERS GRID ---------- */
+.grid.grid-cols-2 {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 10px !important;
+}
+.grid.grid-cols-2 .player-row {
+    background: transparent !important;
+    border: 1px solid var(--gsep) !important;
+    border-radius: 6px !important;
+}
+
+/* ---------- HEADER ---------- */
+.flex.justify-between.items-center.mb-4 {
+    border-bottom: 1px solid var(--gsep) !important;
+}
+h1 { color: var(--gtext) !important; }
+label { color: var(--gtext2) !important; }
+.opacity-50, .opacity-60 { color: var(--gtext2) !important; opacity: 1 !important; }
+
+/* ---------- CARD REVEAL (h-64) ---------- */
+.w-full.h-64 {
+    border: 1px solid var(--gborder) !important;
+    border-top: 1px solid var(--gborder-top) !important;
+    border-radius: 20px !important;
+    backdrop-filter: blur(24px);
+    box-shadow: 0 8px 32px var(--gshadow) !important;
+    overflow: hidden;
+}
+
+/* Imposter black card */
+.bg-black.text-white {
+    background: rgba(10,10,12,0.88) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6) !important;
+    border-radius: 20px !important;
+}
+@media (prefers-color-scheme: dark) {
+    .bg-black.text-white {
+        background: rgba(10,10,12,0.92) !important;
+        border: 1px solid rgba(255,255,255,0.18) !important;
     }
+}
 
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-//* GLASSMORPHISM LOOK MIT ABGERUNDETEN ECKEN */
-.glass-mode .game-card, 
-.glass-mode .topics-block-container {
-    background: rgba(255, 255, 255, 0.05) !important;
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8) !important;
-    
-    /* ABGERUNDETE ECKEN */
+/* Word red card */
+.bg-red-600.text-white {
+    background: rgba(210,35,48,0.88) !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(255,120,130,0.4) !important;
+}
+
+/* Tap prompt */
+.bg-gray-100.animate-pulse, .bg-gray-100 {
+    background: var(--gc2) !important;
+    border-radius: 20px !important;
+    color: var(--gtext) !important;
+}
+
+/* ---------- BEGINNER BOX ---------- */
+.bg-yellow-300.border-4 {
+    background: rgba(200,160,0,0.28) !important;
+    border: 1px solid rgba(220,180,0,0.35) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(16px);
+    color: var(--gtext) !important;
+}
+
+/* ---------- TIMER ---------- */
+.text-6xl.font-black.px-6 {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(20px);
+    color: var(--gtext) !important;
+    box-shadow: 0 4px 20px var(--gshadow) !important;
+}
+
+/* ---------- FINISH SCREEN ---------- */
+.bg-gray-100.p-4 {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 10px !important;
+    color: var(--gtext) !important;
+}
+
+/* ---------- PROGRESS BAR ---------- */
+.border-4.border-black.h-8 {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 8px !important;
+    overflow: hidden;
+}
+
+/* ---------- DELETE BADGE ---------- */
+span.bg-red-600 {
+    background: rgba(210,38,52,0.75) !important;
+    border: 1px solid rgba(255,110,120,0.4) !important;
+    border-radius: 6px !important;
+}
+
+/* ---------- CONFIRM DIALOG ---------- */
+.fixed.inset-0 > div {
+    background: var(--gb) !important;
+    backdrop-filter: blur(48px) !important;
+    -webkit-backdrop-filter: blur(48px) !important;
+    border: 1px solid var(--gborder) !important;
+    border-top: 1px solid var(--gborder-top) !important;
     border-radius: 24px !important;
+    color: var(--gtext) !important;
+    box-shadow: 0 24px 64px var(--gshadow) !important;
+}
+.fixed.inset-0 p,
+.fixed.inset-0 h3 { color: var(--gtext) !important; }
+.fixed.inset-0 button {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 10px !important;
+    color: var(--gtext) !important;
+    box-shadow: none !important;
+}
+.fixed.inset-0 button.bg-red-600 {
+    background: rgba(210,38,52,0.82) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,110,120,0.4) !important;
 }
 
-/* Verhindert, dass die inneren Elemente die Rundung überlagern */
-.glass-mode .scroll-container {
-    border-radius: 0 0 20px 20px !important;
+/* ---------- HINT BOX ---------- */
+.border-2.border-white {
+    border: 1px solid var(--gborder) !important;
+    border-radius: 10px !important;
+    background: var(--gc2);
 }
 
-.glass-mode .neo-box { 
-    box-shadow: none !important; 
+/* ---------- HEADER SEPARATOR ---------- */
+.border-b-8.border-red-600 {
+    border-bottom: 2px solid rgba(220,38,52,0.45) !important;
 }
 
-.glass-mode .category-item { 
-    background: transparent !important; 
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important; 
+/* ---------- SOFTER BUTTON SHADOWS ---------- */
+button.bg-red-600 {
+    box-shadow: 0 3px 12px rgba(220,38,52,0.22), 0 1px 0 rgba(255,255,255,0.2) inset !important;
+}
+button.bg-black {
+    box-shadow: 0 2px 10px var(--gshadow) !important;
+}
+button.bg-green-400, button.bg-green-500 {
+    box-shadow: 0 2px 8px rgba(34,170,80,0.18) !important;
+}
+.neo-box {
+    box-shadow: 0 3px 12px var(--gshadow), 0 1px 3px var(--gshadow2) !important;
 }
 
-.glass-mode .category-item.selected { 
-    background: rgba(255, 255, 255, 0.2) !important; 
-    color: #fff !important; 
+/* ---------- CARD FLIP ANIMATION ---------- */
+.card-flip-scene {
+    perspective: 1000px;
+    width: 100%;
+}
+.card-flip-inner {
+    position: relative;
+    width: 100%;
+    height: 256px;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
+    cursor: pointer;
+}
+.card-flip-inner.is-flipped {
+    transform: rotateY(180deg);
+}
+.card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    border-radius: 20px;
+    overflow: hidden;
+}
+.card-face-front {
+    background: var(--gc2);
+    border: 1px solid var(--gborder);
+    border-top: 1px solid var(--gborder-top);
+    box-shadow: 0 8px 28px var(--gshadow);
+}
+.card-face-back {
+    transform: rotateY(180deg);
+}
+.card-face-back.is-imposter {
+    background: rgba(10,10,12,0.92);
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.card-face-back.is-word {
+    background: rgba(210,35,48,0.88);
+    border: 1px solid rgba(255,120,130,0.4);
+    box-shadow: 0 8px 28px rgba(210,38,52,0.3);
 }
 
+/* retro card */
+body.retro-mode .card-face-front {
+    background: var(--bg-card) !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+body.retro-mode .card-face-back.is-imposter {
+    background: #000 !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+body.retro-mode .card-face-back.is-word {
+    background: #dc2626 !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
 
+/* ---------- TOPICS INNER BUTTON CORNERS ---------- */
+.topics-block-container .btn-gruppe {
+    border-radius: 0 !important;
+}
+.topics-block-container .btn-reset {
+    border-radius: 0 0 0 0 !important;
+    border-top-right-radius: 19px !important;
+}
+
+/* ---------- TOGGLE BUTTON ---------- */
+.retro-toggle-btn {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.18s ease;
+    margin-bottom: 4px;
+}
+
+/* ---------- PLAYER ROW STYLES ---------- */
+.player-row {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--gsep);
+    border-radius: 6px;
+    overflow: hidden;
+    background: transparent;
+}
+.player-row input {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    outline: none;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--gtext) !important;
+    min-width: 0;
+}
+.player-stats-badge {
+    font-size: 9px;
+    font-weight: 900;
+    padding: 0 8px;
+    white-space: nowrap;
+    color: #000000;
+    background: #facc15;
+    border-left: 1px solid var(--gsep);
+    border-right: 1px solid var(--gsep);
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    gap: 2px;
+    flex-shrink: 0;
+}
+.player-delete-btn {
+    font-weight: 900;
+    font-size: 13px;
+    padding: 0 8px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    justify-content: center;
+    background: var(--gred) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.12s;
+}
+.player-delete-btn:active {
+    background: #b91c1c !important;
+}
+
+/* ---------- RETRO MODE OVERRIDES ---------- */
+body.retro-mode {
+    background: var(--bg-main) !important;
+}
+body.retro-mode .main-container { background: var(--bg-main) !important; }
+body.retro-mode .game-card {
+    background: var(--bg-card) !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    border: 4px solid var(--border-color) !important;
+    border-top: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0 var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+body.retro-mode .topics-block-container {
+    background: var(--bg-card) !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0 var(--border-color) !important;
+}
+body.retro-mode .scroll-container {
+    background: var(--bg-card) !important;
+    border-radius: 0 !important;
+}
+body.retro-mode .category-item {
+    background: var(--bg-card) !important;
+    color: var(--text-color) !important;
+    border-top: 2px solid var(--border-color) !important;
+}
+body.retro-mode .category-item:first-child { border-top: none !important; }
+body.retro-mode .category-item.selected {
+    background: var(--item-selected-bg) !important;
+    color: var(--item-selected-text) !important;
+    border-top: 2px solid rgba(255,255,255,0.3) !important;
+}
+body.retro-mode .neo-box {
+    border-radius: 0 !important;
+    box-shadow: 6px 6px 0 var(--border-color) !important;
+}
+body.retro-mode button {
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    border-radius: 0 !important;
+}
+body.retro-mode button.bg-red-600 {
+    background: #dc2626 !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 var(--border-color) !important;
+    color: white !important;
+}
+body.retro-mode button.bg-black {
+    background: var(--item-selected-bg) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 var(--border-color) !important;
+    color: var(--item-selected-text) !important;
+}
+body.retro-mode button.bg-green-400, body.retro-mode button.bg-green-500 {
+    border-radius: 0 !important; box-shadow: 2px 2px 0 var(--border-color) !important;
+}
+body.retro-mode button.bg-red-400, body.retro-mode button.bg-red-500 {
+    border-radius: 0 !important; box-shadow: 2px 2px 0 var(--border-color) !important;
+}
+body.retro-mode button.bg-blue-500 {
+    border-radius: 0 !important; box-shadow: 2px 2px 0 var(--border-color) !important;
+}
+body.retro-mode .topics-block-container .btn-reset {
+    border-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+body.retro-mode .flex.gap-2.overflow-x-auto button {
+    background: var(--bg-card) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    color: var(--text-color) !important;
+    box-shadow: 2px 2px 0 var(--border-color) !important;
+}
+body.retro-mode .flex.gap-2.overflow-x-auto button.bg-red-600 {
+    background: #dc2626 !important; color: white !important;
+}
+body.retro-mode .flex.gap-2.overflow-x-auto button.bg-yellow-300 {
+    background: #fde047 !important; color: black !important;
+}
+body.retro-mode input, body.retro-mode select {
+    background: var(--bg-card) !important;
+    color: var(--text-color) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+}
+body.retro-mode .grid.grid-cols-2 {
+    background: transparent !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+}
+body.retro-mode .player-row {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+}
+body.retro-mode .player-row input {
+    background: var(--bg-card) !important;
+    color: var(--text-color) !important;
+    border: none !important;
+}
+body.retro-mode .player-stats-badge {
+    border-color: var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+body.retro-mode .player-delete-btn {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+}
+body.retro-mode .flex.justify-between.items-center.mb-4 {
+    border-bottom: 8px solid #dc2626 !important;
+}
+body.retro-mode h1 { color: var(--text-color) !important; }
+body.retro-mode label { color: var(--text-color) !important; opacity: 0.6; }
+body.retro-mode .bg-black.text-white {
+    background: #000 !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+body.retro-mode .bg-red-600.text-white {
+    background: #dc2626 !important;
+    border-radius: 0 !important;
+    border: 4px solid var(--border-color) !important;
+}
+body.retro-mode .bg-gray-100.animate-pulse, body.retro-mode .bg-gray-100 {
+    background: #f3f4f6 !important;
+    border-radius: 0 !important;
+    color: #000 !important;
+}
+@media (prefers-color-scheme: dark) {
+    body.retro-mode .bg-gray-100 { background: #111 !important; color: #fff !important; }
+}
+body.retro-mode .bg-yellow-300.border-4 {
+    background: #fde047 !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+    color: black !important;
+}
+body.retro-mode .text-6xl.font-black.px-6 {
+    background: transparent !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+    box-shadow: 4px 4px 0 var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+body.retro-mode .bg-gray-100.p-4 {
+    background: #f3f4f6 !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    color: var(--text-color) !important;
+}
+body.retro-mode .border-4.border-black.h-8 {
+    background: white !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+}
+body.retro-mode span.bg-red-600 {
+    background: #dc2626 !important;
+    border: 2px solid white !important;
+    border-radius: 0 !important;
+}
+body.retro-mode .fixed.inset-0 > div {
+    background: var(--bg-card) !important;
+    backdrop-filter: none !important;
+    border: 4px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    box-shadow: 8px 8px 0 var(--border-color) !important;
+}
+body.retro-mode .fixed.inset-0 p, body.retro-mode .fixed.inset-0 h3 { color: var(--text-color) !important; }
+body.retro-mode .fixed.inset-0 button {
+    background: var(--bg-card) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    color: var(--text-color) !important;
+    box-shadow: 2px 2px 0 var(--border-color) !important;
+}
+body.retro-mode .border-b-8.border-red-600 { border-bottom: 8px solid #dc2626 !important; }
+body.retro-mode .opacity-50, body.retro-mode .opacity-60 {
+    color: var(--text-color) !important; opacity: 0.5 !important;
+}
+
+/* ---------- TOGGLE BUTTON (small) ---------- */
+.text-\[10px\].font-black.border-2 {
+    background: var(--gc2) !important;
+    border: 1px solid var(--gborder) !important;
+    border-radius: 8px !important;
+    color: var(--gtext) !important;
+    backdrop-filter: blur(12px);
+    box-shadow: none !important;
+}
+</style>
+
+<style>
+/* ---------- iOS BACK TRANSITION ---------- */
+#back-iframe {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+#app-wrapper {
+    position: fixed;
+    inset: 0;
+    transform: translateX(0);
+    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+    overflow: hidden;
+}
+#app-wrapper.sliding-out {
+    transform: translateX(100%);
+}
+#back-iframe.sliding-in {
+    transform: translateX(0);
+}
+/* swipe shadow overlay */
+#swipe-edge {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 20px;
+    z-index: 200;
+}
 </style>
 
 
 </head>
 <body>
+<iframe id="back-iframe" src="https://awesomekrieger.github.io/ReisTest/"></iframe>
+<div id="swipe-edge"></div>
+<div id="app-wrapper">
     <div id="root"></div>
+</div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
@@ -193,7 +862,19 @@ input, textarea {
             const [gameState, setGameState] = useState('setup'); 
             const [showBeginner, setShowBeginner] = useState(true);
             const [shuffledBeliebt, setShuffledBeliebt] = useState([]);
-            const [players, setPlayers] = useState(['Spieler 1', 'Spieler 2', 'Spieler 3']);
+            const [players, setPlayers] = useState(() => {
+                const params = new URLSearchParams(location.search);
+                const namesParam = params.get('players');
+                if (namesParam) {
+                    const names = namesParam.split(',').map(n => n.trim()).filter(n => n.length > 0);
+                    if (names.length >= 2) return names;
+                }
+                const countParam = parseInt(params.get('count'));
+                if (!isNaN(countParam) && countParam >= 2 && countParam <= 10) {
+                    return Array.from({length: countParam}, (_, i) => `Spieler ${i + 1}`);
+                }
+                return ['Spieler 1', 'Spieler 2', 'Spieler 3'];
+            });
             const [imposterCount, setImposterCount] = useState(1);
             const [showHint, setShowHint] = useState(false);
             const [timerMinutes, setTimerMinutes] = useState(0);
@@ -211,12 +892,16 @@ input, textarea {
             const [gameData, setGameData] = useState({ word: "", hint: "", imposterIndices: [], currentPlayer: 0, showingWord: false, chaosMode: "" });
             const [deleteConfirm, setDeleteConfirm] = useState(null);
 
+            // FIX 2: transitioning flag — prevents "Verstanden" button from being clicked twice
+            // and ensures the card flips back before the next player is shown
+            const [isTransitioning, setIsTransitioning] = useState(false);
+
 const triggerDelete = (e, name) => {
     e.preventDefault();
     e.stopPropagation();
     setDeleteConfirm(name);
 };
-// Effekt für den 5-Sekunden Beginner-Kasten
+
 useEffect(() => {
     if (gameState === 'play') {
         setShowBeginner(true);
@@ -227,14 +912,12 @@ useEffect(() => {
     }
 }, [gameState]);
 
-// Effekt für den Countdown-Timer
 useEffect(() => {
     let timer;
     if (gameState === 'play' && timeLeft > 0) {
         timer = setInterval(() => {
             setTimeLeft(prev => {
                 const next = prev - 1;
-                // Hier kannst du die Vibration wieder einfügen:
                 if (next >= 0 && next <= 3) window.navigator.vibrate?.(100);
                 return next;
             });
@@ -257,26 +940,18 @@ const confirmDelete = () => {
     const newList = customTopics.filter(t => t.name !== deleteConfirm);
     setCustomTopics(newList);
     localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
-    
-    // HIER DIE KORREKTUR: Mit Prefix filtern
     setSelectedSubs(prev => prev.filter(id => id !== `✏️EIGENE:${deleteConfirm}`));
-    
     setSubCats(newList.map(t => ({ name: t.name, parent: "✏️EIGENE" })));
     setDeleteConfirm(null);
 };
-
-
 
             useEffect(() => {
     fetch(GITHUB_TOPICS_URL)
         .then(res => res.json())
         .then(json => {
             setData(json);
-                       
-            // KORREKTUR: Großes "O" bei Object und .sort() für die Reihenfolge
             const sortedJsonGroups = Object.keys(json).sort();
             setGroups(["🔥BELIEBT", "✏️EIGENE", ...sortedJsonGroups]);
-
             const initial = getShuffledBeliebt(json);
             setShuffledBeliebt(initial);
             setSubCats(initial); 
@@ -284,15 +959,10 @@ const confirmDelete = () => {
         .catch(err => console.error("Fehler beim Laden der Themen:", err));
 }, []);
 
-
-
-
             useEffect(() => {
                 localStorage.setItem('imp_word_pool_v1', JSON.stringify(aiWordPool));
             }, [aiWordPool]);
 
-            // Hilfsfunktion zum Würfeln (bleibt stabil)
-// Hilfsfunktion zum stabilen Würfeln (ändert sich alle 3 Stunden)
 const getShuffledBeliebt = (fullData) => {
     if (!fullData) return [];
     let list = [];
@@ -319,26 +989,12 @@ const getShuffledBeliebt = (fullData) => {
         .slice(0, 6);
 };
 
-useEffect(() => {
-    let timer;
-    if (gameState === 'play' && timeLeft > 0) {
-        timer = setInterval(() => {
-            setTimeLeft(prev => prev - 1);
-        }, 1000);
-    } else if (timeLeft === 0 && timerMinutes > 0) {
-        // Optional: Sound oder Vibration wenn Zeit abgelaufen
-    }
-    return () => clearInterval(timer);
-}, [gameState, timeLeft, timerMinutes]);
-
-
-
 const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
     if (!fullData) return;
     setSelectedGroup(groupName);
     
     if (groupName === "🔥BELIEBT") {
-        setSubCats(shuffledBeliebt); // Nutzt die gespeicherten Favoriten
+        setSubCats(shuffledBeliebt);
     } else if (groupName === "✏️EIGENE") {
         setSubCats(currentCustom.map(t => ({ name: t.name, parent: "✏️EIGENE" })));
     } else {
@@ -347,9 +1003,6 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         setSubCats(list);
     }
 };
-
-
-
 
             const toggleSub = (name, parent) => {
     const id = `${parent}:${name}`; 
@@ -374,7 +1027,7 @@ const handleGlobalToggle = () => {
     } else {
         let allIds = [];
         Object.keys(data).forEach(group => {
-            if (group !== "🔥BELIEBT") { // Beliebt überspringen, da es nur Kopien sind
+            if (group !== "🔥BELIEBT") {
                 Object.keys(data[group]).forEach(sub => {
                     allIds.push(`${group}:${sub}`);
                 });
@@ -384,16 +1037,6 @@ const handleGlobalToggle = () => {
         setSelectedSubs(allIds);
     }
 };
-const [isGlass, setIsGlass] = useState(() => localStorage.getItem('imp_glass') === 'true');
-
-const toggleStyle = () => {
-    const next = !isGlass;
-    setIsGlass(next);
-    localStorage.setItem('imp_glass', next);
-};
-
-
-
 
             const addCustomTopic = () => {
     const name = prompt("Gib ein Thema für die KI ein:");
@@ -402,47 +1045,37 @@ const toggleStyle = () => {
         const newList = [...customTopics, { name: trimmedName }];
         setCustomTopics(newList);
         localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
-        
         const newSubList = newList.map(t => ({ name: t.name, parent: "✏️EIGENE" }));
         setSubCats(newSubList);
-        
-        // HIER DIE KORREKTUR: Prefix hinzufügen
         setSelectedSubs(prev => [...prev, `✏️EIGENE:${trimmedName}`]);
     }
 };
 
 const startGame = async () => {
+    if (players.length < 3) return alert("Mindestens 3 Spieler benötigt!");
     let finalId = "";
-    // 1. Absolute Obergrenze: Hälfte der Spieler
-const limit = Math.floor(players.length / 2);
-const maxPossible = Math.min(imposterCount, limit);
+    const limit = Math.floor(players.length / 2);
+    const maxPossible = Math.min(imposterCount, limit);
 
-// 2. Pool für gewichteten Zufall (Höhere Zahlen sind wahrscheinlicher)
-const weightPool = [];
-for (let i = 1; i <= maxPossible; i++) {
-    for (let j = 0; j < (i * 3); j++) { // Faktor 3 für stärkere Gewichtung der hohen Zahl
-        weightPool.push(i);
+    const weightPool = [];
+    for (let i = 1; i <= maxPossible; i++) {
+        for (let j = 0; j < (i * 3); j++) {
+            weightPool.push(i);
+        }
     }
-}
 
-// 3. Tatsächliche Anzahl für diese Runde würfeln
-const rolledCount = weightPool.length > 0 
-    ? weightPool[Math.floor(Math.random() * weightPool.length)] 
-    : 1;
+    const rolledCount = weightPool.length > 0 
+        ? weightPool[Math.floor(Math.random() * weightPool.length)] 
+        : 1;
 
-// 4. Indizes zufällig zuweisen
-let tempIndices = [];
-while(tempIndices.length < rolledCount) {
-    let r = Math.floor(Math.random() * players.length);
-    if(!tempIndices.includes(r)) tempIndices.push(r);
-}
-indices = tempIndices;
-
+    let indices = [];
+    while(indices.length < rolledCount) {
+        let r = Math.floor(Math.random() * players.length);
+        if(!indices.includes(r)) indices.push(r);
+    }
 
     if (selectedSubs.length === 0) {
-        // Sammle ALLE verfügbaren Themen-IDs
         const allPossibleIds = [];
-        
         Object.keys(data).forEach(group => {
             if (group !== "🔥BELIEBT") { 
                 Object.keys(data[group]).forEach(sub => {
@@ -450,13 +1083,9 @@ indices = tempIndices;
                 });
             }
         });
-        
         customTopics.forEach(t => allPossibleIds.push(`✏️EIGENE:${t.name}`));
-
-        // Wähle eine absolut zufällige ID aus der Gesamtliste
         finalId = allPossibleIds[Math.floor(Math.random() * allPossibleIds.length)];
     } else {
-        // Wähle aus deiner Auswahl
         finalId = selectedSubs[Math.floor(Math.random() * selectedSubs.length)];
     }
 
@@ -468,18 +1097,12 @@ indices = tempIndices;
     setVisualProgress(50);
     
     let word = "", hint = "", chaos = "";
-    let indices = [];
-    
-
 
     try {
-        
- 
         const rng = Math.random();
         if (rng < 0.01) chaos = "ALL";
         else if (rng < 0.02) chaos = "NONE";
 
-        // 3. Nutzt jetzt 'parentGroup', um zu entscheiden: KI oder Liste?
         if (parentGroup === "✏️EIGENE") {
             if(!apiKey) {
                 setLoading(false);
@@ -492,11 +1115,6 @@ indices = tempIndices;
                 hint = nextPair.hint;
                 setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
             } else {
-               
-
-                                                                                               // Der Prompt ist jetzt extrem strikt
-                // Optimierter, minimalistischer Prompt
-                                // Minimaler User-Prompt
                 const promptText = `Thema: "${randomSub}". Erstelle 40 Paare. Verbot: "${randomSub}".`;
                 
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -533,21 +1151,12 @@ indices = tempIndices;
                 const pairs = raw.split(',').map(p => {
                     const parts = p.split('|');
                     if (parts.length < 2) return null;
-                    
                     const w = parts[0].trim();
                     const h = parts[1].trim();
                     const forbidden = randomSub.toLowerCase();
-                    
-                    // Filter 1: Mindestlänge
                     if (w.length < 2) return null;
-                    
-                    // Filter 2: Verbotenes Thema ausschließen
                     if (w.toLowerCase().includes(forbidden) || h.toLowerCase().includes(forbidden)) return null;
-                    
-                    // Filter 3: Ähnlichkeits-Schutz (verhindert Synonyme/doppelte Wörter)
-                    // Löscht Paare, bei denen das Wort im Hinweis vorkommt oder umgekehrt
                     if (w.toLowerCase().includes(h.toLowerCase()) || h.toLowerCase().includes(w.toLowerCase())) return null;
-                    
                     return { word: w, hint: h };
                 }).filter(p => p !== null);
 
@@ -560,7 +1169,6 @@ indices = tempIndices;
                 }
             }
         } else {
-            // Suche global in allen Kategorien von 'data'
             let foundData = null;
             for (let groupKey in data) {
                 if (data[groupKey] && data[groupKey][randomSub]) {
@@ -584,24 +1192,17 @@ indices = tempIndices;
             indices = players.map((_, i) => i);
         } else if (chaos === "NONE") {
             indices = [];
-        } else {
-            const count = Math.min(imposterCount, players.length - 1);
-            while(indices.length < count) {
-                let r = Math.floor(Math.random() * players.length);
-                if(!indices.includes(r)) indices.push(r);
-            }
         }
-
 
         const newStats = { ...stats };
         indices.forEach(idx => { newStats[players[idx]] = (newStats[players[idx]] || 0) + 1; });
         setStats(newStats);
         const randomStarter = Math.floor(Math.random() * players.length);
 
-        // Ändere diese Zeile in deinem Skript:
-setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos, topic: randomSub, startingPlayer: randomStarter });
+        setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos, topic: randomSub, startingPlayer: randomStarter });
         setTimeLeft(timerMinutes * 60);
         setVisualProgress(100);
+        setIsTransitioning(false);
         setTimeout(() => { setGameState('reveal'); setLoading(false); }, 400);
     } catch (e) { 
         console.error(e);
@@ -610,24 +1211,81 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
     }
 };
 
+            // "Verstanden": klappt Karte zurück, dann erst nach dem Flip wechselt der Name
+            const handleVerstandenV2 = () => {
+                if (isTransitioning) return;
+                setIsTransitioning(true);
+
+                // Sofort: Karte zurückklappen + Button ausblenden (showingWord = false)
+                setGameData(prev => ({ ...prev, showingWord: false }));
+
+                // Nach der Flip-Animation (555ms = transition-duration): Name/Spieler wechseln
+                setTimeout(() => {
+                    setGameData(prev => {
+                        const nextPlayer = prev.currentPlayer + 1;
+                        if (nextPlayer < players.length) {
+                            setIsTransitioning(false);
+                            return { ...prev, currentPlayer: nextPlayer, showingWord: false };
+                        } else {
+                            setGameState('play');
+                            setIsTransitioning(false);
+                            return prev;
+                        }
+                    });
+                }, 560);
+            };
+
+            const [isRetro, setIsRetro] = React.useState(() => localStorage.getItem('imp_retro') === 'true');
+            const toggleRetro = () => {
+                const next = !isRetro;
+                setIsRetro(next);
+                localStorage.setItem('imp_retro', String(next));
+                document.body.classList.toggle('retro-mode', next);
+            };
+            React.useEffect(() => {
+                document.body.classList.toggle('retro-mode', isRetro);
+            }, []);
 
             const formatTime = (s) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2, '0')}`;
 
             if (!data) return <div className="h-screen flex items-center justify-center font-black">Lade...</div>;
 
             return (
-               <div className={`main-container ${isGlass ? 'glass-mode' : ''}`}>
-    <div className="flex justify-between items-center mb-4 border-b-8 border-red-600">
-        <h1 className="text-4xl font-black italic tracking-tighter uppercase">Imposter.ai</h1>
-        <button 
-            onClick={toggleStyle}
-            className="text-[10px] font-black border-2 border-current px-2 py-1 uppercase mb-1"
-        >
-            {isGlass ? 'Retro' : 'Glass'}
-        </button>
+               <div className="main-container">
+    <div className="flex items-center mb-4 border-b-8 border-red-600 gap-2">
+        <a
+            href="https://awesomekrieger.github.io/ReisTest/"
+            onClick={(e) => { e.preventDefault(); window.goBack(); }}
+            className="shrink-0"
+            style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--gred)',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '32px',
+                fontWeight: '300',
+                lineHeight: 1,
+                padding: '0 10px 0 0',
+                minWidth: '36px',
+            }}
+        >‹</a>
+        <h1 className="text-4xl font-black italic tracking-tighter uppercase flex-1 text-center">Imposter.ai</h1>
+        <button
+            onClick={toggleRetro}
+            className="retro-toggle-btn shrink-0"
+            style={{
+                background: isRetro ? 'var(--bg-card)' : 'var(--gc2)',
+                border: isRetro ? '2px solid var(--border-color)' : '1px solid var(--gborder)',
+                borderRadius: isRetro ? '0' : '8px',
+                color: 'var(--gtext)',
+                backdropFilter: isRetro ? 'none' : 'blur(12px)',
+                boxShadow: isRetro ? '3px 3px 0 var(--border-color)' : 'none',
+            }}
+        >{isRetro ? '✦ Glass' : '◼ Retro'}</button>
     </div>
-
-
 
                     <div className="game-card bg-white p-5 neo-box space-y-4">
                         {loading ? (
@@ -639,13 +1297,12 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                             <>
                                 <div className="grid grid-cols-3 gap-2 shrink-0">
                                     <div className="space-y-1">
-    <label className="text-[10px] font-black uppercase opacity-60">Verräter :</label>
+    <label className="text-[10px] font-black uppercase opacity-60">Verräter:</label>
     <select 
         value={imposterCount} 
         onChange={e => setImposterCount(parseInt(e.target.value))} 
         className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none"
     >
-        {/* Erzeugt Optionen bis maximal zur Hälfte der Spieleranzahl */}
         {Array.from({length: Math.floor(players.length / 2)}, (_, i) => i + 1).map(n => (
             <option key={n} value={n}>{n}</option>
         ))}
@@ -666,17 +1323,32 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                     </div>
                                 </div>
 
-                                <div className="space-y-2 pt-2 shrink-0">
-                                    <div className="flex justify-between items-center">
+                                {/* FIX 1: Player rows — name + spy count + delete in one unified row */}
+                                <div className="pt-2 shrink-0">
+                                    <div className="flex justify-between items-center mb-1">
                                         <span className="font-black text-[10px] uppercase underline">Mitspieler:</span>
-                                        <button onClick={() => players.length < 10 && setPlayers([...players, `Spieler ${players.length+1}`])} className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black uppercase">+ Add</button>
+                                        <button 
+                                            onClick={() => players.length < 10 && setPlayers([...players, `Spieler ${players.length+1}`])} 
+                                            className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black uppercase"
+                                        >+ Add</button>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-1 max-h-24 overflow-y-auto border border-black p-1 bg-gray-50">
+                                    <div className="grid grid-cols-2 gap-1 overflow-y-auto hide-scrollbar p-1" style={{height:'128px'}}>
                                         {players.map((p, i) => (
-                                            <div key={i} className="flex border border-black bg-white">
-                                                <input value={p} onChange={e => {let n=[...players]; n[i]=e.target.value; setPlayers(n);}} className="w-full p-1 text-[10px] font-bold outline-none uppercase" />
-                                                <span className="text-[9px] font-black bg-yellow-400 px-1 border-l border-black flex items-center">🕵️{stats[p] || 0}</span>
-                                                <button onClick={() => players.length > 3 && setPlayers(players.filter((_, idx) => idx !== i))} className="bg-red-500 text-white px-1 font-black">×</button>
+                                            <div key={i} className="player-row">
+                                                <input 
+                                                    value={p} 
+                                                    onChange={e => {let n=[...players]; n[i]=e.target.value; setPlayers(n);}} 
+                                                    className="player-name-input"
+                                                />
+                                                <span className="player-stats-badge">
+                                                    🕵️{stats[p] || 0}
+                                                </span>
+                                                <button 
+                                                    onClick={() => players.length > 3 && setPlayers(players.filter((_, idx) => idx !== i))} 
+                                                    className="player-delete-btn"
+                                                    disabled={players.length <= 3}
+                                                    style={{opacity: players.length <= 3 ? 0.3 : 1}}
+                                                >×</button>
                                             </div>
                                         ))}
                                     </div>
@@ -696,7 +1368,6 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
             countInGroup = selectedSubs.filter(id => id.startsWith(`${g}:`)).length;
         }
 
-        // KONSTANTE zum Trimmen der Zahlen am Anfang
         const displayName = g.replace(/^[\d.]+\s*/, "");
 
         return (
@@ -706,41 +1377,37 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                 className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all 
                     ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}
             >
-                {/* KORREKTUR: Hier muss displayName stehen statt g */}
                 {displayName} {hasSelection && `(${countInGroup})`}
             </button>
         );
     })}
 </div>
 
-
-
                                 <div className="topics-block-container mx-0 my-2">
-    {/* Buttons bündig oben im Kasten */}
     <div className="flex shrink-0 bg-transparent border-b-4 border-black dark:border-white">
        <button 
     onClick={selectAll} 
-    className="flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase !text-black border-r-4 border-black dark:border-white active:bg-yellow-500 transition-colors"
+    className="btn-gruppe flex-1 p-3 bg-yellow-400 font-black text-[10px] uppercase !text-black border-r-4 border-black dark:border-white active:bg-yellow-500 transition-colors"
+    style={{borderRadius:0}}
 >
     {subCats.length > 0 && subCats.every(s => selectedSubs.includes(`${s.parent}:${s.name}`)) 
         ? "× Abwählen" 
         : "✓ Gruppe"}
 </button>
 
-
         <button 
     onClick={handleGlobalToggle} 
-    className={`w-1/3 p-3 font-black text-[10px] uppercase transition-colors ${
+    className={`btn-reset w-1/3 p-3 font-black text-[10px] uppercase transition-colors ${
         selectedSubs.length > 0 ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
     }`}
+    style={{borderRadius:0, borderTopRightRadius:'19px'}}
 >
     {selectedSubs.length > 0 ? `Reset (${selectedSubs.length})` : "Global"}
 </button>
 
     </div>
 
-    {/* Themenliste direkt darunter im selben Gehäuse */}
-    <div className="scroll-container hide-scrollbar" style={{ maxHeight: '300px' }}>
+    <div className="scroll-container hide-scrollbar" style={{ maxHeight: '380px' }}>
         {selectedGroup === "✏️EIGENE" && (
             <button 
                 onClick={addCustomTopic} 
@@ -751,7 +1418,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
         )}
         
         {subCats.map((s) => {
-    const currentId = `${s.parent}:${s.name}`; // Nutzt jetzt den echten Ursprung
+    const currentId = `${s.parent}:${s.name}`;
     const isSelected = selectedSubs.includes(currentId);
     return (
         <button 
@@ -778,13 +1445,13 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
     </div>
 </div>
 
-<button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box shrink-0 active:bg-red-700 uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target">
-    {selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Zufälliges Thema'}
+<button onClick={startGame} className="w-full bg-red-600 text-white font-black py-4 text-2xl neo-box shrink-0 uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target" style={{opacity: players.length < 3 ? 0.4 : 1, cursor: players.length < 3 ? 'not-allowed' : 'pointer'}}>
+    {players.length < 3 ? '+ Spieler hinzufügen' : (selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Zufälliges Thema')}
 </button>
 
-
                                 <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10 shrink-0" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
-                            </>                                                 ) : (
+                            </>
+                        ) : (
                             <div className="p-4 text-center">
                                 {gameState === 'reveal' && (
                                     <div className="space-y-6 py-4 flex flex-col items-center">
@@ -792,38 +1459,39 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                             {players[gameData.currentPlayer]}
                                         </h2>
                                         
-                                        <div onClick={() => setGameData({...gameData, showingWord: true})} 
-                                             className={`w-full h-64 flex flex-col items-center justify-center border-4 border-black p-6 
-                                             ${gameData.showingWord 
-                                                ? (gameData.imposterIndices.includes(gameData.currentPlayer) ? 'bg-black text-white' : 'bg-red-600 text-white') 
-                                                : 'bg-gray-100 animate-pulse'}`}>
-                                            
-                                            {gameData.showingWord ? (
-                                                gameData.imposterIndices.includes(gameData.currentPlayer) ? (
-                                                    <div className="text-center">
-                                                        <div className="text-red-500 font-black text-xl mb-1 uppercase tracking-widest">Du bist der</div>
-                                                        <div className="text-6xl font-black uppercase italic">Imposter</div>
-                                                        {showHint && <div className="mt-6 p-3 border-2 border-white text-sm font-bold uppercase tracking-tight">Tipp: {gameData.hint}</div>}
-                                                    </div>
-                                                ) : (
-                                                    <span className={`${getFontSize(gameData.word)} font-black uppercase tracking-tighter text-center break-words w-full px-2`}>
-                                                        {gameData.word}
+                                        <div className="card-flip-scene" onClick={() => !gameData.showingWord && !isTransitioning && setGameData({...gameData, showingWord: true})}>
+                                            <div className={`card-flip-inner ${gameData.showingWord ? 'is-flipped' : ''}`}>
+                                                {/* FRONT */}
+                                                <div className="card-face card-face-front">
+                                                    <span className="text-2xl font-black italic underline uppercase" style={{color:'var(--gtext)'}}>
+                                                        Karte aufdecken
                                                     </span>
-                                                )
-                                            ) : (
-                                                <span className="text-2xl font-black italic underline uppercase text-black">Karte aufdecken</span>
-                                            )}
+                                                </div>
+                                                {/* BACK */}
+                                                <div className={`card-face card-face-back ${gameData.imposterIndices.includes(gameData.currentPlayer) ? 'is-imposter' : 'is-word'}`}>
+                                                    {gameData.imposterIndices.includes(gameData.currentPlayer) ? (
+                                                        <div className="text-center">
+                                                            <div className="text-red-500 font-black text-xl mb-1 uppercase tracking-widest">Du bist der</div>
+                                                            <div className="text-6xl font-black uppercase italic text-white">Imposter</div>
+                                                            {showHint && <div className="mt-6 p-3 border-2 border-white text-sm font-bold uppercase tracking-tight text-white">Tipp: {gameData.hint}</div>}
+                                                        </div>
+                                                    ) : (
+                                                        <span className={`${getFontSize(gameData.word)} font-black uppercase tracking-tighter text-center break-words w-full px-2 text-white`}>
+                                                            {gameData.word}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
 
+                                        {/* FIX 2: "Verstanden" uses handleVerstandenV2 which flips back first */}
                                         {gameData.showingWord && (
-                                            <button onClick={() => {
-                                                if(gameData.currentPlayer + 1 < players.length) {
-                                                    setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
-                                                } else {
-                                                    setGameState('play');
-                                                }
-                                            }} className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
-">
+                                            <button 
+                                                onClick={handleVerstandenV2}
+                                                disabled={isTransitioning}
+                                                className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase"
+                                                style={{opacity: isTransitioning ? 0.5 : 1}}
+                                            >
                                                 Verstanden
                                             </button>
                                         )}
@@ -833,25 +1501,21 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                              {gameState === 'play' && (
     <div className={`py-8 flex flex-col items-center space-y-6 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'animate-pulse' : ''}`}>
         
-        {/* Timer Anzeige */}
         {timerMinutes > 0 && (
             <div className={`text-6xl font-black px-6 py-2 border-4 border-black neo-box shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target ${timeLeft < 10 ? 'text-red-600 border-red-600' : ''}`}>
                 {formatTime(timeLeft)}
             </div>
         )}
 
-        {/* Startspieler Anzeige - Verschwindet nach 5 Sekunden mit Animation */}
         <div className={`w-full transition-all duration-500 overflow-hidden ${showBeginner ? 'max-h-40 opacity-100 mb-4' : 'max-h-0 opacity-0 mb-0'}`}>
             <div className="bg-yellow-300 border-4 border-black p-5 neo-box glass-target">
                 <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">Die Runde eröffnet:</p>
                 <h3 className="text-3xl font-black uppercase italic flex items-center gap-3 text-black">
-            
-            {players[gameData.startingPlayer]}
+                    {players[gameData.startingPlayer]}
                 </h3>
             </div>
         </div>
 
-        {/* Titel & Info */}
         <div className="text-center space-y-2 py-4">
             <h2 className="text-6xl font-black text-red-600 italic animate-bounce uppercase tracking-tighter">
                 Diskussion!
@@ -863,19 +1527,14 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
             </div>
         </div>
 
-       {/* Button zum Beenden mit Schatten */}
-<button 
-    onClick={() => setGameState('finish')} 
-    className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase active:scale-95 active:shadow-none transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target"
->
-    Auflösen
-</button>
-
+        <button 
+            onClick={() => setGameState('finish')} 
+            className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase active:scale-95 active:shadow-none transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target"
+        >
+            Auflösen
+        </button>
     </div>
 )}
-
-
-
 
                                {gameState === 'finish' && (
     <div className="py-10 flex flex-col items-center space-y-6 text-center">
@@ -887,7 +1546,6 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
             <div key={idx} className="text-4xl font-black text-red-600 italic uppercase tracking-tighter">{players[idx]}</div>
         )) : <div className="text-4xl font-black text-green-600 italic uppercase">Niemand</div>}
         
-        {/* HIER DIE ÄNDERUNG: Zeigt das Thema UND das Wort an */}
         <div className="flex flex-col gap-1 mt-4">
             <div className="text-[10px] font-black uppercase opacity-50">Kategorie: {gameData.topic}</div>
             <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase">Das Wort: {gameData.word}</div>
@@ -907,7 +1565,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
 
                             </div>
                         )}
-                    </div> {/* Ende game-card */}
+                    </div>
 
                     {deleteConfirm && (
                         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6">
@@ -921,12 +1579,107 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                             </div>
                         </div>
                     )}
-                </div> // Ende main-container
+                </div>
             );
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+
+        // Service Worker registrieren
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+const CACHE = 'imposter-v1';
+const ASSETS = [
+    location.pathname,
+    'https://unpkg.com/react@18/umd/react.development.js',
+    'https://unpkg.com/react-dom@18/umd/react-dom.development.js',
+    'https://unpkg.com/@babel/standalone/babel.min.js',
+    'https://cdn.tailwindcss.com',
+    'https://raw.githubusercontent.com/AwesomeKrieger/Imposter/main/topics.json',
+];
+
+self.addEventListener('install', e => {
+    e.waitUntil(
+        caches.open(CACHE).then(cache => cache.addAll(ASSETS).catch(() => {}))
+    );
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+    e.waitUntil(caches.keys().then(keys =>
+        Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ));
+    self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+    e.respondWith(
+        caches.match(e.request).then(cached => {
+            if (cached) return cached;
+            return fetch(e.request).then(res => {
+                if (res && res.status === 200) {
+                    const clone = res.clone();
+                    caches.open(CACHE).then(cache => cache.put(e.request, clone));
+                }
+                return res;
+            }).catch(() => cached);
+        })
+    );
+});
+            `;
+            const blob = new Blob([swCode], {type: 'application/javascript'});
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(() => {});
+        }
+
+        // ---------- iOS BACK TRANSITION ----------
+        const iframe = document.getElementById('back-iframe');
+        const appWrapper = document.getElementById('app-wrapper');
+        const swipeEdge = document.getElementById('swipe-edge');
+
+        window.goBack = () => {
+            appWrapper.classList.add('sliding-out');
+            iframe.classList.add('sliding-in');
+            setTimeout(() => { window.location.href = iframe.src; }, 400);
+        };
+
+        // Swipe from left edge
+        let touchStartX = 0, touchStartY = 0, swiping = false;
+
+        swipeEdge.addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            swiping = true;
+        }, {passive: true});
+
+        document.addEventListener('touchmove', e => {
+            if (!swiping) return;
+            const dx = e.touches[0].clientX - touchStartX;
+            const dy = Math.abs(e.touches[0].clientY - touchStartY);
+            if (dy > 30) { swiping = false; return; }
+            if (dx > 0) {
+                const pct = Math.min(dx / window.innerWidth, 1);
+                appWrapper.style.transition = 'none';
+                iframe.style.transition = 'none';
+                appWrapper.style.transform = `translateX(${pct * 100}%)`;
+                iframe.style.transform = `translateX(${(pct - 1) * 100}%)`;
+            }
+        }, {passive: true});
+
+        document.addEventListener('touchend', e => {
+            if (!swiping) return;
+            swiping = false;
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            appWrapper.style.transition = '';
+            iframe.style.transition = '';
+            if (dx > window.innerWidth * 0.35) {
+                window.goBack();
+            } else {
+                appWrapper.style.transform = '';
+                iframe.style.transform = '';
+            }
+        }, {passive: true});
     </script>
 </body>
 </html>
