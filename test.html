@@ -300,15 +300,10 @@ button.bg-yellow-100 {
     border: 1px solid var(--gborder) !important;
     border-radius: 10px !important;
 }
-.grid.grid-cols-2 .flex.border {
+.grid.grid-cols-2 .player-row {
     background: transparent !important;
     border: 1px solid var(--gsep) !important;
     border-radius: 6px !important;
-}
-.grid.grid-cols-2 span.bg-yellow-400 {
-    background: rgba(200,160,0,0.5) !important;
-    color: var(--gtext) !important;
-    border-left: 1px solid var(--gsep) !important;
 }
 
 /* ---------- HEADER ---------- */
@@ -521,11 +516,9 @@ body.retro-mode .card-face-back.is-word {
 }
 
 /* ---------- TOPICS INNER BUTTON CORNERS ---------- */
-/* Gruppe: flat everywhere */
 .topics-block-container .btn-gruppe {
     border-radius: 0 !important;
 }
-/* Reset: only top-right corner */
 .topics-block-container .btn-reset {
     border-radius: 0 0 0 0 !important;
     border-top-right-radius: 19px !important;
@@ -541,6 +534,61 @@ body.retro-mode .card-face-back.is-word {
     letter-spacing: 0.05em;
     transition: all 0.18s ease;
     margin-bottom: 4px;
+}
+
+/* ---------- PLAYER ROW STYLES ---------- */
+.player-row {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--gsep);
+    border-radius: 6px;
+    overflow: hidden;
+    background: transparent;
+}
+.player-row input {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    outline: none;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--gtext) !important;
+    min-width: 0;
+}
+.player-stats-badge {
+    font-size: 9px;
+    font-weight: 900;
+    padding: 0 6px;
+    white-space: nowrap;
+    color: var(--gtext2);
+    border-left: 1px solid var(--gsep);
+    border-right: 1px solid var(--gsep);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+.player-delete-btn {
+    font-weight: 900;
+    font-size: 13px;
+    padding: 0 8px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(210,45,55,0.15) !important;
+    color: var(--gtext) !important;
+    border: none !important;
+    border-radius: 0 !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.12s;
+}
+.player-delete-btn:active {
+    background: rgba(210,45,55,0.45) !important;
 }
 
 /* ---------- RETRO MODE OVERRIDES ---------- */
@@ -639,15 +687,23 @@ body.retro-mode .grid.grid-cols-2 {
     border: 1px solid var(--border-color) !important;
     border-radius: 0 !important;
 }
-body.retro-mode .grid.grid-cols-2 .flex.border {
+body.retro-mode .player-row {
     background: var(--bg-card) !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 0 !important;
 }
-body.retro-mode .grid.grid-cols-2 span.bg-yellow-400 {
-    background: #facc15 !important;
-    border-left: 1px solid var(--border-color) !important;
-    color: black !important;
+body.retro-mode .player-row input {
+    background: var(--bg-card) !important;
+    color: var(--text-color) !important;
+    border: none !important;
+}
+body.retro-mode .player-stats-badge {
+    border-color: var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+body.retro-mode .player-delete-btn {
+    background: rgba(210,45,55,0.2) !important;
+    color: var(--text-color) !important;
 }
 body.retro-mode .flex.justify-between.items-center.mb-4 {
     border-bottom: 8px solid #dc2626 !important;
@@ -733,8 +789,6 @@ body.retro-mode .opacity-50, body.retro-mode .opacity-60 {
     backdrop-filter: blur(12px);
     box-shadow: none !important;
 }
-
-
 </style>
 
 
@@ -743,7 +797,7 @@ body.retro-mode .opacity-50, body.retro-mode .opacity-60 {
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
        
 
         const GITHUB_TOPICS_URL = "https://raw.githubusercontent.com/AwesomeKrieger/Imposter/main/topics.json";
@@ -783,12 +837,16 @@ body.retro-mode .opacity-50, body.retro-mode .opacity-60 {
             const [gameData, setGameData] = useState({ word: "", hint: "", imposterIndices: [], currentPlayer: 0, showingWord: false, chaosMode: "" });
             const [deleteConfirm, setDeleteConfirm] = useState(null);
 
+            // FIX 2: transitioning flag — prevents "Verstanden" button from being clicked twice
+            // and ensures the card flips back before the next player is shown
+            const [isTransitioning, setIsTransitioning] = useState(false);
+
 const triggerDelete = (e, name) => {
     e.preventDefault();
     e.stopPropagation();
     setDeleteConfirm(name);
 };
-// Effekt für den 5-Sekunden Beginner-Kasten
+
 useEffect(() => {
     if (gameState === 'play') {
         setShowBeginner(true);
@@ -799,14 +857,12 @@ useEffect(() => {
     }
 }, [gameState]);
 
-// Effekt für den Countdown-Timer
 useEffect(() => {
     let timer;
     if (gameState === 'play' && timeLeft > 0) {
         timer = setInterval(() => {
             setTimeLeft(prev => {
                 const next = prev - 1;
-                // Hier kannst du die Vibration wieder einfügen:
                 if (next >= 0 && next <= 3) window.navigator.vibrate?.(100);
                 return next;
             });
@@ -829,26 +885,18 @@ const confirmDelete = () => {
     const newList = customTopics.filter(t => t.name !== deleteConfirm);
     setCustomTopics(newList);
     localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
-    
-    // HIER DIE KORREKTUR: Mit Prefix filtern
     setSelectedSubs(prev => prev.filter(id => id !== `✏️EIGENE:${deleteConfirm}`));
-    
     setSubCats(newList.map(t => ({ name: t.name, parent: "✏️EIGENE" })));
     setDeleteConfirm(null);
 };
-
-
 
             useEffect(() => {
     fetch(GITHUB_TOPICS_URL)
         .then(res => res.json())
         .then(json => {
             setData(json);
-                       
-            // KORREKTUR: Großes "O" bei Object und .sort() für die Reihenfolge
             const sortedJsonGroups = Object.keys(json).sort();
             setGroups(["🔥BELIEBT", "✏️EIGENE", ...sortedJsonGroups]);
-
             const initial = getShuffledBeliebt(json);
             setShuffledBeliebt(initial);
             setSubCats(initial); 
@@ -856,15 +904,10 @@ const confirmDelete = () => {
         .catch(err => console.error("Fehler beim Laden der Themen:", err));
 }, []);
 
-
-
-
             useEffect(() => {
                 localStorage.setItem('imp_word_pool_v1', JSON.stringify(aiWordPool));
             }, [aiWordPool]);
 
-            // Hilfsfunktion zum Würfeln (bleibt stabil)
-// Hilfsfunktion zum stabilen Würfeln (ändert sich alle 3 Stunden)
 const getShuffledBeliebt = (fullData) => {
     if (!fullData) return [];
     let list = [];
@@ -891,26 +934,12 @@ const getShuffledBeliebt = (fullData) => {
         .slice(0, 6);
 };
 
-useEffect(() => {
-    let timer;
-    if (gameState === 'play' && timeLeft > 0) {
-        timer = setInterval(() => {
-            setTimeLeft(prev => prev - 1);
-        }, 1000);
-    } else if (timeLeft === 0 && timerMinutes > 0) {
-        // Optional: Sound oder Vibration wenn Zeit abgelaufen
-    }
-    return () => clearInterval(timer);
-}, [gameState, timeLeft, timerMinutes]);
-
-
-
 const updateView = (groupName, fullData = data, currentCustom = customTopics) => {
     if (!fullData) return;
     setSelectedGroup(groupName);
     
     if (groupName === "🔥BELIEBT") {
-        setSubCats(shuffledBeliebt); // Nutzt die gespeicherten Favoriten
+        setSubCats(shuffledBeliebt);
     } else if (groupName === "✏️EIGENE") {
         setSubCats(currentCustom.map(t => ({ name: t.name, parent: "✏️EIGENE" })));
     } else {
@@ -919,9 +948,6 @@ const updateView = (groupName, fullData = data, currentCustom = customTopics) =>
         setSubCats(list);
     }
 };
-
-
-
 
             const toggleSub = (name, parent) => {
     const id = `${parent}:${name}`; 
@@ -946,7 +972,7 @@ const handleGlobalToggle = () => {
     } else {
         let allIds = [];
         Object.keys(data).forEach(group => {
-            if (group !== "🔥BELIEBT") { // Beliebt überspringen, da es nur Kopien sind
+            if (group !== "🔥BELIEBT") {
                 Object.keys(data[group]).forEach(sub => {
                     allIds.push(`${group}:${sub}`);
                 });
@@ -956,10 +982,6 @@ const handleGlobalToggle = () => {
         setSelectedSubs(allIds);
     }
 };
-// no glass toggle needed — auto via prefers-color-scheme
-
-
-
 
             const addCustomTopic = () => {
     const name = prompt("Gib ein Thema für die KI ein:");
@@ -968,47 +990,36 @@ const handleGlobalToggle = () => {
         const newList = [...customTopics, { name: trimmedName }];
         setCustomTopics(newList);
         localStorage.setItem('imp_custom_v12', JSON.stringify(newList));
-        
         const newSubList = newList.map(t => ({ name: t.name, parent: "✏️EIGENE" }));
         setSubCats(newSubList);
-        
-        // HIER DIE KORREKTUR: Prefix hinzufügen
         setSelectedSubs(prev => [...prev, `✏️EIGENE:${trimmedName}`]);
     }
 };
 
 const startGame = async () => {
     let finalId = "";
-    // 1. Absolute Obergrenze: Hälfte der Spieler
-const limit = Math.floor(players.length / 2);
-const maxPossible = Math.min(imposterCount, limit);
+    const limit = Math.floor(players.length / 2);
+    const maxPossible = Math.min(imposterCount, limit);
 
-// 2. Pool für gewichteten Zufall (Höhere Zahlen sind wahrscheinlicher)
-const weightPool = [];
-for (let i = 1; i <= maxPossible; i++) {
-    for (let j = 0; j < (i * 3); j++) { // Faktor 3 für stärkere Gewichtung der hohen Zahl
-        weightPool.push(i);
+    const weightPool = [];
+    for (let i = 1; i <= maxPossible; i++) {
+        for (let j = 0; j < (i * 3); j++) {
+            weightPool.push(i);
+        }
     }
-}
 
-// 3. Tatsächliche Anzahl für diese Runde würfeln
-const rolledCount = weightPool.length > 0 
-    ? weightPool[Math.floor(Math.random() * weightPool.length)] 
-    : 1;
+    const rolledCount = weightPool.length > 0 
+        ? weightPool[Math.floor(Math.random() * weightPool.length)] 
+        : 1;
 
-// 4. Indizes zufällig zuweisen
-let tempIndices = [];
-while(tempIndices.length < rolledCount) {
-    let r = Math.floor(Math.random() * players.length);
-    if(!tempIndices.includes(r)) tempIndices.push(r);
-}
-indices = tempIndices;
-
+    let indices = [];
+    while(indices.length < rolledCount) {
+        let r = Math.floor(Math.random() * players.length);
+        if(!indices.includes(r)) indices.push(r);
+    }
 
     if (selectedSubs.length === 0) {
-        // Sammle ALLE verfügbaren Themen-IDs
         const allPossibleIds = [];
-        
         Object.keys(data).forEach(group => {
             if (group !== "🔥BELIEBT") { 
                 Object.keys(data[group]).forEach(sub => {
@@ -1016,13 +1027,9 @@ indices = tempIndices;
                 });
             }
         });
-        
         customTopics.forEach(t => allPossibleIds.push(`✏️EIGENE:${t.name}`));
-
-        // Wähle eine absolut zufällige ID aus der Gesamtliste
         finalId = allPossibleIds[Math.floor(Math.random() * allPossibleIds.length)];
     } else {
-        // Wähle aus deiner Auswahl
         finalId = selectedSubs[Math.floor(Math.random() * selectedSubs.length)];
     }
 
@@ -1034,18 +1041,12 @@ indices = tempIndices;
     setVisualProgress(50);
     
     let word = "", hint = "", chaos = "";
-    let indices = [];
-    
-
 
     try {
-        
- 
         const rng = Math.random();
         if (rng < 0.01) chaos = "ALL";
         else if (rng < 0.02) chaos = "NONE";
 
-        // 3. Nutzt jetzt 'parentGroup', um zu entscheiden: KI oder Liste?
         if (parentGroup === "✏️EIGENE") {
             if(!apiKey) {
                 setLoading(false);
@@ -1058,11 +1059,6 @@ indices = tempIndices;
                 hint = nextPair.hint;
                 setAiWordPool(prev => ({ ...prev, [randomSub]: prev[randomSub].slice(1) }));
             } else {
-               
-
-                                                                                               // Der Prompt ist jetzt extrem strikt
-                // Optimierter, minimalistischer Prompt
-                                // Minimaler User-Prompt
                 const promptText = `Thema: "${randomSub}". Erstelle 40 Paare. Verbot: "${randomSub}".`;
                 
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -1099,21 +1095,12 @@ indices = tempIndices;
                 const pairs = raw.split(',').map(p => {
                     const parts = p.split('|');
                     if (parts.length < 2) return null;
-                    
                     const w = parts[0].trim();
                     const h = parts[1].trim();
                     const forbidden = randomSub.toLowerCase();
-                    
-                    // Filter 1: Mindestlänge
                     if (w.length < 2) return null;
-                    
-                    // Filter 2: Verbotenes Thema ausschließen
                     if (w.toLowerCase().includes(forbidden) || h.toLowerCase().includes(forbidden)) return null;
-                    
-                    // Filter 3: Ähnlichkeits-Schutz (verhindert Synonyme/doppelte Wörter)
-                    // Löscht Paare, bei denen das Wort im Hinweis vorkommt oder umgekehrt
                     if (w.toLowerCase().includes(h.toLowerCase()) || h.toLowerCase().includes(w.toLowerCase())) return null;
-                    
                     return { word: w, hint: h };
                 }).filter(p => p !== null);
 
@@ -1126,7 +1113,6 @@ indices = tempIndices;
                 }
             }
         } else {
-            // Suche global in allen Kategorien von 'data'
             let foundData = null;
             for (let groupKey in data) {
                 if (data[groupKey] && data[groupKey][randomSub]) {
@@ -1150,24 +1136,17 @@ indices = tempIndices;
             indices = players.map((_, i) => i);
         } else if (chaos === "NONE") {
             indices = [];
-        } else {
-            const count = Math.min(imposterCount, players.length - 1);
-            while(indices.length < count) {
-                let r = Math.floor(Math.random() * players.length);
-                if(!indices.includes(r)) indices.push(r);
-            }
         }
-
 
         const newStats = { ...stats };
         indices.forEach(idx => { newStats[players[idx]] = (newStats[players[idx]] || 0) + 1; });
         setStats(newStats);
         const randomStarter = Math.floor(Math.random() * players.length);
 
-        // Ändere diese Zeile in deinem Skript:
-setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos, topic: randomSub, startingPlayer: randomStarter });
+        setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWord: false, chaosMode: chaos, topic: randomSub, startingPlayer: randomStarter });
         setTimeLeft(timerMinutes * 60);
         setVisualProgress(100);
+        setIsTransitioning(false);
         setTimeout(() => { setGameState('reveal'); setLoading(false); }, 400);
     } catch (e) { 
         console.error(e);
@@ -1176,6 +1155,66 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
     }
 };
 
+            // FIX 2: "Verstanden" handler — first flip card back, then after animation advance player
+            const handleVerstanden = () => {
+                if (isTransitioning) return;
+                setIsTransitioning(true);
+
+                // Step 1: flip card back to front (showingWord = false)
+                setGameData(prev => ({ ...prev, showingWord: false }));
+
+                // Step 2: wait for flip animation (600ms), then advance or go to play
+                setTimeout(() => {
+                    setGameData(prev => {
+                        const nextPlayer = prev.currentPlayer + 1;
+                        if (nextPlayer < players.length) {
+                            return { ...prev, currentPlayer: nextPlayer, showingWord: false };
+                        }
+                        return prev; // will transition to play below
+                    });
+
+                    // check if this was the last player
+                    setGameData(prev => {
+                        if (prev.currentPlayer + 1 >= players.length) {
+                            // transition to play after state settles
+                            setTimeout(() => {
+                                setGameState('play');
+                                setIsTransitioning(false);
+                            }, 50);
+                        } else {
+                            setIsTransitioning(false);
+                        }
+                        return prev;
+                    });
+                }, 620);
+            };
+
+            // Better version using a ref to track current player
+            const currentPlayerRef = useRef(0);
+
+            const handleVerstandenV2 = () => {
+                if (isTransitioning) return;
+                setIsTransitioning(true);
+
+                // Step 1: flip card back
+                setGameData(prev => ({ ...prev, showingWord: false }));
+
+                // Step 2: after animation finishes, advance
+                setTimeout(() => {
+                    setGameData(prev => {
+                        const nextPlayer = prev.currentPlayer + 1;
+                        if (nextPlayer < players.length) {
+                            setIsTransitioning(false);
+                            return { ...prev, currentPlayer: nextPlayer, showingWord: false };
+                        } else {
+                            // last player done → go to play screen
+                            setGameState('play');
+                            setIsTransitioning(false);
+                            return prev;
+                        }
+                    });
+                }, 620);
+            };
 
             const [isRetro, setIsRetro] = React.useState(() => localStorage.getItem('imp_retro') === 'true');
             const toggleRetro = () => {
@@ -1210,8 +1249,6 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
         >{isRetro ? '✦ Glass' : '◼ Retro'}</button>
     </div>
 
-
-
                     <div className="game-card bg-white p-5 neo-box space-y-4">
                         {loading ? (
                              <div className="flex flex-col items-center justify-center p-10 space-y-4">
@@ -1222,13 +1259,12 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                             <>
                                 <div className="grid grid-cols-3 gap-2 shrink-0">
                                     <div className="space-y-1">
-    <label className="text-[10px] font-black uppercase opacity-60">Verräter :</label>
+    <label className="text-[10px] font-black uppercase opacity-60">Verräter:</label>
     <select 
         value={imposterCount} 
         onChange={e => setImposterCount(parseInt(e.target.value))} 
         className="w-full p-2 border-2 border-black font-bold text-xs bg-white outline-none"
     >
-        {/* Erzeugt Optionen bis maximal zur Hälfte der Spieleranzahl */}
         {Array.from({length: Math.floor(players.length / 2)}, (_, i) => i + 1).map(n => (
             <option key={n} value={n}>{n}</option>
         ))}
@@ -1249,17 +1285,32 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                     </div>
                                 </div>
 
+                                {/* FIX 1: Player rows — name + spy count + delete in one unified row */}
                                 <div className="space-y-2 pt-2 shrink-0">
                                     <div className="flex justify-between items-center">
                                         <span className="font-black text-[10px] uppercase underline">Mitspieler:</span>
-                                        <button onClick={() => players.length < 10 && setPlayers([...players, `Spieler ${players.length+1}`])} className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black uppercase">+ Add</button>
+                                        <button 
+                                            onClick={() => players.length < 10 && setPlayers([...players, `Spieler ${players.length+1}`])} 
+                                            className="bg-green-500 text-white px-2 py-1 neo-box text-[10px] font-black uppercase"
+                                        >+ Add</button>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-1 overflow-y-auto border border-black p-1 bg-gray-50" style={{maxHeight:'128px'}}>
+                                    <div className="grid grid-cols-2 gap-1 overflow-y-auto p-1" style={{maxHeight:'128px'}}>
                                         {players.map((p, i) => (
-                                            <div key={i} className="flex border border-black bg-white">
-                                                <input value={p} onChange={e => {let n=[...players]; n[i]=e.target.value; setPlayers(n);}} className="w-full p-1 text-[10px] font-bold outline-none uppercase" />
-                                                <span className="text-[9px] font-black bg-yellow-400 px-1 border-l border-black flex items-center">🕵️{stats[p] || 0}</span>
-                                                <button onClick={() => players.length > 3 && setPlayers(players.filter((_, idx) => idx !== i))} className="bg-red-500 text-white px-1 font-black">×</button>
+                                            <div key={i} className="player-row">
+                                                <input 
+                                                    value={p} 
+                                                    onChange={e => {let n=[...players]; n[i]=e.target.value; setPlayers(n);}} 
+                                                    className="player-name-input"
+                                                />
+                                                <span className="player-stats-badge">
+                                                    🕵️{stats[p] || 0}
+                                                </span>
+                                                <button 
+                                                    onClick={() => players.length > 3 && setPlayers(players.filter((_, idx) => idx !== i))} 
+                                                    className="player-delete-btn"
+                                                    disabled={players.length <= 3}
+                                                    style={{opacity: players.length <= 3 ? 0.3 : 1}}
+                                                >×</button>
                                             </div>
                                         ))}
                                     </div>
@@ -1279,7 +1330,6 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
             countInGroup = selectedSubs.filter(id => id.startsWith(`${g}:`)).length;
         }
 
-        // KONSTANTE zum Trimmen der Zahlen am Anfang
         const displayName = g.replace(/^[\d.]+\s*/, "");
 
         return (
@@ -1289,17 +1339,13 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                 className={`px-3 py-2 border-2 border-black font-black text-[10px] uppercase whitespace-nowrap transition-all 
                     ${selectedGroup === g ? 'bg-red-600 text-white' : (hasSelection ? 'bg-yellow-300 text-black' : 'bg-white text-black')}`}
             >
-                {/* KORREKTUR: Hier muss displayName stehen statt g */}
                 {displayName} {hasSelection && `(${countInGroup})`}
             </button>
         );
     })}
 </div>
 
-
-
                                 <div className="topics-block-container mx-0 my-2">
-    {/* Buttons bündig oben im Kasten */}
     <div className="flex shrink-0 bg-transparent border-b-4 border-black dark:border-white">
        <button 
     onClick={selectAll} 
@@ -1323,7 +1369,6 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
 
     </div>
 
-    {/* Themenliste direkt darunter im selben Gehäuse */}
     <div className="scroll-container hide-scrollbar" style={{ maxHeight: '380px' }}>
         {selectedGroup === "✏️EIGENE" && (
             <button 
@@ -1335,7 +1380,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
         )}
         
         {subCats.map((s) => {
-    const currentId = `${s.parent}:${s.name}`; // Nutzt jetzt den echten Ursprung
+    const currentId = `${s.parent}:${s.name}`;
     const isSelected = selectedSubs.includes(currentId);
     return (
         <button 
@@ -1366,9 +1411,9 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
     {selectedSubs.length > 0 ? `Start (${selectedSubs.length})` : 'Zufälliges Thema'}
 </button>
 
-
                                 <input type="password" placeholder="API Key..." className="w-full p-1 text-[8px] border-b opacity-10 shrink-0" value={apiKey} onChange={e => {setApiKey(e.target.value); localStorage.setItem('imp_key', e.target.value);}} />
-                            </>                                                 ) : (
+                            </>
+                        ) : (
                             <div className="p-4 text-center">
                                 {gameState === 'reveal' && (
                                     <div className="space-y-6 py-4 flex flex-col items-center">
@@ -1376,11 +1421,13 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                             {players[gameData.currentPlayer]}
                                         </h2>
                                         
-                                        <div className="card-flip-scene" onClick={() => !gameData.showingWord && setGameData({...gameData, showingWord: true})}>
+                                        <div className="card-flip-scene" onClick={() => !gameData.showingWord && !isTransitioning && setGameData({...gameData, showingWord: true})}>
                                             <div className={`card-flip-inner ${gameData.showingWord ? 'is-flipped' : ''}`}>
                                                 {/* FRONT */}
                                                 <div className="card-face card-face-front">
-                                                    <span className="text-2xl font-black italic underline uppercase" style={{color:'var(--gtext)'}}>Karte aufdecken</span>
+                                                    <span className="text-2xl font-black italic underline uppercase" style={{color:'var(--gtext)'}}>
+                                                        {isTransitioning ? '...' : 'Karte aufdecken'}
+                                                    </span>
                                                 </div>
                                                 {/* BACK */}
                                                 <div className={`card-face card-face-back ${gameData.imposterIndices.includes(gameData.currentPlayer) ? 'is-imposter' : 'is-word'}`}>
@@ -1399,14 +1446,14 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                                             </div>
                                         </div>
 
+                                        {/* FIX 2: "Verstanden" uses handleVerstandenV2 which flips back first */}
                                         {gameData.showingWord && (
-                                            <button onClick={() => {
-                                                if(gameData.currentPlayer + 1 < players.length) {
-                                                    setGameData({...gameData, currentPlayer: gameData.currentPlayer + 1, showingWord: false});
-                                                } else {
-                                                    setGameState('play');
-                                                }
-                                            }} className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase">
+                                            <button 
+                                                onClick={handleVerstandenV2}
+                                                disabled={isTransitioning}
+                                                className="w-full bg-black text-white py-4 font-black text-xl neo-box uppercase"
+                                                style={{opacity: isTransitioning ? 0.5 : 1}}
+                                            >
                                                 Verstanden
                                             </button>
                                         )}
@@ -1416,25 +1463,21 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                              {gameState === 'play' && (
     <div className={`py-8 flex flex-col items-center space-y-6 h-full ${timeLeft === 0 && timerMinutes > 0 ? 'animate-pulse' : ''}`}>
         
-        {/* Timer Anzeige */}
         {timerMinutes > 0 && (
             <div className={`text-6xl font-black px-6 py-2 border-4 border-black neo-box shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target ${timeLeft < 10 ? 'text-red-600 border-red-600' : ''}`}>
                 {formatTime(timeLeft)}
             </div>
         )}
 
-        {/* Startspieler Anzeige - Verschwindet nach 5 Sekunden mit Animation */}
         <div className={`w-full transition-all duration-500 overflow-hidden ${showBeginner ? 'max-h-40 opacity-100 mb-4' : 'max-h-0 opacity-0 mb-0'}`}>
             <div className="bg-yellow-300 border-4 border-black p-5 neo-box glass-target">
                 <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">Die Runde eröffnet:</p>
                 <h3 className="text-3xl font-black uppercase italic flex items-center gap-3 text-black">
-            
-            {players[gameData.startingPlayer]}
+                    {players[gameData.startingPlayer]}
                 </h3>
             </div>
         </div>
 
-        {/* Titel & Info */}
         <div className="text-center space-y-2 py-4">
             <h2 className="text-6xl font-black text-red-600 italic animate-bounce uppercase tracking-tighter">
                 Diskussion!
@@ -1446,19 +1489,14 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
             </div>
         </div>
 
-       {/* Button zum Beenden mit Schatten */}
-<button 
-    onClick={() => setGameState('finish')} 
-    className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase active:scale-95 active:shadow-none transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target"
->
-    Auflösen
-</button>
-
+        <button 
+            onClick={() => setGameState('finish')} 
+            className="w-full bg-black text-white py-6 font-black text-2xl neo-box uppercase active:scale-95 active:shadow-none transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] glass-target"
+        >
+            Auflösen
+        </button>
     </div>
 )}
-
-
-
 
                                {gameState === 'finish' && (
     <div className="py-10 flex flex-col items-center space-y-6 text-center">
@@ -1470,7 +1508,6 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
             <div key={idx} className="text-4xl font-black text-red-600 italic uppercase tracking-tighter">{players[idx]}</div>
         )) : <div className="text-4xl font-black text-green-600 italic uppercase">Niemand</div>}
         
-        {/* HIER DIE ÄNDERUNG: Zeigt das Thema UND das Wort an */}
         <div className="flex flex-col gap-1 mt-4">
             <div className="text-[10px] font-black uppercase opacity-50">Kategorie: {gameData.topic}</div>
             <div className="text-lg font-bold bg-gray-100 p-4 border-2 border-black uppercase">Das Wort: {gameData.word}</div>
@@ -1490,7 +1527,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
 
                             </div>
                         )}
-                    </div> {/* Ende game-card */}
+                    </div>
 
                     {deleteConfirm && (
                         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6">
@@ -1504,7 +1541,7 @@ setGameData({ word, hint, imposterIndices: indices, currentPlayer: 0, showingWor
                             </div>
                         </div>
                     )}
-                </div> // Ende main-container
+                </div>
             );
         };
 
