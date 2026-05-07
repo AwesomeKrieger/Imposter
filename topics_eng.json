@@ -1098,7 +1098,7 @@
     }
   },
   "4 🏀Lifestyle": {
-    "Jugendwörter": {
+    "German Slang": {
       "examples": [
         "Rizz",
         "Aura",
@@ -1488,7 +1488,7 @@
         ]
       ]
     },
-    "Essen": {
+    "food": {
       "examples": [
         "Pizza",
         "Kebab",
@@ -2154,7 +2154,7 @@
         ]
       ]
     },
-    "Internet & Zeitgeist": {
+    "Internet": {
       "pairs": [
         [
           "TikTok",
@@ -2937,7 +2937,7 @@
       ]
     }
   },
-  "🧪Technik & Wissen": {
+  "🧪Technic & Knowledge": {
     "Weltraum": {
       "examples": [
         "Void",
@@ -3008,7 +3008,7 @@
         ]
       ]
     },
-    "Technologie": {
+    "Technology": {
       "examples": [
         "Power",
         "Code",
@@ -3079,7 +3079,7 @@
       ]
     }
   },
-  "3 📺UNTERHALTUNG": {
+  "3 📺Entertainment": {
     "Streaming & TV": {
       "pairs": [
         [
@@ -4416,7 +4416,7 @@
         ]
       ]
     },
-    "Disney Klassiker": {
+    "Disney Classics": {
       "pairs": [
         [
           "Mickey Mouse",
@@ -4804,7 +4804,7 @@
         ]
       ]
     },
-    "Musik & Weltstars": {
+    "Music & Stars": {
       "pairs": [
         [
           "The Beatles",
@@ -5181,7 +5181,7 @@
       ]
     }
   },
-  "5 🫦ERWACHSENE": {
+  "5 🫦Adult": {
     "Dating & Beziehung": {
       "pairs": [
         [
@@ -5554,7 +5554,7 @@
         ]
       ]
     },
-    "Bettgeschichten": {
+    "Bedstories": {
       "pairs": [
         [
           "Pillow",
@@ -5962,7 +5962,7 @@
         ]
       ]
     },
-    "Tabu & Kinks": {
+    "Taboo & Kinks": {
       "pairs": [
         [
           "Handcuffs",
@@ -6363,7 +6363,7 @@
       ]
     }
   },
-  "1 🌍ALLGEMEINES": {
+  "1 🌍General": {
     "Rund um die Welt": {
       "pairs": [
         [
@@ -6768,7 +6768,7 @@
         ]
       ]
     },
-    "Typisch Deutsch": {
+    "Typical German": {
       "pairs": [
         [
           "Currywurst",
@@ -7156,7 +7156,7 @@
         ]
       ]
     },
-    "Schule & Wissen": {
+    "School": {
       "pairs": [
         [
           "Ruler",
